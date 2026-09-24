@@ -60,10 +60,19 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
   const isExpanded = expandedIcon === service.icon;
   const isCompact = expandedIcon !== null && !isExpanded;
 
+  const handleClick = () => {
+    if (!window.matchMedia("(hover: none)").matches) return;
+    setExpandedIcon(isExpanded ? null : service.icon);
+  };
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") setExpandedIcon(service.icon);
+  };
+
   if (isCompact) {
     return (
       <div
-        onMouseEnter={() => setExpandedIcon(service.icon)}
+        onPointerEnter={handlePointerEnter}
+        onClick={handleClick}
         className="flex flex-col items-center justify-center gap-3 rounded-[14px] border border-line/25 bg-surface px-3 py-8 transition-all duration-500 ease-in-out md:h-full md:basis-[104px] md:grow-0 md:shrink-0"
       >
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] bg-surface2">
@@ -76,7 +85,8 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
 
   return (
     <div
-      onMouseEnter={() => setExpandedIcon(service.icon)}
+      onPointerEnter={handlePointerEnter}
+      onClick={handleClick}
       className={`rounded-[14px] border bg-surface px-6 pt-[26px] pb-6 transition-all duration-500 ease-in-out md:basis-0 md:grow ${
         isExpanded ? "border-gold-bright/50 shadow-[0_20px_45px_-20px_rgba(156,122,46,0.4)]" : "border-line/25"
       }`}

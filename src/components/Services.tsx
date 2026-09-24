@@ -19,7 +19,9 @@ export default function Services() {
         </div>
 
         <div
-          onMouseLeave={() => setExpandedIcon(null)}
+          onPointerLeave={(e) => {
+            if (e.pointerType === "mouse") setExpandedIcon(null);
+          }}
           className="mt-8 flex flex-col items-stretch gap-5 md:flex-row"
         >
           {t.services.map((s) => (
