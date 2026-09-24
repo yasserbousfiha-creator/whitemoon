@@ -6,10 +6,10 @@ import { Content } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 
 const brands = [
-  { icon: siInstagram, href: (t: Content) => t.instagramUrl, bg: "#E4405F", fg: "#fff" },
-  { icon: siTiktok, href: (t: Content) => t.tiktokUrl, bg: "#000", fg: "#fff" },
-  { icon: siSnapchat, href: (t: Content) => t.snapchatUrl, bg: "#FFFC00", fg: "#000" },
-  { icon: siWhatsapp, href: (t: Content) => t.whatsappUrl, bg: "#25D366", fg: "#fff" },
+  { icon: siInstagram, href: (t: Content) => t.instagramUrl },
+  { icon: siTiktok, href: (t: Content) => t.tiktokUrl },
+  { icon: siSnapchat, href: (t: Content) => t.snapchatUrl },
+  { icon: siWhatsapp, href: (t: Content) => t.whatsappUrl },
 ];
 
 export default function TopUtilityBar() {
@@ -31,15 +31,14 @@ export default function TopUtilityBar() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {brands.map(({ icon, href, bg, fg }) => (
+          {brands.map(({ icon, href }) => (
             <a
               key={icon.title}
               href={href(t)}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={icon.title}
-              style={{ backgroundColor: bg, color: fg }}
-              className="grid h-6 w-6 place-items-center rounded-md transition-transform hover:scale-110"
+              className="grid h-6 w-6 place-items-center text-ink-soft transition-colors hover:text-ink"
             >
               <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor" aria-hidden>
                 <path d={icon.path} />
