@@ -4,6 +4,7 @@ import SpecialtyHighlights from "@/components/SpecialtyHighlights";
 import Intro from "@/components/Intro";
 import Services from "@/components/Services";
 import Journey from "@/components/Journey";
+import Booking from "@/components/Booking";
 import Testimonials from "@/components/Testimonials";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
@@ -30,6 +31,9 @@ export default function Home() {
         </RevealOnScroll>
         <RevealOnScroll>
           <Journey />
+        </RevealOnScroll>
+        <RevealOnScroll>
+          <Booking />
         </RevealOnScroll>
         <RevealOnScroll>
           <Testimonials />

@@ -39,7 +39,25 @@ export interface Testimonial {
   quote: string;
 }
 
+export interface BookingStrings {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  name: string;
+  phone: string;
+  email: string;
+  service: string;
+  branch: string;
+  select: string;
+  submit: string;
+  sending: string;
+  success: string;
+  error: string;
+  invalid: string;
+}
+
 export interface Branch {
+  id: "khamseen" | "shahar" | "wisam";
   name: string;
   address: string;
 }
@@ -87,6 +105,8 @@ export interface Content {
   journeyEyebrow: string;
   journeyHeading: string;
   journeyPhases: JourneyPhase[];
+
+  booking: BookingStrings;
 
   testimonialsEyebrow: string;
   testimonialsHeading: string;
@@ -201,6 +221,22 @@ export const arContent: Content = {
     { step: "03", icon: "diagnose", name: "التشخيص", desc: "فحص دقيق وخطة علاج مخصصة" },
     { step: "04", icon: "result", name: "العلاج والنتيجة", desc: "عناية دقيقة ونتيجة مشرقة" },
   ],
+  booking: {
+    eyebrow: "احجز موعدك",
+    heading: "احجز زيارتك في دقيقة",
+    intro: "اختر التخصص والفرع وأرسل بياناتك، وسيتواصل معك فريق الفرع لتأكيد الموعد.",
+    name: "الاسم الكامل",
+    phone: "رقم الجوال",
+    email: "البريد الإلكتروني",
+    service: "التخصص",
+    branch: "الفرع",
+    select: "اختر...",
+    submit: "إرسال طلب الحجز",
+    sending: "جارٍ الإرسال...",
+    success: "تم استلام طلبك، سنتواصل معك قريبًا لتأكيد الموعد.",
+    error: "تعذّر إرسال الطلب، حاول مرة أخرى أو تواصل معنا عبر واتساب.",
+    invalid: "يرجى تعبئة جميع الحقول بشكل صحيح.",
+  },
   testimonialsEyebrow: "آراء عملائنا",
   testimonialsHeading: "ثقة نراها في كل زيارة",
   // Placeholder reviews — replace with real patient testimonials before launch.
@@ -214,9 +250,9 @@ export const arContent: Content = {
   branchesLabel: "فروعنا",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف" },
-    { name: "فرع شهار", address: "حي شهار، الطائف" },
-    { name: "فرع الوسام", address: "حي الوسام، الطائف" },
+    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف" },
+    { id: "shahar", name: "فرع شهار", address: "حي شهار، الطائف" },
+    { id: "wisam", name: "فرع الوسام", address: "حي الوسام، الطائف" },
   ],
   workingHoursValue: "يوميًا من 9 صباحًا حتى 10 مساءً",
   phoneLabel: "الهاتف وواتساب",
@@ -320,6 +356,22 @@ export const enContent: Content = {
     { step: "03", icon: "diagnose", name: "Diagnosis", desc: "Careful exam, a plan built for you" },
     { step: "04", icon: "result", name: "Treatment & Result", desc: "Precise care, a radiant result" },
   ],
+  booking: {
+    eyebrow: "Book an Appointment",
+    heading: "Book your visit in a minute",
+    intro: "Choose the specialty and branch, send your details, and the branch team will contact you to confirm.",
+    name: "Full name",
+    phone: "Mobile number",
+    email: "Email",
+    service: "Specialty",
+    branch: "Branch",
+    select: "Select...",
+    submit: "Send booking request",
+    sending: "Sending...",
+    success: "Your request was received. We will contact you soon to confirm.",
+    error: "We could not send your request. Please try again or contact us on WhatsApp.",
+    invalid: "Please fill in all fields correctly.",
+  },
   testimonialsEyebrow: "What Our Patients Say",
   testimonialsHeading: "Trust we see in every visit",
   // Placeholder reviews — replace with real patient testimonials before launch.
@@ -333,9 +385,9 @@ export const enContent: Content = {
   branchesLabel: "Our Branches",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif" },
-    { name: "Shahar Branch", address: "Shahar District, Taif" },
-    { name: "Al-Wisam Branch", address: "Al-Wisam District, Taif" },
+    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif" },
+    { id: "shahar", name: "Shahar Branch", address: "Shahar District, Taif" },
+    { id: "wisam", name: "Al-Wisam Branch", address: "Al-Wisam District, Taif" },
   ],
   workingHoursValue: "Daily, 9 AM – 10 PM",
   phoneLabel: "Phone & WhatsApp",

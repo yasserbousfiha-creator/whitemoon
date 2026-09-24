@@ -56,7 +56,7 @@ export default function Header() {
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection("contact")}
+              onClick={() => scrollToSection("booking")}
               className="rounded-full bg-gold-bright px-5 py-2 text-[14px] font-semibold text-night2 transition-transform hover:scale-[1.03]"
             >
               {t.ctaBookNow}
@@ -110,7 +110,7 @@ export default function Header() {
               type="button"
               onClick={() => {
                 setMenuOpen(false);
-                scrollToSection("contact");
+                scrollToSection("booking");
               }}
               className="mt-6 rounded-full bg-gold-bright px-5 py-3 text-[14px] font-semibold text-night2"
             >
