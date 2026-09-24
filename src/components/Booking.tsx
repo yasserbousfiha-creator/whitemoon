@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { addEntry } from "@/lib/contest";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 
@@ -13,6 +14,7 @@ export default function Booking() {
   const { t } = useLocale();
   const b = t.booking;
   const [status, setStatus] = useState<Status>("idle");
+  const [entryNumber, setEntryNumber] = useState<number | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function Booking() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
+        setEntryNumber(addEntry(String(data.name), String(data.phone)));
         form.reset();
         setStatus("success");
       } else {
@@ -94,7 +97,16 @@ export default function Booking() {
           </button>
 
           <div aria-live="polite" className="text-[14px] md:col-span-2">
-            {status === "success" && <p className="text-gold">{b.success}</p>}
+            {status === "success" && (
+              <>
+                <p className="text-gold">{b.success}</p>
+                {entryNumber !== null && (
+                  <p className="mt-1 font-bold text-ink">
+                    {t.contest.entered} #{entryNumber}
+                  </p>
+                )}
+              </>
+            )}
             {status === "error" && <p className="text-red-600">{b.error}</p>}
             {status === "invalid" && <p className="text-red-600">{b.invalid}</p>}
           </div>

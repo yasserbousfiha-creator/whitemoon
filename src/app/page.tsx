@@ -5,6 +5,7 @@ import Intro from "@/components/Intro";
 import Services from "@/components/Services";
 import Journey from "@/components/Journey";
 import Booking from "@/components/Booking";
+import Contest from "@/components/Contest";
 import Testimonials from "@/components/Testimonials";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
@@ -34,6 +35,9 @@ export default function Home() {
         </RevealOnScroll>
         <RevealOnScroll>
           <Booking />
+        </RevealOnScroll>
+        <RevealOnScroll>
+          <Contest />
         </RevealOnScroll>
         <RevealOnScroll>
           <Testimonials />

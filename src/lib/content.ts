@@ -56,6 +56,22 @@ export interface BookingStrings {
   invalid: string;
 }
 
+export interface ContestStrings {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  prizeLabel: string;
+  prize: string;
+  daysLeft: string;
+  participants: string;
+  winnerLabel: string;
+  noWinner: string;
+  demoNote: string;
+  drawButton: string;
+  noEntries: string;
+  entered: string;
+}
+
 export interface Branch {
   id: "khamseen" | "shahar" | "wisam";
   name: string;
@@ -107,6 +123,7 @@ export interface Content {
   journeyPhases: JourneyPhase[];
 
   booking: BookingStrings;
+  contest: ContestStrings;
 
   testimonialsEyebrow: string;
   testimonialsHeading: string;
@@ -236,6 +253,21 @@ export const arContent: Content = {
     success: "تم استلام طلبك، سنتواصل معك قريبًا لتأكيد الموعد.",
     error: "تعذّر إرسال الطلب، حاول مرة أخرى أو تواصل معنا عبر واتساب.",
     invalid: "يرجى تعبئة جميع الحقول بشكل صحيح.",
+  },
+  contest: {
+    eyebrow: "مسابقة الشهر",
+    heading: "اشترِ خدمتك وادخل السحب على خدمة مجانية",
+    intro: "كل من يحجز ويشتري خدمة من الموقع خلال الشهر يدخل السحب تلقائيًا، وفي نهاية الشهر نختار فائزًا واحدًا.",
+    prizeLabel: "الجائزة",
+    prize: "خدمة مجانية من اختيارك",
+    daysLeft: "يوم على نهاية السحب",
+    participants: "مشارك هذا الشهر",
+    winnerLabel: "فائز هذا الشهر",
+    noWinner: "لم يُحدَّد الفائز بعد",
+    demoNote: "نسخة تجريبية: الشراء وهمي، والمشاركات تُحفظ في هذا المتصفح فقط.",
+    drawButton: "سحب الفائز (تجريبي)",
+    noEntries: "لا توجد مشاركات بعد. احجز خدمة لتكون أول المشاركين.",
+    entered: "تم إدخالك في سحب هذا الشهر. رقم مشاركتك:",
   },
   testimonialsEyebrow: "آراء عملائنا",
   testimonialsHeading: "ثقة نراها في كل زيارة",
@@ -371,6 +403,21 @@ export const enContent: Content = {
     success: "Your request was received. We will contact you soon to confirm.",
     error: "We could not send your request. Please try again or contact us on WhatsApp.",
     invalid: "Please fill in all fields correctly.",
+  },
+  contest: {
+    eyebrow: "Monthly Contest",
+    heading: "Buy a service and enter the draw for a free one",
+    intro: "Everyone who books and buys a service on the site this month is entered automatically, and at month end we pick one winner.",
+    prizeLabel: "Prize",
+    prize: "A free service of your choice",
+    daysLeft: "days until the draw",
+    participants: "entries this month",
+    winnerLabel: "This month's winner",
+    noWinner: "No winner drawn yet",
+    demoNote: "Demo version: the purchase is simulated and entries are saved in this browser only.",
+    drawButton: "Draw winner (demo)",
+    noEntries: "No entries yet. Book a service to be the first.",
+    entered: "You are entered in this month's draw. Your entry number:",
   },
   testimonialsEyebrow: "What Our Patients Say",
   testimonialsHeading: "Trust we see in every visit",
