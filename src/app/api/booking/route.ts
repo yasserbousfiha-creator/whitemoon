@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { BRANCHES, BranchId, SERVICES, ServiceId } from "@/lib/booking-labels";
 import { formatDay, formatTime, isBookable } from "@/lib/slots";
+import { toAsciiDigits } from "@/lib/wheel";
 import { createServiceClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const phone = typeof body.phone === "string" ? toAsciiDigits(body.phone).trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const service = body.service as ServiceId;
   const branch = body.branch as BranchId;

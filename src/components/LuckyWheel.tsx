@@ -113,12 +113,17 @@ export default function LuckyWheel() {
       }
       const r: Result = await res.json();
       setResult(r);
+      // This number already used its spin this month: refuse outright instead of spinning again.
+      if (r.alreadySpun) {
+        setPhase("done");
+        return;
+      }
       // Land a random one of this prize's slices under the pointer, a little off-centre so it looks natural.
       const candidates = SLICES.flatMap((id, i) => (id === r.prize ? [i] : []));
       const slice = candidates[Math.floor(Math.random() * candidates.length)];
       const jitter = (Math.random() - 0.5) * SLICE_DEG * 0.6;
       const target = 360 - (slice * SLICE_DEG + SLICE_DEG / 2) + jitter;
-      setRotation((prev) => prev - (prev % 360) + 360 * (r.alreadySpun ? 1 : 6) + target);
+      setRotation((prev) => prev - (prev % 360) + 360 * 6 + target);
     } catch {
       setPhase("error");
     }
@@ -142,7 +147,11 @@ export default function LuckyWheel() {
           {phase === "done" && result ? (
             <div className="mt-6 rounded-2xl border border-gold-bright/60 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(156,122,46,0.35)]">
               <Gift size={26} className="text-gold" />
-              <p className="mt-3 text-[13px] text-ink-soft">{result.alreadySpun ? w.already : w.won}</p>
+              {result.alreadySpun ? (
+                <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[13.5px] font-bold text-amber-900">{w.already}</p>
+              ) : (
+                <p className="mt-3 text-[13px] text-ink-soft">{w.won}</p>
+              )}
               <p className="mt-1 font-display text-[21px] font-bold text-ink">{prizeLabel(result.prize, locale)}</p>
               <p className="mt-4 text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
                 {w.code}

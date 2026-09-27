@@ -25,9 +25,16 @@ export function monthEnd(month: string) {
   return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 }
 
-// Saudi mobiles typed as 05…, 5… or +966… all become 9665…; other numbers keep their digits.
+// Arabic-Indic (٠-٩) and Persian (۰-۹) digits, as phone keyboards often type them, become ASCII.
+export function toAsciiDigits(s: string) {
+  return s.replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660)).replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0));
+}
+
+// One canonical form per Saudi mobile, so the once-a-month rule can't be dodged by retyping the same number:
+// 05…, 5…, +9665…, 009665… and +966 05… (extra trunk zero) all become 9665…; other numbers keep their digits.
 export function normalizePhone(phone: string) {
-  const digits = phone.replace(/\D/g, "").replace(/^00/, "");
+  let digits = toAsciiDigits(phone).replace(/\D/g, "").replace(/^00/, "");
+  if (digits.startsWith("9660")) digits = `966${digits.slice(4)}`;
   if (digits.startsWith("05") && digits.length === 10) return `966${digits.slice(1)}`;
   if (digits.startsWith("5") && digits.length === 9) return `966${digits}`;
   return digits;

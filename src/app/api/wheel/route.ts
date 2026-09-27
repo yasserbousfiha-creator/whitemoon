@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase";
-import { PRIZES, type PrizeId, monthEnd, normalizePhone, riyadhMonth } from "@/lib/wheel";
+import { PRIZES, type PrizeId, monthEnd, normalizePhone, riyadhMonth, toAsciiDigits } from "@/lib/wheel";
 
 export const runtime = "nodejs";
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  const rawPhone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const rawPhone = typeof body.phone === "string" ? toAsciiDigits(body.phone).trim() : "";
   const phone = normalizePhone(rawPhone);
   if (name.length < 2 || name.length > 100 || !/^[+\d][\d\s-]{6,19}$/.test(rawPhone) || phone.length < 8) {
     return Response.json({ ok: false, error: "invalid" }, { status: 400 });
