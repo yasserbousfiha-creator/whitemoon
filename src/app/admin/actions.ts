@@ -63,8 +63,8 @@ export async function redeemSpin(id: number): Promise<UpdateResult> {
   const userId = data?.claims.sub;
   if (!userId) return { ok: false, error: "انتهت الجلسة، سجّل الدخول من جديد." };
 
-  const { data: visible } = await supabase.from("wheel_spins").select("id").eq("id", id).maybeSingle();
-  if (!visible) return { ok: false, error: "لا تملك صلاحية على هذه الجائزة." };
+  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
+  if (!staff) return { ok: false, error: "هذا الحساب غير مسجّل كموظف." };
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
