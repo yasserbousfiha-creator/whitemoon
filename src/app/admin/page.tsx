@@ -72,11 +72,20 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const userId = claims?.claims.sub;
   if (!userId) redirect("/admin/login");
 
-  const { data: staff } = await supabase.from("staff").select("name, branch").eq("user_id", userId).maybeSingle();
+  const { data: staff, error: staffError } = await supabase
+    .from("staff")
+    .select("name, branch")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (!staff) {
+    if (staffError) console.error("Staff lookup failed:", staffError);
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg p-8 text-center">
-        <p>هذا الحساب غير مسجّل كموظف. اطلب من الإدارة إضافته.</p>
+        <p>
+          {staffError
+            ? `تعذّر التحقق من الحساب (${staffError.code ?? staffError.message}).`
+            : "هذا الحساب غير مسجّل كموظف. اطلب من الإدارة إضافته."}
+        </p>
         <form action={signOut}>
           <button className="rounded-full border border-line/40 px-5 py-2">تسجيل الخروج</button>
         </form>

@@ -57,6 +57,11 @@ create policy "staff update branch bookings" on public.bookings
   using (public.is_staff_for(branch))
   with check (public.is_staff_for(branch));
 
+-- Newer projects don't grant table access to API roles by default, so grant it explicitly.
+grant select on public.staff to authenticated;
+grant select on public.bookings to authenticated;
+grant select, insert on public.bookings to service_role;
+
 -- Staff may only change the workflow columns, never the patient's details.
 revoke update on public.bookings from authenticated;
 grant update (status, notes, updated_at, updated_by) on public.bookings to authenticated;
