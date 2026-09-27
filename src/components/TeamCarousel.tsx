@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, CircleUserRound } from "lucide-react";
 import { TeamMember } from "@/lib/content";
@@ -39,10 +40,23 @@ export default function TeamCarousel({ team }: { team: TeamMember[] }) {
         )}
 
         <div className="flex flex-col items-center gap-2">
-          <span className="grid h-16 w-16 place-items-center rounded-full border border-gold/25 bg-surface">
-            <CircleUserRound size={34} className="text-gold/70" strokeWidth={1.5} />
+          {member.photo ? (
+            <Image
+              src={member.photo}
+              alt={member.name ?? member.role}
+              width={96}
+              height={96}
+              className="h-24 w-24 rounded-full border-2 border-gold-bright/60 object-cover"
+            />
+          ) : (
+            <span className="grid h-16 w-16 place-items-center rounded-full border border-gold/25 bg-surface">
+              <CircleUserRound size={34} className="text-gold/70" strokeWidth={1.5} />
+            </span>
+          )}
+          <span className="text-center">
+            {member.name && <span className="block text-[14px] font-bold text-ink">{member.name}</span>}
+            <span className={member.name ? "block text-[12px] text-ink-soft" : "text-[13px] font-bold text-ink"}>{member.role}</span>
           </span>
-          <span className="text-[13px] font-bold text-ink">{member.role}</span>
         </div>
 
         {team.length > 1 && (
@@ -63,12 +77,12 @@ export default function TeamCarousel({ team }: { team: TeamMember[] }) {
       {team.length > 1 && (
         <div className="mt-3 flex items-center justify-center gap-1.5">
           {team.map((m, i) => (
-            <span key={m.role} className={`h-1.5 w-1.5 rounded-full ${i === index ? "bg-gold" : "bg-line/40"}`} />
+            <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === index ? "bg-gold" : "bg-line/40"}`} />
           ))}
         </div>
       )}
 
-      <p className="mt-3 text-center text-[11px] text-ink-soft">{t.teamPhotoNote}</p>
+      {team.some((m) => !m.photo) && <p className="mt-3 text-center text-[11px] text-ink-soft">{t.teamPhotoNote}</p>}
     </div>
   );
 }

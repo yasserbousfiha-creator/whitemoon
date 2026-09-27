@@ -11,8 +11,9 @@ export interface QualityBadge {
 
 export interface TeamMember {
   role: string;
-  // No real staff photos yet — leave undefined to show a placeholder avatar.
-  photoUrl?: string;
+  name?: string;
+  // Leave undefined to show a placeholder avatar.
+  photo?: string;
 }
 
 export interface ServiceContent {
@@ -221,7 +222,12 @@ export const arContent: Content = {
       extraLabel: "خارطة إشراقة البشرة",
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
-      team: [{ role: "استشارية جلدية" }, { role: "أخصائية تجميل" }],
+      team: [
+        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg" },
+        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg" },
+        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg" },
+        { name: "د. أحمد الثبيتي", role: "الجلدية والتجميل", photo: "/images/team/ahmed-althubaiti.jpg" },
+      ],
     },
     {
       icon: "laser",
@@ -377,7 +383,12 @@ export const enContent: Content = {
       extraLabel: "Skin Radiance Map",
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
-      team: [{ role: "Dermatology Consultant" }, { role: "Cosmetic Specialist" }],
+      team: [
+        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg" },
+        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg" },
+        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg" },
+        { name: "Dr. Ahmed Al-Thubaiti", role: "Dermatology & Aesthetics", photo: "/images/team/ahmed-althubaiti.jpg" },
+      ],
     },
     {
       icon: "laser",
