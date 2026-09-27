@@ -18,4 +18,17 @@ export interface Booking {
   source: "web" | "app";
   status: BookingStatus;
   notes: string | null;
+  appointment_date: string | null;
+  appointment_time: string | null; // "HH:MM:SS"
+}
+
+export interface WheelSpin {
+  id: number;
+  created_at: string;
+  month: string;
+  name: string;
+  phone: string;
+  prize: import("./wheel").PrizeId;
+  code: string;
+  redeemed_at: string | null;
 }

@@ -1,4 +1,4 @@
--- White Moon bookings. Run once in Supabase: SQL Editor → New query → paste → Run.
+-- White Moon bookings. Run once in Supabase: SQL Editor → New query → paste → Run. Then run 002_appointment_time.sql.
 --
 -- Bookings are inserted only by the website's booking API with the secret key (which bypasses row level security).
 -- Reception staff sign in to /admin; the policies below let each staff member see and update only their branch

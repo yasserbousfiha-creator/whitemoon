@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { addEntry } from "@/lib/contest";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
+import SlotPicker from "./SlotPicker";
 
 type Status = "idle" | "sending" | "success" | "error" | "invalid";
 
@@ -14,12 +14,17 @@ export default function Booking() {
   const { t } = useLocale();
   const b = t.booking;
   const [status, setStatus] = useState<Status>("idle");
-  const [entryNumber, setEntryNumber] = useState<number | null>(null);
+  const [date, setDate] = useState<string | null>(null);
+  const [time, setTime] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
+    if (!date || !time) {
+      setStatus("invalid");
+      return;
+    }
+    const data = { ...Object.fromEntries(new FormData(form)), date, time };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -28,8 +33,9 @@ export default function Booking() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        setEntryNumber(addEntry(String(data.name), String(data.phone)));
         form.reset();
+        setDate(null);
+        setTime(null);
         setStatus("success");
       } else {
         setStatus(res.status === 400 ? "invalid" : "error");
@@ -88,6 +94,16 @@ export default function Booking() {
             </select>
           </label>
 
+          <SlotPicker
+            date={date}
+            time={time}
+            onDate={(d) => {
+              setDate(d);
+              setTime(null);
+            }}
+            onTime={setTime}
+          />
+
           <button
             type="submit"
             disabled={status === "sending"}
@@ -97,16 +113,7 @@ export default function Booking() {
           </button>
 
           <div aria-live="polite" className="text-[14px] md:col-span-2">
-            {status === "success" && (
-              <>
-                <p className="text-gold">{b.success}</p>
-                {entryNumber !== null && (
-                  <p className="mt-1 font-bold text-ink">
-                    {t.contest.entered} #{entryNumber}
-                  </p>
-                )}
-              </>
-            )}
+            {status === "success" && <p className="text-gold">{b.success}</p>}
             {status === "error" && <p className="text-red-600">{b.error}</p>}
             {status === "invalid" && <p className="text-red-600">{b.invalid}</p>}
           </div>

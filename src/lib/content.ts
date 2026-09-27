@@ -48,6 +48,9 @@ export interface BookingStrings {
   email: string;
   service: string;
   branch: string;
+  date: string;
+  time: string;
+  pickDateFirst: string;
   select: string;
   submit: string;
   sending: string;
@@ -56,20 +59,23 @@ export interface BookingStrings {
   invalid: string;
 }
 
-export interface ContestStrings {
+export interface WheelStrings {
   eyebrow: string;
   heading: string;
   intro: string;
-  prizeLabel: string;
-  prize: string;
-  daysLeft: string;
-  participants: string;
-  winnerLabel: string;
-  noWinner: string;
-  demoNote: string;
-  drawButton: string;
-  noEntries: string;
-  entered: string;
+  name: string;
+  phone: string;
+  spin: string;
+  spinning: string;
+  won: string;
+  already: string;
+  code: string;
+  validUntil: string;
+  showCode: string;
+  book: string;
+  invalid: string;
+  error: string;
+  terms: string;
 }
 
 export interface Branch {
@@ -123,7 +129,7 @@ export interface Content {
   journeyPhases: JourneyPhase[];
 
   booking: BookingStrings;
-  contest: ContestStrings;
+  wheel: WheelStrings;
 
   testimonialsEyebrow: string;
   testimonialsHeading: string;
@@ -241,33 +247,39 @@ export const arContent: Content = {
   booking: {
     eyebrow: "احجز موعدك",
     heading: "احجز زيارتك في دقيقة",
-    intro: "اختر التخصص والفرع وأرسل بياناتك، وسيتواصل معك فريق الفرع لتأكيد الموعد.",
+    intro: "اختر التخصص والفرع واليوم والوقت المناسبين، وسيتواصل معك فريق الفرع لتأكيد الموعد.",
     name: "الاسم الكامل",
     phone: "رقم الجوال",
     email: "البريد الإلكتروني",
     service: "التخصص",
     branch: "الفرع",
+    date: "اليوم المفضّل",
+    time: "الوقت المفضّل",
+    pickDateFirst: "اختر اليوم أولاً لعرض الأوقات المتاحة.",
     select: "اختر...",
     submit: "إرسال طلب الحجز",
     sending: "جارٍ الإرسال...",
     success: "تم استلام طلبك، سنتواصل معك قريبًا لتأكيد الموعد.",
     error: "تعذّر إرسال الطلب، حاول مرة أخرى أو تواصل معنا عبر واتساب.",
-    invalid: "يرجى تعبئة جميع الحقول بشكل صحيح.",
+    invalid: "يرجى تعبئة جميع الحقول واختيار اليوم والوقت.",
   },
-  contest: {
-    eyebrow: "مسابقة الشهر",
-    heading: "اشترِ خدمتك وادخل السحب على خدمة مجانية",
-    intro: "كل من يحجز ويشتري خدمة من الموقع خلال الشهر يدخل السحب تلقائيًا، وفي نهاية الشهر نختار فائزًا واحدًا.",
-    prizeLabel: "الجائزة",
-    prize: "خدمة مجانية من اختيارك",
-    daysLeft: "يوم على نهاية السحب",
-    participants: "مشارك هذا الشهر",
-    winnerLabel: "فائز هذا الشهر",
-    noWinner: "لم يُحدَّد الفائز بعد",
-    demoNote: "نسخة تجريبية: الشراء وهمي، والمشاركات تُحفظ في هذا المتصفح فقط.",
-    drawButton: "سحب الفائز (تجريبي)",
-    noEntries: "لا توجد مشاركات بعد. احجز خدمة لتكون أول المشاركين.",
-    entered: "تم إدخالك في سحب هذا الشهر. رقم مشاركتك:",
+  wheel: {
+    eyebrow: "عجلة الحظ",
+    heading: "جرّب حظك واربح هدية",
+    intro: "أدر العجلة مرة واحدة كل شهر واربح إحدى هدايانا: كشف مجاني، أو خصم على التركيبات أو تقويم الأسنان.",
+    name: "الاسم",
+    phone: "رقم الجوال",
+    spin: "أدر العجلة",
+    spinning: "العجلة تدور…",
+    won: "مبروك! ربحت:",
+    already: "لقد أدرت العجلة هذا الشهر، وهذه جائزتك:",
+    code: "رمز الجائزة",
+    validUntil: "صالحة حتى",
+    showCode: "اعرض هذا الرمز على الاستقبال عند زيارتك.",
+    book: "احجز موعدك الآن",
+    invalid: "أدخل اسمك ورقم جوال صحيح.",
+    error: "تعذّر تدوير العجلة، حاول مرة أخرى.",
+    terms: "محاولة واحدة لكل رقم جوال في الشهر. الجائزة شخصية وغير قابلة للتحويل أو الاستبدال نقداً.",
   },
   testimonialsEyebrow: "آراء عملائنا",
   testimonialsHeading: "ثقة نراها في كل زيارة",
@@ -391,33 +403,39 @@ export const enContent: Content = {
   booking: {
     eyebrow: "Book an Appointment",
     heading: "Book your visit in a minute",
-    intro: "Choose the specialty and branch, send your details, and the branch team will contact you to confirm.",
+    intro: "Choose the specialty, branch, day and time that suit you, and the branch team will contact you to confirm.",
     name: "Full name",
     phone: "Mobile number",
     email: "Email",
     service: "Specialty",
     branch: "Branch",
+    date: "Preferred day",
+    time: "Preferred time",
+    pickDateFirst: "Pick a day to see the available times.",
     select: "Select...",
     submit: "Send booking request",
     sending: "Sending...",
     success: "Your request was received. We will contact you soon to confirm.",
     error: "We could not send your request. Please try again or contact us on WhatsApp.",
-    invalid: "Please fill in all fields correctly.",
+    invalid: "Please fill in every field and pick a day and time.",
   },
-  contest: {
-    eyebrow: "Monthly Contest",
-    heading: "Buy a service and enter the draw for a free one",
-    intro: "Everyone who books and buys a service on the site this month is entered automatically, and at month end we pick one winner.",
-    prizeLabel: "Prize",
-    prize: "A free service of your choice",
-    daysLeft: "days until the draw",
-    participants: "entries this month",
-    winnerLabel: "This month's winner",
-    noWinner: "No winner drawn yet",
-    demoNote: "Demo version: the purchase is simulated and entries are saved in this browser only.",
-    drawButton: "Draw winner (demo)",
-    noEntries: "No entries yet. Book a service to be the first.",
-    entered: "You are entered in this month's draw. Your entry number:",
+  wheel: {
+    eyebrow: "Lucky Wheel",
+    heading: "Spin and win a gift",
+    intro: "Spin once a month to win one of our gifts: a free consultation, or a discount on crowns & bridges or orthodontics.",
+    name: "Name",
+    phone: "Mobile number",
+    spin: "Spin the wheel",
+    spinning: "Spinning…",
+    won: "Congratulations! You won:",
+    already: "You've already spun this month. Here's your prize:",
+    code: "Prize code",
+    validUntil: "Valid until",
+    showCode: "Show this code at reception when you visit.",
+    book: "Book your appointment",
+    invalid: "Enter your name and a valid mobile number.",
+    error: "Couldn't spin the wheel. Please try again.",
+    terms: "One spin per mobile number per month. Prizes are personal and can't be transferred or exchanged for cash.",
   },
   testimonialsEyebrow: "What Our Patients Say",
   testimonialsHeading: "Trust we see in every visit",

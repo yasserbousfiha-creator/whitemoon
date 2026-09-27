@@ -5,7 +5,7 @@ import Intro from "@/components/Intro";
 import Services from "@/components/Services";
 import Journey from "@/components/Journey";
 import Booking from "@/components/Booking";
-import Contest from "@/components/Contest";
+import LuckyWheel from "@/components/LuckyWheel";
 import Testimonials from "@/components/Testimonials";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
@@ -37,7 +37,7 @@ export default function Home() {
           <Booking />
         </RevealOnScroll>
         <RevealOnScroll>
-          <Contest />
+          <LuckyWheel />
         </RevealOnScroll>
         <RevealOnScroll>
           <Testimonials />
