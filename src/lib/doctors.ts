@@ -7,6 +7,8 @@ type Shift = [start: string, end: string]; // "HH:MM"
 
 interface DoctorSchedule {
   names: string[]; // every display name (Arabic and English) that may arrive with a booking
+  branch: "khamseen" | "shahar" | "wisam"; // where they work: choosing another branch drops the doctor
+  service: "dentistry" | "derma" | "laser"; // their department: choosing another one drops the doctor
   days: number[]; // weekdays worked, 0 = Sunday … 6 = Saturday
   shifts: Shift[];
 }
@@ -16,6 +18,8 @@ const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   yasmine: {
     names: ["د. ياسمين", "Dr. Yasmine"],
+    branch: "khamseen",
+    service: "derma",
     days: EVERY_DAY,
     shifts: [
       ["09:30", "12:30"],
@@ -24,6 +28,8 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   },
   souad: {
     names: ["د. سعاد", "Dr. Souad"],
+    branch: "khamseen",
+    service: "derma",
     days: EVERY_DAY,
     shifts: [
       ["09:30", "12:30"],
@@ -32,11 +38,15 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   },
   "fatima-alzahraa": {
     names: ["د. فاطمة الزهراء", "Dr. Fatima Al-Zahraa"],
+    branch: "khamseen",
+    service: "derma",
     days: EVERY_DAY,
     shifts: [["13:30", "21:30"]],
   },
   "ahmed-althubaiti": {
     names: ["أحمد الثبيتي", "Ahmed Al-Thubaiti", "د. أحمد الثبيتي", "Dr. Ahmed Al-Thubaiti"],
+    branch: "khamseen",
+    service: "derma",
     days: [0, 3], // Sunday and Wednesday
     shifts: [["17:00", "21:00"]],
   },

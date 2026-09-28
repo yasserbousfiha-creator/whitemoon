@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { UserRound, X } from "lucide-react";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
-import type { DoctorId } from "@/lib/doctors";
+import { DOCTORS, type DoctorId } from "@/lib/doctors";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
@@ -27,6 +27,16 @@ export default function Booking() {
   const [doctorId, setDoctorId] = useState<DoctorId | null>(null);
   const [availabilityKey, setAvailabilityKey] = useState(0);
   const account = useAccount();
+
+  // Switching to a branch or department the chosen doctor does not work in drops the doctor, and the day/time
+  // picked from their schedule.
+  function dropDoctorUnless(field: "branch" | "service", value: string) {
+    if (!doctorId || DOCTORS[doctorId][field] === value) return;
+    setDoctor(null);
+    setDoctorId(null);
+    setDate(null);
+    setTime(null);
+  }
 
   useEffect(() => {
     const onPrefill = (e: Event) => {
@@ -148,7 +158,16 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.service}
-            <select name="service" required value={service} onChange={(e) => setService(e.target.value)} className={fieldClass}>
+            <select
+              name="service"
+              required
+              value={service}
+              onChange={(e) => {
+                setService(e.target.value);
+                dropDoctorUnless("service", e.target.value);
+              }}
+              className={fieldClass}
+            >
               <option value="" disabled>
                 {b.select}
               </option>
@@ -161,7 +180,16 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.branch}
-            <select name="branch" required value={branch} onChange={(e) => setBranch(e.target.value)} className={fieldClass}>
+            <select
+              name="branch"
+              required
+              value={branch}
+              onChange={(e) => {
+                setBranch(e.target.value);
+                dropDoctorUnless("branch", e.target.value);
+              }}
+              className={fieldClass}
+            >
               <option value="" disabled>
                 {b.select}
               </option>

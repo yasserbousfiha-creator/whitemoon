@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { BRANCHES, BranchId, SERVICES, ServiceId } from "@/lib/booking-labels";
-import { type DoctorId, doctorIdFromName, isBlocked, isDoctorId } from "@/lib/doctors";
+import { DOCTORS, type DoctorId, doctorIdFromName, isBlocked, isDoctorId } from "@/lib/doctors";
 import { formatDay, formatTime, isBookable } from "@/lib/slots";
 import { toAsciiDigits } from "@/lib/wheel";
 import { createServiceClient } from "@/lib/supabase";
@@ -100,9 +100,14 @@ export async function POST(request: Request) {
   const branch = body.branch as BranchId;
   const date = typeof body.date === "string" ? body.date : null;
   const time = typeof body.time === "string" ? body.time : null;
-  const doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
+  let doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
   // Newer clients send the id; older app versions only the display name.
-  const doctorId = isDoctorId(body.doctorId) ? body.doctorId : doctorIdFromName(doctor);
+  let doctorId = isDoctorId(body.doctorId) ? body.doctorId : doctorIdFromName(doctor);
+  // A doctor who does not work in the chosen branch/department is dropped rather than booked there.
+  if (doctorId && (DOCTORS[doctorId].branch !== body.branch || DOCTORS[doctorId].service !== body.service)) {
+    doctorId = null;
+    doctor = null;
+  }
 
   const valid =
     name.length >= 2 &&
