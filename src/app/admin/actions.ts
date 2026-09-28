@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { STATUSES, type BookingStatus } from "@/lib/booking-labels";
 import { type DoctorId, isDoctorId } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
+import { type DashboardData, loadDashboard } from "./data";
 
 export async function signIn(_prev: string | null, formData: FormData): Promise<string | null> {
   const email = String(formData.get("email") ?? "").trim();
@@ -91,7 +92,11 @@ export async function setScheduleBlock(
   start: string | null,
   closed: boolean,
 ): Promise<UpdateResult> {
-  if (!(doctor === "all" || isDoctorId(doctor)) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || (start !== null && !/^\d{2}:\d{2}$/.test(start))) {
+  if (
+    !(doctor === "all" || isDoctorId(doctor)) ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+    (start !== null && !/^\d{2}:\d{2}$/.test(start))
+  ) {
     return { ok: false, error: "طلب غير صالح." };
   }
 
@@ -123,4 +128,15 @@ export async function setScheduleBlock(
   }
   revalidatePath("/admin");
   return { ok: true };
+}
+
+// Fresh dashboard data for the client's periodic refresh (see Dashboard.tsx); null when not signed in as staff.
+export async function refreshDashboard(): Promise<DashboardData | null> {
+  const supabase = await createStaffClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub;
+  if (!userId) return null;
+  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
+  if (!staff) return null;
+  return loadDashboard(supabase);
 }

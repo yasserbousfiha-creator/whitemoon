@@ -14,7 +14,15 @@ const same = (a: BlockKey, b: BlockKey) => a.doctor === b.doctor && a.date === b
 
 // Reception opens a doctor and a day to see every slot: green = open, red = closed by the admin, grey = booked.
 // Tapping an open or closed slot toggles it; the day can be closed or reopened in one go.
-export default function SchedulePanel({ blocks, bookings }: { blocks: BlockKey[]; bookings: Booking[] }) {
+export default function SchedulePanel({
+  blocks,
+  bookings,
+  reload,
+}: {
+  blocks: BlockKey[];
+  bookings: Booking[];
+  reload: () => Promise<void>;
+}) {
   const [target, setTarget] = useState<Target>("yasmine");
   const [date, setDate] = useState(() => riyadhToday());
   const [current, applyChange] = useOptimistic(blocks, (state, c: Change) =>
@@ -29,6 +37,7 @@ export default function SchedulePanel({ blocks, bookings }: { blocks: BlockKey[]
       applyChange({ block, closed });
       const r = await setScheduleBlock(block.doctor, block.date, block.start, closed);
       if (!r.ok) setError(r.error);
+      else await reload();
     });
   }
 

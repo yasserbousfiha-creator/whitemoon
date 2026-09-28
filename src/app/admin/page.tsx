@@ -1,49 +1,13 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
-import type { Booking, BranchId, WheelSpin } from "@/lib/booking-labels";
-import { createServiceClient, createStaffClient, supabaseConfigured } from "@/lib/supabase";
-import type { DoctorId } from "@/lib/doctors";
-import { riyadhToday } from "@/lib/slots";
-import { riyadhMonth } from "@/lib/wheel";
+import type { BranchId } from "@/lib/booking-labels";
+import { createStaffClient, supabaseConfigured } from "@/lib/supabase";
 import { signOut } from "./actions";
-import AutoRefresh from "./AutoRefresh";
 import Dashboard from "./Dashboard";
+import { loadDashboard } from "./data";
 
 export const metadata: Metadata = { title: "لوحة الحجوزات | وايت مون", robots: { index: false } };
-
-// Every staff account may look up any wheel prize (patients redeem at any branch). Called only after the staff row is
-// confirmed, it reads with the server key rather than depending on per-table grants. Covers this month and last, so
-// a code won late last month can still be looked up.
-// Admin-closed days and slots from today on, for the schedule tab (read with the server key after the staff check).
-async function loadBlocks() {
-  const db = createServiceClient();
-  if (!db) return [];
-  const { data, error } = await db
-    .from("doctor_blocks")
-    .select("doctor, date, start_time")
-    .gte("date", riyadhToday())
-    .order("date");
-  if (error) console.error("Schedule blocks lookup failed:", error);
-  return (data ?? []).map((b) => ({
-    doctor: b.doctor as DoctorId | "all",
-    date: b.date as string,
-    start: b.start_time?.slice(0, 5) ?? null,
-  }));
-}
-
-async function loadSpins() {
-  const db = createServiceClient();
-  if (!db) return { data: null, error: { code: "config", message: "server key missing" } };
-  const lastMonth = riyadhMonth(new Date(Date.now() - 31 * 24 * 60 * 60 * 1000));
-  return db
-    .from("wheel_spins")
-    .select("id, created_at, month, name, phone, prize, code, redeemed_at")
-    .gte("month", lastMonth)
-    .order("created_at", { ascending: false })
-    .limit(1000)
-    .returns<WheelSpin[]>();
-}
 
 export default async function AdminPage() {
   // Always render per request: the data belongs to whoever is signed in.
@@ -57,19 +21,11 @@ export default async function AdminPage() {
   const userId = claims?.claims.sub;
   if (!userId) redirect("/admin/login");
 
-  // Row level security limits a branch account to its own branch for bookings.
-  const [{ data: staff, error: staffError }, { data: bookings, error }] = await Promise.all([
-    supabase.from("staff").select("name, branch").eq("user_id", userId).maybeSingle(),
-    supabase
-      .from("bookings")
-      .select(
-        "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id",
-      )
-      .order("created_at", { ascending: false })
-      .limit(500)
-      .returns<Booking[]>(),
-  ]);
-
+  const { data: staff, error: staffError } = await supabase
+    .from("staff")
+    .select("name, branch")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (!staff) {
     if (staffError) console.error("Staff lookup failed:", staffError);
     return (
@@ -86,27 +42,8 @@ export default async function AdminPage() {
     );
   }
 
-  const [{ data: spins, error: spinsError }, blocks] = await Promise.all([loadSpins(), loadBlocks()]);
-
-  if (error) console.error("Bookings lookup failed:", error);
-  if (spinsError) console.error("Wheel spins lookup failed:", spinsError);
+  // The dashboard then keeps itself up to date through the refreshDashboard action.
   return (
-    <>
-      <AutoRefresh />
-      {error ? (
-        <p className="bg-red-50 p-3 text-center text-sm text-red-700">تعذّر تحميل الحجوزات ({error.code ?? error.message}).</p>
-      ) : null}
-      {spinsError ? (
-        <p className="bg-red-50 p-3 text-center text-sm text-red-700">
-          تعذّر تحميل جوائز العجلة ({spinsError.code ?? spinsError.message}).
-        </p>
-      ) : null}
-      <Dashboard
-        staff={{ name: staff.name, branch: staff.branch as BranchId | null }}
-        bookings={bookings ?? []}
-        spins={spins ?? []}
-        blocks={blocks}
-      />
-    </>
+    <Dashboard staff={{ name: staff.name, branch: staff.branch as BranchId | null }} initial={await loadDashboard(supabase)} />
   );
 }

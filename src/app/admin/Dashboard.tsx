@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useCallback, useEffect, useOptimistic, useState, useTransition } from "react";
 import {
   BRANCHES,
   SERVICES,
@@ -9,13 +9,12 @@ import {
   type BookingStatus,
   type BranchId,
   type ServiceId,
-  type WheelSpin,
 } from "@/lib/booking-labels";
 import { formatDay, formatTime } from "@/lib/slots";
-import { signOut, updateBooking } from "./actions";
+import { refreshDashboard, signOut, updateBooking } from "./actions";
+import type { DashboardData } from "./data";
 import SchedulePanel from "./SchedulePanel";
 import SpinsPanel from "./SpinsPanel";
-import type { DoctorId } from "@/lib/doctors";
 
 const STATUS_STYLE: Record<BookingStatus, string> = {
   new: "bg-gold-bright text-night2",
@@ -54,7 +53,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({ booking, reload }: { booking: Booking; reload: () => Promise<void> }) {
   const [current, applyOptimistic] = useOptimistic(
     { status: booking.status, notes: booking.notes },
     (state, patch: { status?: BookingStatus; notes?: string }) => ({ ...state, ...patch }),
@@ -68,6 +67,8 @@ function BookingCard({ booking }: { booking: Booking }) {
     startTransition(async () => {
       applyOptimistic(patch);
       const result = await updateBooking(booking.id, patch);
+      // Pull fresh data before the transition ends, so the optimistic value hands over without flicking back.
+      if (result.ok) await reload();
       setMessage(result.ok ? { ok: true, text: "تم الحفظ ✓" } : { ok: false, text: result.error });
     });
   }
@@ -173,17 +174,36 @@ function BookingCard({ booking }: { booking: Booking }) {
 }
 
 // Filters run in the browser over the bookings the server already sent, so switching them is instant.
+const REFRESH_SECONDS = 20;
+
+const lastUpdatedFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { timeStyle: "medium", timeZone: "Asia/Riyadh" });
+
 export default function Dashboard({
   staff,
-  bookings,
-  spins,
-  blocks,
+  initial,
 }: {
   staff: { name: string; branch: BranchId | null };
-  bookings: Booking[];
-  spins: WheelSpin[];
-  blocks: { doctor: DoctorId | "all"; date: string; start: string | null }[];
+  initial: DashboardData;
 }) {
+  // Kept up to date by polling a server action (every 20 s, and on returning to the tab), plus right after each change.
+  const [data, setData] = useState(initial);
+  const { bookings, spins, blocks } = data;
+  const reload = useCallback(async () => {
+    const fresh = await refreshDashboard().catch(() => null);
+    if (fresh) setData(fresh);
+  }, []);
+  useEffect(() => {
+    const tick = () => document.visibilityState === "visible" && reload();
+    const id = setInterval(tick, REFRESH_SECONDS * 1000);
+    window.addEventListener("focus", tick);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", tick);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [reload]);
+
   const [tab, setTab] = useState<"bookings" | "spins" | "schedule">("bookings");
   const [status, setStatus] = useState<BookingStatus | null>(null);
   const [branch, setBranch] = useState<BranchId | null>(null);
@@ -220,6 +240,15 @@ export default function Dashboard({
           </div>
         </div>
       </header>
+      <p className="mx-auto max-w-5xl px-4 pt-2 text-xs text-ink-soft">
+        آخر تحديث: {lastUpdatedFormat.format(new Date(data.loadedAt))} · يتحدث تلقائياً كل {REFRESH_SECONDS} ثانية
+      </p>
+      {data.bookingsError && (
+        <p className="bg-red-50 p-3 text-center text-sm text-red-700">تعذّر تحميل الحجوزات ({data.bookingsError}).</p>
+      )}
+      {data.spinsError && (
+        <p className="bg-red-50 p-3 text-center text-sm text-red-700">تعذّر تحميل جوائز العجلة ({data.spinsError}).</p>
+      )}
 
       <nav className="mx-auto flex max-w-5xl gap-6 border-b border-line/20 px-4 pt-3">
         {(
@@ -241,9 +270,9 @@ export default function Dashboard({
       </nav>
 
       {tab === "schedule" ? (
-        <SchedulePanel blocks={blocks} bookings={bookings} />
+        <SchedulePanel blocks={blocks} bookings={bookings} reload={reload} />
       ) : tab === "spins" ? (
-        <SpinsPanel spins={spins} />
+        <SpinsPanel spins={spins} reload={reload} />
       ) : (
         <>
           <div className="mx-auto max-w-5xl space-y-3 px-4 pt-5">
@@ -278,7 +307,7 @@ export default function Dashboard({
           <section className="mx-auto mt-5 grid max-w-5xl gap-3 px-4 md:grid-cols-2">
             {shown.length === 0 && <p className="text-ink-soft">لا توجد حجوزات.</p>}
             {shown.map((b) => (
-              <BookingCard key={b.id} booking={b} />
+              <BookingCard key={b.id} booking={b} reload={reload} />
             ))}
           </section>
         </>

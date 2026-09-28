@@ -11,7 +11,7 @@ const dateFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
   timeZone: "Asia/Riyadh",
 });
 
-function SpinCard({ spin }: { spin: WheelSpin }) {
+function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<void> }) {
   const [redeemedAt, markRedeemed] = useOptimistic(spin.redeemed_at, (_state, at: string) => at);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +51,7 @@ function SpinCard({ spin }: { spin: WheelSpin }) {
               markRedeemed(new Date().toISOString());
               const r = await redeemSpin(spin.id);
               if (!r.ok) setError(r.error);
+              else await reload();
             })
           }
           className="mt-3 rounded-full bg-gold-bright px-4 py-1.5 text-sm font-bold text-night2 disabled:opacity-60"
@@ -64,13 +65,11 @@ function SpinCard({ spin }: { spin: WheelSpin }) {
 }
 
 // Reception types the code (or the patient's phone) to find a prize, then marks it used at the visit.
-export default function SpinsPanel({ spins }: { spins: WheelSpin[] }) {
+export default function SpinsPanel({ spins, reload }: { spins: WheelSpin[]; reload: () => Promise<void> }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toUpperCase();
   const phoneQuery = normalizePhone(query);
-  const shown = q
-    ? spins.filter((s) => s.code.includes(q) || (phoneQuery.length >= 4 && s.phone.includes(phoneQuery)))
-    : spins;
+  const shown = q ? spins.filter((s) => s.code.includes(q) || (phoneQuery.length >= 4 && s.phone.includes(phoneQuery))) : spins;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-5">
@@ -83,7 +82,7 @@ export default function SpinsPanel({ spins }: { spins: WheelSpin[] }) {
       <section className="mt-4 grid gap-3 md:grid-cols-2">
         {shown.length === 0 && <p className="text-ink-soft">لا توجد جوائز.</p>}
         {shown.map((s) => (
-          <SpinCard key={s.id} spin={s} />
+          <SpinCard key={s.id} spin={s} reload={reload} />
         ))}
       </section>
     </div>
