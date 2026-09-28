@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { CalendarCheck } from "lucide-react";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { ServiceContent } from "@/lib/content";
@@ -62,8 +63,14 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
   const isExpanded = expandedIcon === service.icon;
   const isCompact = expandedIcon !== null && !isExpanded;
 
+  // Mouse users open cards by hovering; any other press (finger, pen) toggles on tap. Decided per press rather than
+  // by the (hover: none) media query, which some phone browsers report wrongly, leaving the card impossible to open.
+  const lastPointer = useRef<string>("mouse");
+  const handlePointerDown = (e: React.PointerEvent) => {
+    lastPointer.current = e.pointerType;
+  };
   const handleClick = () => {
-    if (!window.matchMedia("(hover: none)").matches) return;
+    if (lastPointer.current === "mouse") return;
     setExpandedIcon(isExpanded ? null : service.icon);
   };
   const handlePointerEnter = (e: React.PointerEvent) => {
@@ -74,6 +81,7 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
     return (
       <div
         onPointerEnter={handlePointerEnter}
+        onPointerDown={handlePointerDown}
         onClick={handleClick}
         className="flex flex-col items-center justify-center gap-3 rounded-[14px] border border-line/25 bg-surface px-3 py-8 transition-all duration-500 ease-in-out md:h-full md:basis-[104px] md:grow-0 md:shrink-0"
       >
@@ -88,6 +96,7 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
   return (
     <div
       onPointerEnter={handlePointerEnter}
+      onPointerDown={handlePointerDown}
       onClick={handleClick}
       className={`rounded-[14px] border bg-surface px-6 pt-[26px] pb-6 transition-all duration-500 ease-in-out md:basis-0 md:grow ${
         isExpanded ? "border-gold-bright/50 shadow-[0_20px_45px_-20px_rgba(156,122,46,0.4)]" : "border-line/25"
