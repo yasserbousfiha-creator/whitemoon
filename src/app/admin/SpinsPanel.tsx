@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import type { WheelSpin } from "@/lib/booking-labels";
-import { normalizePhone, prizeLabel, riyadhMonth } from "@/lib/wheel";
+import { localPhone, localPhoneQuery, prizeLabel, riyadhMonth } from "@/lib/wheel";
 import { redeemSpin } from "./actions";
 
 const dateFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
@@ -35,7 +35,7 @@ function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<voi
         </span>
       </div>
       <p className="mt-2 text-sm">
-        {spin.name} · <span dir="ltr">+{spin.phone}</span>
+        {spin.name} · <span dir="ltr">{localPhone(spin.phone)}</span>
       </p>
       <p className="mt-1 text-xs text-ink-soft">
         رُبحت {dateFormat.format(new Date(spin.created_at))}
@@ -68,8 +68,11 @@ function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<voi
 export default function SpinsPanel({ spins, reload }: { spins: WheelSpin[]; reload: () => Promise<void> }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toUpperCase();
-  const phoneQuery = normalizePhone(query);
-  const shown = q ? spins.filter((s) => s.code.includes(q) || (phoneQuery.length >= 4 && s.phone.includes(phoneQuery))) : spins;
+  // Phones are matched in local 05… form, so any part of the number as people type it finds the prize.
+  const phoneQuery = localPhoneQuery(query);
+  const shown = q
+    ? spins.filter((s) => s.code.includes(q) || (phoneQuery.length >= 3 && localPhone(s.phone).includes(phoneQuery)))
+    : spins;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-5">

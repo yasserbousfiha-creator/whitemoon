@@ -39,3 +39,15 @@ export function normalizePhone(phone: string) {
   if (digits.startsWith("5") && digits.length === 9) return `966${digits}`;
   return digits;
 }
+
+// Stored 9665XXXXXXXX shown the way people write it locally: 05XXXXXXXX.
+export const localPhone = (phone: string) => (phone.startsWith("966") ? `0${phone.slice(3)}` : phone);
+
+// Digits typed into a search box (05…, 5…, +966…, Arabic-Indic) in the same local form, for partial matching.
+export function localPhoneQuery(query: string) {
+  const digits = toAsciiDigits(query).replace(/\D/g, "").replace(/^00/, "");
+  if (digits.startsWith("9660")) return `0${digits.slice(4)}`;
+  if (digits.startsWith("966")) return `0${digits.slice(3)}`;
+  if (digits.startsWith("5")) return `0${digits}`;
+  return digits;
+}

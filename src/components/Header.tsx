@@ -8,7 +8,9 @@ import { useLocale } from "@/lib/locale-context";
 import TopUtilityBar from "./TopUtilityBar";
 
 function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  // "Home" goes to the very top; the section's scroll margin would otherwise leave a gap above it.
+  if (id === "home") window.scrollTo({ top: 0, behavior: "smooth" });
+  else document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 }
 
 export default function Header() {

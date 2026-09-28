@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
-import { CalendarCheck, LogOut, UserRound, X } from "lucide-react";
-import { type AccountBooking, refreshStatuses, signOut, splitBookings, useAccount } from "@/lib/account";
+import { CalendarCheck, Gift, LogOut, UserRound, X } from "lucide-react";
+import {
+  type AccountBooking,
+  refreshPrizes,
+  refreshStatuses,
+  signOut,
+  splitBookings,
+  useAccount,
+  usePrizes,
+} from "@/lib/account";
+import { prizeLabel } from "@/lib/wheel";
 import { useLocale } from "@/lib/locale-context";
-import { formatDay, formatTime } from "@/lib/slots";
+import { formatDay, formatTime, riyadhToday } from "@/lib/slots";
 
 const STATUS_STYLE: Record<NonNullable<AccountBooking["status"]>, string> = {
   new: "bg-surface2 text-gold",
@@ -12,6 +21,41 @@ const STATUS_STYLE: Record<NonNullable<AccountBooking["status"]>, string> = {
   confirmed: "bg-emerald-100 text-emerald-900",
   cancelled: "bg-stone-200 text-stone-600",
 };
+
+// Prizes won on the wheel from this browser, with their code and whether they can still be used.
+function PrizeList() {
+  const { t, locale } = useLocale();
+  const a = t.account;
+  const prizes = usePrizes();
+  if (prizes.length === 0) return null;
+  const today = riyadhToday();
+  return (
+    <div className="space-y-3 rounded-2xl border border-line/25 bg-surface p-4">
+      <p className="text-[11px] font-bold text-ink-soft">{a.prizes}</p>
+      {prizes.map((p) => {
+        const expired = !p.redeemed && p.validUntil < today;
+        return (
+          <div key={p.code} className="flex gap-3 border-t border-line/15 pt-3 first:border-t-0 first:pt-0">
+            <Gift size={18} className="mt-0.5 shrink-0 text-gold" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-bold text-ink">{prizeLabel(p.prize, locale)}</p>
+              <p dir="ltr" className="text-start font-mono text-[15px] font-bold tracking-widest text-gold">
+                {p.code}
+              </p>
+              <p className={`text-[12.5px] ${p.redeemed || expired ? "text-ink-soft" : "text-emerald-700"}`}>
+                {p.redeemed
+                  ? a.prizeUsed
+                  : expired
+                    ? a.prizeExpired
+                    : `${a.prizeValid} ${formatDay(p.validUntil, locale, { weekday: undefined })}`}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function BookingRow({ b, muted }: { b: AccountBooking; muted?: boolean }) {
   const { t, locale } = useLocale();
@@ -51,7 +95,10 @@ export default function AccountPanel({ open, onClose }: { open: boolean; onClose
   const account = useAccount();
 
   useEffect(() => {
-    if (open) refreshStatuses();
+    if (open) {
+      refreshStatuses();
+      refreshPrizes();
+    }
   }, [open]);
 
   if (!open) return null;
@@ -104,6 +151,8 @@ export default function AccountPanel({ open, onClose }: { open: boolean; onClose
               )}
             </div>
 
+            <PrizeList />
+
             {past.length > 0 && (
               <div className="space-y-3 rounded-2xl border border-line/25 bg-surface p-4">
                 <p className="text-[11px] font-bold text-ink-soft">{a.past}</p>
@@ -127,6 +176,7 @@ export default function AccountPanel({ open, onClose }: { open: boolean; onClose
           </div>
         ) : (
           <div className="mt-6 space-y-4">
+            <PrizeList />
             <p className="text-[14.5px] leading-relaxed text-ink-soft">{a.guestBody}</p>
             <a
               href="#booking"

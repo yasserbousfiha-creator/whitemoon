@@ -103,6 +103,10 @@ export interface AccountStrings {
   past: string;
   noUpcoming: string;
   clinicNote: string;
+  prizes: string;
+  prizeValid: string;
+  prizeUsed: string;
+  prizeExpired: string;
   statuses: Record<"new" | "contacted" | "confirmed" | "cancelled", string>;
   signOut: string;
   close: string;
@@ -295,6 +299,10 @@ export const arContent: Content = {
     past: "المواعيد السابقة",
     noUpcoming: "لا توجد مواعيد قادمة.",
     clinicNote: "ملاحظة العيادة",
+    prizes: "جوائزي",
+    prizeValid: "صالحة حتى",
+    prizeUsed: "مستخدمة",
+    prizeExpired: "منتهية",
     statuses: { new: "بانتظار التأكيد", contacted: "تم التواصل", confirmed: "مؤكد", cancelled: "ملغي" },
     signOut: "تسجيل الخروج",
     close: "إغلاق",
@@ -482,6 +490,10 @@ export const enContent: Content = {
     past: "Past appointments",
     noUpcoming: "No upcoming appointments.",
     clinicNote: "Note from the clinic",
+    prizes: "My prizes",
+    prizeValid: "Valid until",
+    prizeUsed: "Used",
+    prizeExpired: "Expired",
     statuses: { new: "Awaiting confirmation", contacted: "Contacted", confirmed: "Confirmed", cancelled: "Cancelled" },
     signOut: "Sign out",
     close: "Close",

@@ -110,7 +110,13 @@ export async function refreshStatuses() {
         .map((b) => {
           const latest = byToken.get(b.token);
           return latest
-            ? { ...b, status: latest.status, notes: latest.notes, slotDate: latest.date ?? b.slotDate, slotTime: latest.time ?? b.slotTime }
+            ? {
+                ...b,
+                status: latest.status,
+                notes: latest.notes,
+                slotDate: latest.date ?? b.slotDate,
+                slotTime: latest.time ?? b.slotTime,
+              }
             : b;
         }),
     });
@@ -134,4 +140,83 @@ export function splitBookings(bookings: AccountBooking[]) {
     upcoming: bookings.filter(isUpcoming).sort((a, b) => appointmentTime(a) - appointmentTime(b)),
     past: bookings.filter((b) => !isUpcoming(b)).sort((a, b) => appointmentTime(b) - appointmentTime(a)),
   };
+}
+
+// ---- Wheel prizes won on this browser (shown in "My Account" even before any booking) ----
+
+const PRIZES_KEY = "wm-prizes-v1";
+
+export interface SavedPrize {
+  code: string;
+  prize: "prosthetics15" | "free_consult" | "ortho10";
+  validUntil: string; // YYYY-MM-DD, last day of the month it was won
+  redeemed?: boolean;
+}
+
+const prizeListeners = new Set<() => void>();
+let prizesRaw: string | null = null;
+let prizesCached: SavedPrize[] = [];
+
+function readPrizes(): SavedPrize[] {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(PRIZES_KEY);
+  } catch {
+    // Storage blocked.
+  }
+  if (raw !== prizesRaw) {
+    prizesRaw = raw;
+    try {
+      prizesCached = raw ? (JSON.parse(raw) as SavedPrize[]) : [];
+    } catch {
+      prizesCached = [];
+    }
+  }
+  return prizesCached;
+}
+
+function writePrizes(prizes: SavedPrize[]) {
+  try {
+    localStorage.setItem(PRIZES_KEY, JSON.stringify(prizes));
+  } catch {
+    // Storage blocked.
+  }
+  prizeListeners.forEach((l) => l());
+}
+
+const EMPTY: SavedPrize[] = [];
+
+export function usePrizes() {
+  return useSyncExternalStore(
+    (l) => {
+      prizeListeners.add(l);
+      return () => prizeListeners.delete(l);
+    },
+    readPrizes,
+    () => EMPTY,
+  );
+}
+
+// Saves (or refreshes) a prize the wheel returned; spinning again the same month returns the same code.
+export function savePrize(prize: SavedPrize) {
+  writePrizes([prize, ...readPrizes().filter((p) => p.code !== prize.code)]);
+}
+
+// Marks used prizes and drops ones the clinic deleted.
+export async function refreshPrizes() {
+  const prizes = readPrizes();
+  if (prizes.length === 0) return;
+  try {
+    const res = await fetch("/api/wheel/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codes: prizes.map((p) => p.code).slice(0, 50) }),
+    });
+    if (!res.ok) return;
+    const { prizes: latest } = (await res.json()) as { prizes: { code: string; redeemed: boolean; validUntil: string }[] };
+    const byCode = new Map(latest.map((p) => [p.code, p]));
+    writePrizes(prizes.filter((p) => byCode.has(p.code)).map((p) => ({ ...p, ...byCode.get(p.code)! })));
+  } catch {
+    // Offline: keep the last known state.
+  }
 }

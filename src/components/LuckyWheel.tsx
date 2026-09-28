@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Gift } from "lucide-react";
+import { savePrize } from "@/lib/account";
 import { useLocale } from "@/lib/locale-context";
 import { PRIZES, type PrizeId, SLICES, prizeLabel } from "@/lib/wheel";
 import Eyebrow from "./Eyebrow";
@@ -57,7 +58,12 @@ function Wheel({ rotation, spinning, onStop }: { rotation: number; spinning: boo
           const lines = locale === "ar" ? prize.shortAr : prize.shortEn;
           return (
             <g key={i}>
-              <path d={`M${R},${R} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z`} fill={COLORS[id].fill} stroke="#fbf7ee" strokeWidth={2} />
+              <path
+                d={`M${R},${R} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z`}
+                fill={COLORS[id].fill}
+                stroke="#fbf7ee"
+                strokeWidth={2}
+              />
               <text
                 x={tx}
                 y={ty}
@@ -113,6 +119,8 @@ export default function LuckyWheel() {
       }
       const r: Result = await res.json();
       setResult(r);
+      // Kept in "My Account" so the code is always at hand.
+      savePrize({ code: r.code, prize: r.prize, validUntil: r.validUntil });
       // This number already used its spin this month: refuse outright instead of spinning again.
       if (r.alreadySpun) {
         setPhase("done");
@@ -131,9 +139,11 @@ export default function LuckyWheel() {
 
   const spinning = phase === "spinning";
   const validUntil = result
-    ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" }).format(
-        new Date(`${result.validUntil}T00:00:00Z`),
-      )
+    ? new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : "en-GB", {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(new Date(`${result.validUntil}T00:00:00Z`))
     : "";
 
   return (

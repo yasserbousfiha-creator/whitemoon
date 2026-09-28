@@ -34,19 +34,30 @@ export default function SlotPicker({
   );
   const [availability, setAvailability] = useState<{ doctor: DoctorId; data: Availability } | null>(null);
 
+  // Re-fetched when the day changes, every 30 s, and on returning to the tab, so a slot the clinic frees (a
+  // cancellation) or closes shows up without reloading the page.
   useEffect(() => {
     if (!doctorId) return;
     let cancelled = false;
-    fetch(`/api/availability?doctor=${doctorId}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: Availability | null) => {
-        if (!cancelled && data) setAvailability({ doctor: doctorId, data });
-      })
-      .catch(() => {});
+    const load = () =>
+      fetch(`/api/availability?doctor=${doctorId}`, { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: Availability | null) => {
+          if (!cancelled && data) setAvailability({ doctor: doctorId, data });
+        })
+        .catch(() => {});
+    load();
+    const onVisible = () => document.visibilityState === "visible" && load();
+    const id = setInterval(onVisible, 30_000);
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      clearInterval(id);
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [doctorId, refreshKey]);
+  }, [doctorId, refreshKey, date]);
 
   if (!mounted) return <div className="min-h-24 md:col-span-2" />;
 
