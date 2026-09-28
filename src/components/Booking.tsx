@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { UserRound, X } from "lucide-react";
+import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
@@ -22,6 +23,7 @@ export default function Booking() {
   const [service, setService] = useState("");
   const [branch, setBranch] = useState("");
   const [doctor, setDoctor] = useState<string | null>(null);
+  const account = useAccount();
 
   useEffect(() => {
     const onPrefill = (e: Event) => {
@@ -42,7 +44,8 @@ export default function Booking() {
       setStatus("invalid");
       return;
     }
-    const data = { ...Object.fromEntries(new FormData(form)), date, time, doctor };
+    const fields = Object.fromEntries(new FormData(form));
+    const data = { ...fields, date, time, doctor };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -51,6 +54,20 @@ export default function Booking() {
         body: JSON.stringify(data),
       });
       if (res.ok) {
+        const { token } = (await res.json().catch(() => ({}))) as { token?: string | null };
+        if (token) {
+          recordBooking(
+            { name: String(fields.name).trim(), phone: String(fields.phone).trim(), email: String(fields.email).trim() },
+            {
+              token,
+              service: service as AccountBooking["service"],
+              branch: branch as AccountBooking["branch"],
+              slotDate: date,
+              slotTime: time,
+              doctor,
+            },
+          );
+        }
         form.reset();
         setDate(null);
         setTime(null);
@@ -73,20 +90,48 @@ export default function Booking() {
         <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{b.heading}</h2>
         <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">{b.intro}</p>
 
-        <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2">
+        <form
+          key={account ? "account" : "guest"}
+          onSubmit={onSubmit}
+          className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2"
+        >
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
           <label className="text-[13px] font-bold text-ink-soft md:col-span-2">
             {b.name}
-            <input name="name" required minLength={2} maxLength={100} autoComplete="name" className={fieldClass} />
+            <input
+              name="name"
+              required
+              minLength={2}
+              maxLength={100}
+              autoComplete="name"
+              defaultValue={account?.name}
+              className={fieldClass}
+            />
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.phone}
-            <input name="phone" type="tel" required dir="ltr" autoComplete="tel" className={`${fieldClass} text-start`} />
+            <input
+              name="phone"
+              type="tel"
+              required
+              dir="ltr"
+              autoComplete="tel"
+              defaultValue={account?.phone}
+              className={`${fieldClass} text-start`}
+            />
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.email}
-            <input name="email" type="email" required dir="ltr" autoComplete="email" className={`${fieldClass} text-start`} />
+            <input
+              name="email"
+              type="email"
+              required
+              dir="ltr"
+              autoComplete="email"
+              defaultValue={account?.email}
+              className={`${fieldClass} text-start`}
+            />
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.service}

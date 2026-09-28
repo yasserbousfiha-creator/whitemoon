@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, UserRound, X } from "lucide-react";
+import AccountPanel from "./AccountPanel";
 import { useLocale } from "@/lib/locale-context";
 import TopUtilityBar from "./TopUtilityBar";
 
@@ -13,6 +14,7 @@ function scrollToSection(id: string) {
 export default function Header() {
   const { t } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   return (
     <>
@@ -20,11 +22,7 @@ export default function Header() {
 
       <header className="sticky top-0 z-50 border-b border-transparent bg-bg/92 backdrop-blur">
         <div className="mx-auto flex max-w-[1160px] items-center px-6 py-3">
-          <button
-            type="button"
-            onClick={() => scrollToSection("home")}
-            className="flex items-center gap-3"
-          >
+          <button type="button" onClick={() => scrollToSection("home")} className="flex items-center gap-3">
             <span className="relative h-11 w-11 shrink-0">
               <Image src="/images/logo.png" alt={t.brandName} fill className="object-contain" sizes="44px" />
             </span>
@@ -61,18 +59,29 @@ export default function Header() {
             >
               {t.ctaBookNow}
             </button>
+            <button
+              type="button"
+              onClick={() => setAccountOpen(true)}
+              aria-label={t.account.title}
+              title={t.account.title}
+              className="grid h-10 w-10 place-items-center rounded-full border border-line/40 text-ink transition-colors hover:bg-surface2"
+            >
+              <UserRound size={19} />
+            </button>
           </nav>
 
-          <button
-            type="button"
-            aria-label="Menu"
-            onClick={() => setMenuOpen(true)}
-            className="text-ink md:hidden"
-          >
-            <Menu size={26} />
-          </button>
+          <div className="flex items-center gap-4 md:hidden">
+            <button type="button" aria-label={t.account.title} onClick={() => setAccountOpen(true)} className="text-ink">
+              <UserRound size={24} />
+            </button>
+            <button type="button" aria-label="Menu" onClick={() => setMenuOpen(true)} className="text-ink">
+              <Menu size={26} />
+            </button>
+          </div>
         </div>
       </header>
+
+      <AccountPanel open={accountOpen} onClose={() => setAccountOpen(false)} />
 
       {menuOpen && (
         <div className="fixed inset-0 z-[60] md:hidden">

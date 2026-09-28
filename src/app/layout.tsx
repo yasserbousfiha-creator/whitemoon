@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Tajawal, Cairo, Marcellus } from "next/font/google";
+import ImageGuard from "@/components/ImageGuard";
 import { LocaleProvider } from "@/lib/locale-context";
 import { ServicesUIProvider } from "@/lib/services-ui-context";
 import "./globals.css";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl" className={`${tajawal.variable} ${cairo.variable} ${marcellus.variable}`}>
       <body className="antialiased">
+        <ImageGuard />
         <LocaleProvider>
           <ServicesUIProvider>{children}</ServicesUIProvider>
         </LocaleProvider>

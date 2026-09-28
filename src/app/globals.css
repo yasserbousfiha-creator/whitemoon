@@ -94,3 +94,10 @@ body {
     animation: none;
   }
 }
+
+/* Discourage saving photos: no drag-out, no text-style selection, no long-press "save image" callout on iOS. */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

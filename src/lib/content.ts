@@ -84,6 +84,22 @@ export interface WheelStrings {
   terms: string;
 }
 
+export interface AccountStrings {
+  title: string;
+  guestTitle: string;
+  guestBody: string;
+  name: string;
+  phone: string;
+  email: string;
+  upcoming: string;
+  past: string;
+  noUpcoming: string;
+  clinicNote: string;
+  statuses: Record<"new" | "contacted" | "confirmed" | "cancelled", string>;
+  signOut: string;
+  close: string;
+}
+
 export interface Branch {
   id: "khamseen" | "shahar" | "wisam";
   name: string;
@@ -130,6 +146,7 @@ export interface Content {
   services: ServiceContent[];
   teamLabel: string;
   doctorsEyebrow: string;
+  account: AccountStrings;
   doctorsHeading: string;
   doctorsIntro: string;
   teamPhotoNote: string;
@@ -259,6 +276,21 @@ export const arContent: Content = {
     },
   ],
   teamLabel: "الفريق الطبي",
+  account: {
+    title: "حسابي",
+    guestTitle: "لم تسجّل بعد",
+    guestBody: "احجز موعدك الأول وسنحفظ بياناتك على هذا الجهاز، فتظهر هنا مع مواعيدك وتُعبّأ تلقائياً في حجوزاتك القادمة.",
+    name: "الاسم",
+    phone: "الجوال",
+    email: "البريد الإلكتروني",
+    upcoming: "مواعيدي القادمة",
+    past: "المواعيد السابقة",
+    noUpcoming: "لا توجد مواعيد قادمة.",
+    clinicNote: "ملاحظة العيادة",
+    statuses: { new: "بانتظار التأكيد", contacted: "تم التواصل", confirmed: "مؤكد", cancelled: "ملغي" },
+    signOut: "تسجيل الخروج",
+    close: "إغلاق",
+  },
   doctorsEyebrow: "الكادر الطبي",
   doctorsHeading: "أطباء تثق بهم",
   doctorsIntro: "نخبة من الأطباء المتخصصين، احجز موعدك مباشرة مع الطبيب الذي تفضّله.",
@@ -427,6 +459,21 @@ export const enContent: Content = {
     },
   ],
   teamLabel: "Medical Team",
+  account: {
+    title: "My Account",
+    guestTitle: "Not signed in yet",
+    guestBody: "Book your first appointment and we'll save your details on this device, so they show here with your appointments and fill in your next bookings.",
+    name: "Name",
+    phone: "Mobile",
+    email: "Email",
+    upcoming: "Upcoming appointments",
+    past: "Past appointments",
+    noUpcoming: "No upcoming appointments.",
+    clinicNote: "Note from the clinic",
+    statuses: { new: "Awaiting confirmation", contacted: "Contacted", confirmed: "Confirmed", cancelled: "Cancelled" },
+    signOut: "Sign out",
+    close: "Close",
+  },
   doctorsEyebrow: "Our Medical Team",
   doctorsHeading: "Doctors you can trust",
   doctorsIntro: "Specialist doctors you can book with directly — pick the one you prefer.",
