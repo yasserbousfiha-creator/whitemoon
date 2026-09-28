@@ -60,13 +60,22 @@ export default function SlotPicker({
   const splitDoctor = !!doctorId && DOCTORS[doctorId].shifts.length > 1;
   const groups = doctorId ? groupByShift(doctorId, slots) : slots.length ? [slots] : [];
 
+  // Same colours as the /admin schedule tab: red = closed or booked, green = open, gold = the one picked.
   const chip = (active: boolean, off: boolean) =>
     `shrink-0 rounded-xl border px-3 py-2 text-[13.5px] transition ${
       off
-        ? "cursor-not-allowed border-red-200 bg-red-50 text-red-400 line-through"
+        ? "cursor-not-allowed border-red-500 bg-red-500 text-white opacity-80"
         : active
           ? "border-gold-bright bg-gold-bright font-bold text-night2"
           : "border-line/30 bg-bg hover:border-gold-bright"
+    }`;
+  const timeChip = (active: boolean, off: boolean) =>
+    `rounded-xl border px-2 py-2 text-[13.5px] font-bold transition ${
+      off
+        ? "cursor-not-allowed border-red-500 bg-red-500 text-white opacity-80"
+        : active
+          ? "border-gold-bright bg-gold-bright text-night2 ring-2 ring-gold-bright/40 ring-offset-1"
+          : "border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600"
     }`;
 
   return (
@@ -109,7 +118,7 @@ export default function SlotPicker({
                         type="button"
                         disabled={off}
                         onClick={() => onTime(s)}
-                        className={chip(s === time && !off, off)}
+                        className={timeChip(s === time && !off, off)}
                       >
                         {formatTime(s, locale)}
                       </button>
