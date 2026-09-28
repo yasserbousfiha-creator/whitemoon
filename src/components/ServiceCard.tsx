@@ -1,29 +1,31 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
+import { prefillBooking } from "@/lib/booking-prefill";
 import { ServiceContent } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 import { useServicesUI } from "@/lib/services-ui-context";
 import { serviceIconMap } from "./icon-map";
 import TeamCarousel from "./TeamCarousel";
 
+// Whitening shades from bleach white to a soft natural white, shown inside a gold frame.
 const shades: [string, string][] = [
-  ["#F3E6C8", "A1"],
-  ["#E9D2A0", "A2"],
-  ["#DCC28A", "B2"],
-  ["#C9A56A", "C2"],
-  ["#B08A50", "D3"],
+  ["#FFFFFF", "BL1"],
+  ["#FCFBF8", "BL2"],
+  ["#F8F6F0", "BL3"],
+  ["#F3F0E8", "A1"],
+  ["#EDE9DF", "B1"],
 ];
 
 function ServiceExtra({ service }: { service: ServiceContent }) {
   if (service.extraType === "shadeGuide") {
     return (
-      <div className="flex">
+      <div className="flex gap-1 rounded-[10px] bg-gradient-to-b from-gold-glow to-gold-bright p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
         {shades.map(([color, label]) => (
           <div
             key={label}
-            className="mx-0.5 flex h-[26px] flex-1 items-center justify-center rounded-[5px] text-[9.5px] font-bold"
-            style={{ backgroundColor: color, color: label === "D3" ? "#fff" : "#0E0B07" }}
+            className="flex h-[28px] flex-1 items-center justify-center rounded-[6px] text-[9.5px] font-bold text-ink-soft shadow-[inset_0_-2px_4px_rgba(0,0,0,0.06)]"
+            style={{ backgroundColor: color }}
           >
             {label}
           </div>
@@ -117,18 +119,23 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
         <div className="overflow-hidden">
           <p className="text-[13px] leading-relaxed text-ink-soft italic">{service.note}</p>
           <div className="mt-4">
-            <TeamCarousel key={isExpanded ? `${service.icon}-open` : `${service.icon}-closed`} team={service.team} />
+            <TeamCarousel
+              key={isExpanded ? `${service.icon}-open` : `${service.icon}-closed`}
+              team={service.team}
+              service={service.icon}
+            />
           </div>
-          <a
-            href={t.whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gold-bright px-5 py-2.5 text-[13.5px] font-semibold text-night2 transition-transform hover:scale-[1.02]"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              prefillBooking({ service: service.icon });
+            }}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gold-bright px-5 py-2.5 text-[13.5px] font-semibold text-night2 transition-transform hover:scale-[1.02]"
           >
-            <MessageCircle size={16} />
-            {t.ctaBookWhatsApp}
-          </a>
+            <CalendarCheck size={16} />
+            {t.ctaBookNow}
+          </button>
         </div>
       </div>
     </div>

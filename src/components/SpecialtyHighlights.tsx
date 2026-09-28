@@ -13,14 +13,15 @@ export default function SpecialtyHighlights() {
   return (
     <section className="bg-surface">
       <div className="mx-auto flex max-w-[1160px] flex-wrap justify-center px-6 md:flex-nowrap">
-        {t.services.map((s) => {
+        {t.services.map((s, i) => {
           const Icon = serviceIconMap[s.icon];
           return (
             <button
               key={s.title}
               type="button"
               onClick={scrollToServices}
-              className="flex w-[120px] flex-1 flex-col items-center gap-3 py-[18px] transition-transform hover:-translate-y-0.5 md:w-auto"
+              className="rise-in flex w-[120px] flex-1 flex-col items-center gap-3 py-[18px] transition-transform hover:-translate-y-0.5 md:w-auto"
+              style={{ animationDelay: `${1.3 + i * 0.15}s` }}
             >
               <span className="grid h-12 w-12 place-items-center rounded-full bg-surface2">
                 <Icon size={22} className="text-gold" />

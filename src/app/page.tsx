@@ -52,8 +52,8 @@ export default function Home() {
 
       <Footer />
 
+      <ScrollToTopButton />
       <div className="fixed bottom-6 end-6 z-40 flex flex-col items-end gap-3">
-        <ScrollToTopButton />
         <WhatsappFab />
       </div>
     </>

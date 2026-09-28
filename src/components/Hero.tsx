@@ -16,13 +16,20 @@ export default function Hero() {
     <section id="home" className="scroll-anchor relative overflow-hidden bg-bg">
       <div className="relative mx-auto flex max-w-[1160px] flex-col items-center gap-10 px-6 py-14 md:flex-row md:py-[76px]">
         <div className="order-2 flex-[6] md:order-1">
-          <Eyebrow text={t.heroEyebrow} />
-          <h1 className="mt-[18px] font-display text-[32px] leading-[1.28] text-ink md:text-[46px]">
+          <div className="rise-in" style={{ animationDelay: "0.55s" }}>
+            <Eyebrow text={t.heroEyebrow} />
+          </div>
+          <h1
+            className="rise-in mt-[18px] font-display text-[32px] leading-[1.28] text-ink md:text-[46px]"
+            style={{ animationDelay: "0.75s" }}
+          >
             {t.heroHeadline}
           </h1>
-          <p className="mt-5 max-w-[480px] text-[16px] leading-relaxed text-ink-soft">{t.heroLede}</p>
+          <p className="rise-in mt-5 max-w-[480px] text-[16px] leading-relaxed text-ink-soft" style={{ animationDelay: "0.95s" }}>
+            {t.heroLede}
+          </p>
 
-          <div className="mt-7 flex flex-wrap gap-3.5">
+          <div className="rise-in mt-7 flex flex-wrap gap-3.5" style={{ animationDelay: "1.15s" }}>
             <a
               href={t.whatsappUrl}
               target="_blank"
@@ -43,7 +50,7 @@ export default function Hero() {
         </div>
 
         <div className="order-1 flex-[4] md:order-2">
-          <div className="relative mx-auto flex h-[260px] w-[260px] items-center justify-center rounded-full border border-gold/25 bg-gradient-to-b from-surface2 to-surface p-9 drop-shadow-[0_25px_40px_rgba(156,122,46,0.25)] md:h-[380px] md:w-[380px] md:p-12">
+          <div className="logo-sweep-in relative mx-auto flex h-[260px] w-[260px] items-center justify-center rounded-full border border-gold/25 bg-gradient-to-b from-surface2 to-surface p-9 drop-shadow-[0_25px_40px_rgba(156,122,46,0.25)] md:h-[380px] md:w-[380px] md:p-12">
             <div className="relative h-full w-full">
               <Image src="/images/logo.png" alt={t.brandName} fill className="object-contain" sizes="380px" priority />
             </div>

@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, CircleUserRound } from "lucide-react";
-import { TeamMember } from "@/lib/content";
+import { CalendarCheck, ChevronLeft, ChevronRight, CircleUserRound } from "lucide-react";
+import { prefillBooking } from "@/lib/booking-prefill";
+import { ServiceContent, TeamMember } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 
-export default function TeamCarousel({ team }: { team: TeamMember[] }) {
+export default function TeamCarousel({ team, service }: { team: TeamMember[]; service: ServiceContent["icon"] }) {
   const { t, isArabic } = useLocale();
   const [index, setIndex] = useState(0);
 
@@ -57,6 +58,19 @@ export default function TeamCarousel({ team }: { team: TeamMember[] }) {
             {member.name && <span className="block text-[14px] font-bold text-ink">{member.name}</span>}
             <span className={member.name ? "block text-[12px] text-ink-soft" : "text-[13px] font-bold text-ink"}>{member.role}</span>
           </span>
+          {member.name && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                prefillBooking({ service, branch: member.branch, doctor: member.name });
+              }}
+              className="mt-1 flex items-center gap-1.5 rounded-full border border-gold-bright/60 bg-surface px-3.5 py-1.5 text-[12.5px] font-bold text-gold transition-colors hover:bg-gold-bright hover:text-night2"
+            >
+              <CalendarCheck size={14} />
+              {t.booking.bookWith} {member.name}
+            </button>
+          )}
         </div>
 
         {team.length > 1 && (

@@ -90,6 +90,13 @@ function BookingCard({ booking }: { booking: Booking }) {
         {b.appointment_date && b.appointment_time
           ? `${formatDay(b.appointment_date, "ar")} · ${formatTime(b.appointment_time.slice(0, 5), "ar")}`
           : "لم يُحدد"}
+        {b.doctor ? (
+          <>
+            <br />
+            <span className="font-bold">الطبيب: </span>
+            {b.doctor}
+          </>
+        ) : null}
       </p>
 
       <p className="mt-2 text-xs text-ink-soft">

@@ -20,6 +20,7 @@ export interface Booking {
   notes: string | null;
   appointment_date: string | null;
   appointment_time: string | null; // "HH:MM:SS"
+  doctor: string | null;
 }
 
 export interface WheelSpin {

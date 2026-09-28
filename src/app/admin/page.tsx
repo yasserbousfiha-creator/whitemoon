@@ -43,7 +43,7 @@ export default async function AdminPage() {
     supabase.from("staff").select("name, branch").eq("user_id", userId).maybeSingle(),
     supabase
       .from("bookings")
-      .select("id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time")
+      .select("id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor")
       .order("created_at", { ascending: false })
       .limit(500)
       .returns<Booking[]>(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import { siInstagram, siTiktok, siSnapchat, siWhatsapp } from "simple-icons";
 import { Content } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
@@ -27,7 +27,10 @@ export default function TopUtilityBar() {
             <Phone size={13} />
             {t.phoneDisplay}
           </a>
-          <span className="text-[12.5px] text-ink-soft">{t.mapPinTitle}</span>
+          <a href="#branches" className="flex items-center gap-1.5 text-[12.5px] text-ink-soft underline-offset-4 hover:text-ink hover:underline">
+            <MapPin size={13} />
+            {t.mapPinTitle}
+          </a>
         </div>
 
         <div className="flex items-center gap-1.5">

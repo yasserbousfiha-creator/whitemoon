@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { UserRound, X } from "lucide-react";
+import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
@@ -16,6 +18,22 @@ export default function Booking() {
   const [status, setStatus] = useState<Status>("idle");
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
+  // Controlled so a doctor or service card elsewhere on the page can pre-select them (see lib/booking-prefill.ts).
+  const [service, setService] = useState("");
+  const [branch, setBranch] = useState("");
+  const [doctor, setDoctor] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onPrefill = (e: Event) => {
+      const d = (e as CustomEvent<BookingPrefill>).detail;
+      if (d.service) setService(d.service);
+      if (d.branch) setBranch(d.branch);
+      setDoctor(d.doctor ?? null);
+      setStatus("idle");
+    };
+    window.addEventListener(PREFILL_EVENT, onPrefill);
+    return () => window.removeEventListener(PREFILL_EVENT, onPrefill);
+  }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,7 +42,7 @@ export default function Booking() {
       setStatus("invalid");
       return;
     }
-    const data = { ...Object.fromEntries(new FormData(form)), date, time };
+    const data = { ...Object.fromEntries(new FormData(form)), date, time, doctor };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -36,6 +54,9 @@ export default function Booking() {
         form.reset();
         setDate(null);
         setTime(null);
+        setService("");
+        setBranch("");
+        setDoctor(null);
         setStatus("success");
       } else {
         setStatus(res.status === 400 ? "invalid" : "error");
@@ -69,7 +90,7 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.service}
-            <select name="service" required defaultValue="" className={fieldClass}>
+            <select name="service" required value={service} onChange={(e) => setService(e.target.value)} className={fieldClass}>
               <option value="" disabled>
                 {b.select}
               </option>
@@ -82,7 +103,7 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.branch}
-            <select name="branch" required defaultValue="" className={fieldClass}>
+            <select name="branch" required value={branch} onChange={(e) => setBranch(e.target.value)} className={fieldClass}>
               <option value="" disabled>
                 {b.select}
               </option>
@@ -93,6 +114,24 @@ export default function Booking() {
               ))}
             </select>
           </label>
+
+          {doctor && (
+            <div className="flex items-center gap-3 rounded-xl border border-gold-bright/50 bg-surface2 px-4 py-3 md:col-span-2">
+              <UserRound size={18} className="shrink-0 text-gold" />
+              <span className="flex-1 text-[14px]">
+                <span className="text-ink-soft">{b.doctor}: </span>
+                <span className="font-bold text-ink">{doctor}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setDoctor(null)}
+                aria-label={b.removeDoctor}
+                className="grid h-7 w-7 place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           <SlotPicker
             date={date}

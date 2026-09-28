@@ -14,6 +14,8 @@ export interface TeamMember {
   name?: string;
   // Leave undefined to show a placeholder avatar.
   photo?: string;
+  // Where this doctor sees patients; pre-selected when booking with them.
+  branch?: Branch["id"];
 }
 
 export interface ServiceContent {
@@ -52,6 +54,9 @@ export interface BookingStrings {
   date: string;
   time: string;
   pickDateFirst: string;
+  doctor: string;
+  bookWith: string;
+  removeDoctor: string;
   select: string;
   submit: string;
   sending: string;
@@ -83,6 +88,7 @@ export interface Branch {
   id: "khamseen" | "shahar" | "wisam";
   name: string;
   address: string;
+  mapUrl: string;
 }
 
 export interface NavItem {
@@ -171,6 +177,15 @@ const instagramUrl = "https://www.instagram.com/whitemoonclinic";
 const tiktokUrl = "https://vt.tiktok.com/ZSdGb4HMJ/";
 const snapchatUrl = "https://www.snapchat.com/add/whitemoonclinic";
 
+// Khamseen is the pin from whitemoonclinics.com; Wisam is its Google Maps place. Shahar has no published pin yet,
+// so it opens a Google Maps search for the clinic in that district.
+const mapSearch = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+const mapUrls = {
+  khamseen: "https://maps.app.goo.gl/EbqYmfLYz6tniTkw7",
+  shahar: mapSearch("مجمع وايت مون الطبي شهار الطائف"),
+  wisam: "https://maps.google.com/?cid=13044452598520757617",
+};
+
 export const arContent: Content = {
   phone,
   phoneDisplay,
@@ -223,10 +238,10 @@ export const arContent: Content = {
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
-        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg" },
-        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg" },
-        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg" },
-        { name: "د. أحمد الثبيتي", role: "الجلدية والتجميل", photo: "/images/team/ahmed-althubaiti.jpg" },
+        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", branch: "khamseen" },
+        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg", branch: "khamseen" },
+        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen" },
+        { name: "د. أحمد الثبيتي", role: "الجلدية والتجميل", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen" },
       ],
     },
     {
@@ -245,7 +260,7 @@ export const arContent: Content = {
   journeyEyebrow: "من التواصل إلى الإشراقة",
   journeyHeading: "رحلتك معنا، خطوة بخطوة",
   journeyPhases: [
-    { step: "01", icon: "reachOut", name: "التواصل", desc: "اتصل أو راسلنا عبر واتساب" },
+    { step: "01", icon: "reachOut", name: "التواصل", desc: "احجز موعدك الآن أو اتصل بنا" },
     { step: "02", icon: "book", name: "حجز الموعد", desc: "نحدد لك أنسب وقت للزيارة" },
     { step: "03", icon: "diagnose", name: "التشخيص", desc: "فحص دقيق وخطة علاج مخصصة" },
     { step: "04", icon: "result", name: "العلاج والنتيجة", desc: "عناية دقيقة ونتيجة مشرقة" },
@@ -262,6 +277,9 @@ export const arContent: Content = {
     date: "اليوم المفضّل",
     time: "الوقت المفضّل",
     pickDateFirst: "اختر اليوم أولاً لعرض الأوقات المتاحة.",
+    doctor: "الطبيب",
+    bookWith: "احجز مع",
+    removeDoctor: "إزالة الطبيب",
     select: "اختر...",
     submit: "إرسال طلب الحجز",
     sending: "جارٍ الإرسال...",
@@ -300,9 +318,9 @@ export const arContent: Content = {
   branchesLabel: "فروعنا",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف" },
-    { id: "shahar", name: "فرع شهار", address: "حي شهار، الطائف" },
-    { id: "wisam", name: "فرع الوسام", address: "حي الوسام، الطائف" },
+    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen },
+    { id: "shahar", name: "فرع شهار", address: "حي شهار، الطائف", mapUrl: mapUrls.shahar },
+    { id: "wisam", name: "فرع الوسام", address: "حي الوسام، الطائف", mapUrl: mapUrls.wisam },
   ],
   workingHoursValue: "يوميًا من 9 صباحًا حتى 10 مساءً",
   phoneLabel: "الهاتف وواتساب",
@@ -384,10 +402,10 @@ export const enContent: Content = {
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
-        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg" },
-        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg" },
-        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg" },
-        { name: "Dr. Ahmed Al-Thubaiti", role: "Dermatology & Aesthetics", photo: "/images/team/ahmed-althubaiti.jpg" },
+        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", branch: "khamseen" },
+        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg", branch: "khamseen" },
+        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen" },
+        { name: "Dr. Ahmed Al-Thubaiti", role: "Dermatology & Aesthetics", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen" },
       ],
     },
     {
@@ -406,7 +424,7 @@ export const enContent: Content = {
   journeyEyebrow: "From First Contact to Full Glow",
   journeyHeading: "Your journey, one phase at a time",
   journeyPhases: [
-    { step: "01", icon: "reachOut", name: "Reach Out", desc: "Call us or message on WhatsApp" },
+    { step: "01", icon: "reachOut", name: "Reach Out", desc: "Book online now or give us a call" },
     { step: "02", icon: "book", name: "Book Appointment", desc: "We arrange the time that suits you" },
     { step: "03", icon: "diagnose", name: "Diagnosis", desc: "Careful exam, a plan built for you" },
     { step: "04", icon: "result", name: "Treatment & Result", desc: "Precise care, a radiant result" },
@@ -423,6 +441,9 @@ export const enContent: Content = {
     date: "Preferred day",
     time: "Preferred time",
     pickDateFirst: "Pick a day to see the available times.",
+    doctor: "Doctor",
+    bookWith: "Book with",
+    removeDoctor: "Remove doctor",
     select: "Select...",
     submit: "Send booking request",
     sending: "Sending...",
@@ -461,9 +482,9 @@ export const enContent: Content = {
   branchesLabel: "Our Branches",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif" },
-    { id: "shahar", name: "Shahar Branch", address: "Shahar District, Taif" },
-    { id: "wisam", name: "Al-Wisam Branch", address: "Al-Wisam District, Taif" },
+    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen },
+    { id: "shahar", name: "Shahar Branch", address: "Shahar District, Taif", mapUrl: mapUrls.shahar },
+    { id: "wisam", name: "Al-Wisam Branch", address: "Al-Wisam District, Taif", mapUrl: mapUrls.wisam },
   ],
   workingHoursValue: "Daily, 9 AM – 10 PM",
   phoneLabel: "Phone & WhatsApp",

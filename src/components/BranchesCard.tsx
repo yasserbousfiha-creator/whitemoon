@@ -1,13 +1,16 @@
 "use client";
 
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Navigation } from "lucide-react";
 import { useLocale } from "@/lib/locale-context";
 
 export default function BranchesCard() {
   const { t } = useLocale();
 
   return (
-    <div className="rounded-2xl border border-line/25 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(156,122,46,0.35)]">
+    <div
+      id="branches"
+      className="scroll-anchor rounded-2xl border border-line/25 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(156,122,46,0.35)]"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/20 pb-4">
         <span className="text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
           {t.branchesLabel}
@@ -20,15 +23,22 @@ export default function BranchesCard() {
 
       <div className="divide-y divide-line/15">
         {t.branches.map((b) => (
-          <div key={b.name} className="flex items-start gap-3.5 py-4 last:pb-0">
-            <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2">
+          <a
+            key={b.name}
+            href={b.mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-3.5 py-4 last:pb-0"
+          >
+            <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2 transition-colors group-hover:bg-gold-bright/30">
               <MapPin size={18} className="text-gold" />
             </span>
-            <span>
+            <span className="flex-1">
               <span className="block text-[14.5px] font-bold text-ink">{b.name}</span>
               <span className="mt-0.5 block text-[13px] text-ink-soft">{b.address}</span>
             </span>
-          </div>
+            <Navigation size={16} className="mt-1 shrink-0 text-gold opacity-60 transition-opacity group-hover:opacity-100" />
+          </a>
         ))}
       </div>
     </div>

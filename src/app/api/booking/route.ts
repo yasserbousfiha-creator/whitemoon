@@ -24,10 +24,12 @@ interface NewBooking {
   // Requested slot; absent from app versions before 1.0.3.
   appointment_date: string | null;
   appointment_time: string | null;
+  // Chosen when booking from a doctor's profile.
+  doctor: string | null;
 }
 
 // Returns false when email isn't configured or sending fails.
-async function sendEmail({ name, phone, email, service, branch, appointment_date, appointment_time }: NewBooking) {
+async function sendEmail({ name, phone, email, service, branch, appointment_date, appointment_time, doctor }: NewBooking) {
   const to = recipientFor(service, branch);
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
   if (!to || !SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
@@ -57,7 +59,7 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
       to,
       replyTo: email,
       subject: `حجز جديد: ${serviceLabel} - ${branchLabel} - ${name}`,
-      text: `الاسم: ${name}\nالجوال: ${phone}\nالبريد: ${email}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
+      text: `الاسم: ${name}\nالجوال: ${phone}\nالبريد: ${email}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${doctor ? `\nالطبيب: ${doctor}` : ""}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
       html: `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.8">
 <h2>طلب حجز جديد</h2>
 <p><b>الاسم:</b> ${escapeHtml(name)}</p>
@@ -66,6 +68,7 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
 <p><b>التخصص:</b> ${serviceLabel}</p>
 <p><b>الفرع:</b> ${branchLabel}</p>
 <p><b>الموعد المطلوب:</b> ${when}</p>
+${doctor ? `<p><b>الطبيب:</b> ${escapeHtml(doctor)}</p>` : ""}
 ${dashboard ? `<p><a href="${dashboard}">فتح لوحة الحجوزات</a></p>` : ""}
 </div>`,
     });
@@ -95,6 +98,7 @@ export async function POST(request: Request) {
   const branch = body.branch as BranchId;
   const date = typeof body.date === "string" ? body.date : null;
   const time = typeof body.time === "string" ? body.time : null;
+  const doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
 
   const valid =
     name.length >= 2 &&
@@ -108,7 +112,7 @@ export async function POST(request: Request) {
     (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time));
   if (!valid) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
 
-  const booking: NewBooking = { name, phone, email, service, branch, appointment_date: date, appointment_time: time };
+  const booking: NewBooking = { name, phone, email, service, branch, appointment_date: date, appointment_time: time, doctor };
 
   // The mobile app's HTTP stack identifies itself differently from browsers.
   const userAgent = request.headers.get("user-agent") ?? "";
