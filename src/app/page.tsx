@@ -5,6 +5,7 @@ import Intro from "@/components/Intro";
 import Services from "@/components/Services";
 import Journey from "@/components/Journey";
 import Booking from "@/components/Booking";
+import DoctorsSection from "@/components/DoctorsSection";
 import LuckyWheel from "@/components/LuckyWheel";
 import Testimonials from "@/components/Testimonials";
 import About from "@/components/About";
@@ -29,6 +30,9 @@ export default function Home() {
         </RevealOnScroll>
         <RevealOnScroll>
           <Services />
+        </RevealOnScroll>
+        <RevealOnScroll>
+          <DoctorsSection />
         </RevealOnScroll>
         <RevealOnScroll>
           <Journey />

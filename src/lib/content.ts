@@ -129,6 +129,9 @@ export interface Content {
   servicesIntro: string;
   services: ServiceContent[];
   teamLabel: string;
+  doctorsEyebrow: string;
+  doctorsHeading: string;
+  doctorsIntro: string;
   teamPhotoNote: string;
 
   journeyEyebrow: string;
@@ -256,6 +259,9 @@ export const arContent: Content = {
     },
   ],
   teamLabel: "الفريق الطبي",
+  doctorsEyebrow: "الكادر الطبي",
+  doctorsHeading: "أطباء تثق بهم",
+  doctorsIntro: "نخبة من الأطباء المتخصصين، احجز موعدك مباشرة مع الطبيب الذي تفضّله.",
   teamPhotoNote: "الصور الفعلية للفريق ستُضاف قريبًا",
   journeyEyebrow: "من التواصل إلى الإشراقة",
   journeyHeading: "رحلتك معنا، خطوة بخطوة",
@@ -345,6 +351,7 @@ export const arContent: Content = {
   navItems: [
     { label: "الرئيسية", sectionId: "home" },
     { label: "الخدمات", sectionId: "services" },
+    { label: "الكادر الطبي", sectionId: "doctors" },
     { label: "من نحن", sectionId: "about" },
     { label: "تواصل معنا", sectionId: "contact" },
   ],
@@ -420,6 +427,9 @@ export const enContent: Content = {
     },
   ],
   teamLabel: "Medical Team",
+  doctorsEyebrow: "Our Medical Team",
+  doctorsHeading: "Doctors you can trust",
+  doctorsIntro: "Specialist doctors you can book with directly — pick the one you prefer.",
   teamPhotoNote: "Real team photos coming soon",
   journeyEyebrow: "From First Contact to Full Glow",
   journeyHeading: "Your journey, one phase at a time",
@@ -509,6 +519,7 @@ export const enContent: Content = {
   navItems: [
     { label: "Home", sectionId: "home" },
     { label: "Services", sectionId: "services" },
+    { label: "Doctors", sectionId: "doctors" },
     { label: "About", sectionId: "about" },
     { label: "Contact", sectionId: "contact" },
   ],
