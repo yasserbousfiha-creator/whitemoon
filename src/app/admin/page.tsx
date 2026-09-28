@@ -3,6 +3,8 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import type { Booking, BranchId, WheelSpin } from "@/lib/booking-labels";
 import { createServiceClient, createStaffClient, supabaseConfigured } from "@/lib/supabase";
+import type { DoctorId } from "@/lib/doctors";
+import { riyadhToday } from "@/lib/slots";
 import { riyadhMonth } from "@/lib/wheel";
 import { signOut } from "./actions";
 import AutoRefresh from "./AutoRefresh";
@@ -13,6 +15,23 @@ export const metadata: Metadata = { title: "لوحة الحجوزات | وايت
 // Every staff account may look up any wheel prize (patients redeem at any branch). Called only after the staff row is
 // confirmed, it reads with the server key rather than depending on per-table grants. Covers this month and last, so
 // a code won late last month can still be looked up.
+// Admin-closed days and slots from today on, for the schedule tab (read with the server key after the staff check).
+async function loadBlocks() {
+  const db = createServiceClient();
+  if (!db) return [];
+  const { data, error } = await db
+    .from("doctor_blocks")
+    .select("doctor, date, start_time")
+    .gte("date", riyadhToday())
+    .order("date");
+  if (error) console.error("Schedule blocks lookup failed:", error);
+  return (data ?? []).map((b) => ({
+    doctor: b.doctor as DoctorId | "all",
+    date: b.date as string,
+    start: b.start_time?.slice(0, 5) ?? null,
+  }));
+}
+
 async function loadSpins() {
   const db = createServiceClient();
   if (!db) return { data: null, error: { code: "config", message: "server key missing" } };
@@ -43,7 +62,9 @@ export default async function AdminPage() {
     supabase.from("staff").select("name, branch").eq("user_id", userId).maybeSingle(),
     supabase
       .from("bookings")
-      .select("id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor")
+      .select(
+        "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id",
+      )
       .order("created_at", { ascending: false })
       .limit(500)
       .returns<Booking[]>(),
@@ -65,7 +86,7 @@ export default async function AdminPage() {
     );
   }
 
-  const { data: spins, error: spinsError } = await loadSpins();
+  const [{ data: spins, error: spinsError }, blocks] = await Promise.all([loadSpins(), loadBlocks()]);
 
   if (error) console.error("Bookings lookup failed:", error);
   if (spinsError) console.error("Wheel spins lookup failed:", spinsError);
@@ -80,7 +101,12 @@ export default async function AdminPage() {
           تعذّر تحميل جوائز العجلة ({spinsError.code ?? spinsError.message}).
         </p>
       ) : null}
-      <Dashboard staff={{ name: staff.name, branch: staff.branch as BranchId | null }} bookings={bookings ?? []} spins={spins ?? []} />
+      <Dashboard
+        staff={{ name: staff.name, branch: staff.branch as BranchId | null }}
+        bookings={bookings ?? []}
+        spins={spins ?? []}
+        blocks={blocks}
+      />
     </>
   );
 }

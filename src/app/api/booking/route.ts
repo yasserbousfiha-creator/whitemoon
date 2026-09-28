@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { BRANCHES, BranchId, SERVICES, ServiceId } from "@/lib/booking-labels";
+import { type DoctorId, doctorIdFromName, isBlocked, isDoctorId } from "@/lib/doctors";
 import { formatDay, formatTime, isBookable } from "@/lib/slots";
 import { toAsciiDigits } from "@/lib/wheel";
 import { createServiceClient } from "@/lib/supabase";
@@ -26,6 +27,7 @@ interface NewBooking {
   appointment_time: string | null;
   // Chosen when booking from a doctor's profile.
   doctor: string | null;
+  doctor_id: DoctorId | null;
 }
 
 // Returns false when email isn't configured or sending fails.
@@ -99,6 +101,8 @@ export async function POST(request: Request) {
   const date = typeof body.date === "string" ? body.date : null;
   const time = typeof body.time === "string" ? body.time : null;
   const doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
+  // Newer clients send the id; older app versions only the display name.
+  const doctorId = isDoctorId(body.doctorId) ? body.doctorId : doctorIdFromName(doctor);
 
   const valid =
     name.length >= 2 &&
@@ -109,10 +113,21 @@ export async function POST(request: Request) {
     service in SERVICES &&
     branch in BRANCHES &&
     // A slot is optional (older app versions), but when sent it must be a real open slot.
-    (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time));
+    // With a doctor, it must also fall within their shifts.
+    (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time, new Date(), doctorId));
   if (!valid) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
 
-  const booking: NewBooking = { name, phone, email, service, branch, appointment_date: date, appointment_time: time, doctor };
+  const booking: NewBooking = {
+    name,
+    phone,
+    email,
+    service,
+    branch,
+    appointment_date: date,
+    appointment_time: time,
+    doctor,
+    doctor_id: doctorId,
+  };
 
   // The mobile app's HTTP stack identifies itself differently from browsers.
   const userAgent = request.headers.get("user-agent") ?? "";
@@ -122,7 +137,19 @@ export async function POST(request: Request) {
   let saved: { id: number; public_token: string } | null = null;
   const db = createServiceClient();
   if (db) {
+    // The admin may have closed this day or slot for the doctor since the form loaded.
+    if (doctorId && date && time) {
+      const { data: blocks } = await db
+        .from("doctor_blocks")
+        .select("doctor, date, start_time")
+        .in("doctor", [doctorId, "all"])
+        .eq("date", date);
+      const closed = (blocks ?? []).map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null }));
+      if (isBlocked(closed, doctorId, date, time)) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+    }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
+    // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.
+    if (error?.code === "23505") return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
     if (error) console.error("Booking insert failed:", error);
     else saved = data;
   }

@@ -21,6 +21,7 @@ export interface Booking {
   appointment_date: string | null;
   appointment_time: string | null; // "HH:MM:SS"
   doctor: string | null;
+  doctor_id: string | null;
 }
 
 export interface WheelSpin {

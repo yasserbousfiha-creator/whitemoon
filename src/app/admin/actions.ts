@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { STATUSES, type BookingStatus } from "@/lib/booking-labels";
+import { type DoctorId, isDoctorId } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 
 export async function signIn(_prev: string | null, formData: FormData): Promise<string | null> {
@@ -79,6 +80,47 @@ export async function redeemSpin(id: number): Promise<UpdateResult> {
     return { ok: false, error: `تعذّر الحفظ (${error.code ?? error.message}).` };
   }
   if (!updated?.length) return { ok: false, error: "هذه الجائزة مستخدمة مسبقاً." };
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+// Closes (or reopens) a whole day (start null) or a single 30-minute slot for one doctor, or for everyone ("all").
+export async function setScheduleBlock(
+  doctor: DoctorId | "all",
+  date: string,
+  start: string | null,
+  closed: boolean,
+): Promise<UpdateResult> {
+  if (!(doctor === "all" || isDoctorId(doctor)) || !/^\d{4}-\d{2}-\d{2}$/.test(date) || (start !== null && !/^\d{2}:\d{2}$/.test(start))) {
+    return { ok: false, error: "طلب غير صالح." };
+  }
+
+  const supabase = await createStaffClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub;
+  if (!userId) return { ok: false, error: "انتهت الجلسة، سجّل الدخول من جديد." };
+  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
+  if (!staff) return { ok: false, error: "هذا الحساب غير مسجّل كموظف." };
+
+  const db = createServiceClient();
+  if (!db) return { ok: false, error: "الخادم غير مهيأ." };
+
+  if (closed) {
+    const { error } = await db.from("doctor_blocks").insert({ doctor, date, start_time: start, created_by: userId });
+    // 23505: already closed, which is what was asked for.
+    if (error && error.code !== "23505") {
+      console.error("Block insert failed:", error);
+      return { ok: false, error: `تعذّر الحفظ (${error.code ?? error.message}).` };
+    }
+  } else {
+    let q = db.from("doctor_blocks").delete().eq("doctor", doctor).eq("date", date);
+    q = start === null ? q.is("start_time", null) : q.eq("start_time", start);
+    const { error } = await q;
+    if (error) {
+      console.error("Block delete failed:", error);
+      return { ok: false, error: `تعذّر الحفظ (${error.code ?? error.message}).` };
+    }
+  }
   revalidatePath("/admin");
   return { ok: true };
 }

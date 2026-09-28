@@ -13,7 +13,9 @@ import {
 } from "@/lib/booking-labels";
 import { formatDay, formatTime } from "@/lib/slots";
 import { signOut, updateBooking } from "./actions";
+import SchedulePanel from "./SchedulePanel";
 import SpinsPanel from "./SpinsPanel";
+import type { DoctorId } from "@/lib/doctors";
 
 const STATUS_STYLE: Record<BookingStatus, string> = {
   new: "bg-gold-bright text-night2",
@@ -175,12 +177,14 @@ export default function Dashboard({
   staff,
   bookings,
   spins,
+  blocks,
 }: {
   staff: { name: string; branch: BranchId | null };
   bookings: Booking[];
   spins: WheelSpin[];
+  blocks: { doctor: DoctorId | "all"; date: string; start: string | null }[];
 }) {
-  const [tab, setTab] = useState<"bookings" | "spins">("bookings");
+  const [tab, setTab] = useState<"bookings" | "spins" | "schedule">("bookings");
   const [status, setStatus] = useState<BookingStatus | null>(null);
   const [branch, setBranch] = useState<BranchId | null>(null);
   const [service, setService] = useState<ServiceId | null>(null);
@@ -222,6 +226,7 @@ export default function Dashboard({
           [
             ["bookings", "الحجوزات"],
             ["spins", "جوائز العجلة"],
+            ["schedule", "جدول الأطباء"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -235,7 +240,9 @@ export default function Dashboard({
         ))}
       </nav>
 
-      {tab === "spins" ? (
+      {tab === "schedule" ? (
+        <SchedulePanel blocks={blocks} bookings={bookings} />
+      ) : tab === "spins" ? (
         <SpinsPanel spins={spins} />
       ) : (
         <>

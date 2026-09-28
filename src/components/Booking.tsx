@@ -4,11 +4,12 @@ import { FormEvent, useEffect, useState } from "react";
 import { UserRound, X } from "lucide-react";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
+import type { DoctorId } from "@/lib/doctors";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
 
-type Status = "idle" | "sending" | "success" | "error" | "invalid";
+type Status = "idle" | "sending" | "success" | "error" | "invalid" | "unavailable";
 
 const fieldClass =
   "mt-1.5 w-full rounded-[10px] border border-line/40 bg-bg px-3.5 py-2.5 text-[15px] text-ink outline-none focus:border-gold-bright";
@@ -23,6 +24,8 @@ export default function Booking() {
   const [service, setService] = useState("");
   const [branch, setBranch] = useState("");
   const [doctor, setDoctor] = useState<string | null>(null);
+  const [doctorId, setDoctorId] = useState<DoctorId | null>(null);
+  const [availabilityKey, setAvailabilityKey] = useState(0);
   const account = useAccount();
 
   useEffect(() => {
@@ -31,6 +34,10 @@ export default function Booking() {
       if (d.service) setService(d.service);
       if (d.branch) setBranch(d.branch);
       setDoctor(d.doctor ?? null);
+      setDoctorId(d.doctorId ?? null);
+      // Another doctor's hours differ, so a previously picked slot may not exist for this one.
+      setDate(null);
+      setTime(null);
       setStatus("idle");
     };
     window.addEventListener(PREFILL_EVENT, onPrefill);
@@ -45,7 +52,7 @@ export default function Booking() {
       return;
     }
     const fields = Object.fromEntries(new FormData(form));
-    const data = { ...fields, date, time, doctor };
+    const data = { ...fields, date, time, doctor, doctorId };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -74,9 +81,15 @@ export default function Booking() {
         setService("");
         setBranch("");
         setDoctor(null);
+        setDoctorId(null);
         setStatus("success");
       } else {
-        setStatus(res.status === 400 ? "invalid" : "error");
+        if (res.status === 409) {
+          // Taken or closed since the form loaded: refresh the red slots and ask for another time.
+          setTime(null);
+          setAvailabilityKey((k) => k + 1);
+          setStatus("unavailable");
+        } else setStatus(res.status === 400 ? "invalid" : "error");
       }
     } catch {
       setStatus("error");
@@ -169,7 +182,10 @@ export default function Booking() {
               </span>
               <button
                 type="button"
-                onClick={() => setDoctor(null)}
+                onClick={() => {
+                  setDoctor(null);
+                  setDoctorId(null);
+                }}
                 aria-label={b.removeDoctor}
                 className="grid h-7 w-7 place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
               >
@@ -186,6 +202,8 @@ export default function Booking() {
               setTime(null);
             }}
             onTime={setTime}
+            doctorId={doctorId}
+            refreshKey={availabilityKey}
           />
 
           <button
@@ -200,6 +218,7 @@ export default function Booking() {
             {status === "success" && <p className="text-gold">{b.success}</p>}
             {status === "error" && <p className="text-red-600">{b.error}</p>}
             {status === "invalid" && <p className="text-red-600">{b.invalid}</p>}
+            {status === "unavailable" && <p className="text-red-600">{b.unavailable}</p>}
           </div>
         </form>
       </div>

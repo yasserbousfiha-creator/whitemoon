@@ -10,7 +10,7 @@ import Eyebrow from "./Eyebrow";
 export default function DoctorsSection() {
   const { t } = useLocale();
   const doctors = t.services.flatMap((s) =>
-    s.team.filter((m) => m.name && m.photo).map((m) => ({ ...m, service: s.icon, serviceTitle: s.title })),
+    s.team.filter((m) => m.name && m.photo).map((m) => ({ ...m, service: s.icon })),
   );
   if (doctors.length === 0) return null;
 
@@ -40,10 +40,10 @@ export default function DoctorsSection() {
               </div>
               <div className="flex flex-1 flex-col items-center gap-1 px-3 pt-3.5 pb-4 text-center">
                 <p className="text-[15px] font-bold text-ink">{d.name}</p>
-                <p className="text-[12.5px] text-gold">{d.serviceTitle}</p>
+                <p className="text-[12.5px] text-gold">{d.role}</p>
                 <button
                   type="button"
-                  onClick={() => prefillBooking({ service: d.service, branch: d.branch, doctor: d.name })}
+                  onClick={() => prefillBooking({ service: d.service, branch: d.branch, doctor: d.name, doctorId: d.id })}
                   className="mt-auto flex items-center gap-1.5 whitespace-nowrap rounded-full border border-gold-bright/60 px-3.5 py-1.5 text-[12.5px] font-bold text-gold transition-colors hover:bg-gold-bright hover:text-night2"
                 >
                   <CalendarCheck size={14} />

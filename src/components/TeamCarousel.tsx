@@ -63,7 +63,7 @@ export default function TeamCarousel({ team, service }: { team: TeamMember[]; se
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                prefillBooking({ service, branch: member.branch, doctor: member.name });
+                prefillBooking({ service, branch: member.branch, doctor: member.name, doctorId: member.id });
               }}
               className="mt-1 flex items-center gap-1.5 rounded-full border border-gold-bright/60 bg-surface px-3.5 py-1.5 text-[12.5px] font-bold text-gold transition-colors hover:bg-gold-bright hover:text-night2"
             >

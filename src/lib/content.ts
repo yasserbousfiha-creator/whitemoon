@@ -9,6 +9,8 @@ export interface QualityBadge {
   subtitle: string;
 }
 
+import type { DoctorId } from "./doctors";
+
 export interface TeamMember {
   role: string;
   name?: string;
@@ -16,6 +18,8 @@ export interface TeamMember {
   photo?: string;
   // Where this doctor sees patients; pre-selected when booking with them.
   branch?: Branch["id"];
+  // Links to their working hours in lib/doctors.ts.
+  id?: DoctorId;
 }
 
 export interface ServiceContent {
@@ -57,6 +61,8 @@ export interface BookingStrings {
   doctor: string;
   bookWith: string;
   removeDoctor: string;
+  unavailable: string;
+  closedHint: string;
   select: string;
   submit: string;
   sending: string;
@@ -258,10 +264,10 @@ export const arContent: Content = {
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
-        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", branch: "khamseen" },
-        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg", branch: "khamseen" },
-        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen" },
-        { name: "د. أحمد الثبيتي", role: "الجلدية والتجميل", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen" },
+        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg", branch: "khamseen", id: "souad" },
+        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
     {
@@ -318,6 +324,8 @@ export const arContent: Content = {
     doctor: "الطبيب",
     bookWith: "احجز مع",
     removeDoctor: "إزالة الطبيب",
+    unavailable: "هذا الموعد لم يعد متاحاً، اختر وقتاً آخر.",
+    closedHint: "الأوقات باللون الأحمر غير متاحة.",
     select: "اختر...",
     submit: "إرسال طلب الحجز",
     sending: "جارٍ الإرسال...",
@@ -441,10 +449,10 @@ export const enContent: Content = {
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
-        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", branch: "khamseen" },
-        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg", branch: "khamseen" },
-        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen" },
-        { name: "Dr. Ahmed Al-Thubaiti", role: "Dermatology & Aesthetics", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen" },
+        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg", branch: "khamseen", id: "souad" },
+        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
     {
@@ -501,6 +509,8 @@ export const enContent: Content = {
     doctor: "Doctor",
     bookWith: "Book with",
     removeDoctor: "Remove doctor",
+    unavailable: "That time is no longer available. Please pick another.",
+    closedHint: "Times in red aren't available.",
     select: "Select...",
     submit: "Send booking request",
     sending: "Sending...",
