@@ -69,9 +69,9 @@ export function formatDay(isoDate: string, locale: "ar" | "en", opts: Intl.DateT
   }).format(new Date(`${isoDate}T00:00:00Z`));
 }
 
-// "09:30" → "9:30 ص" / "9:30 AM".
+// "09:30" → "9:30 ص" / "9:30 AM", with a no-break space so the suffix never wraps onto its own line.
 export function formatTime(time: string, locale: "ar" | "en") {
   const [h, m] = time.split(":").map(Number);
   const suffix = locale === "ar" ? (h < 12 ? "ص" : "م") : h < 12 ? "AM" : "PM";
-  return `${h % 12 || 12}:${pad(m)} ${suffix}`;
+  return `${h % 12 || 12}:${pad(m)} ${suffix}`;
 }

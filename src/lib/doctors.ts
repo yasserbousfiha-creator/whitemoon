@@ -83,3 +83,11 @@ export interface ScheduleBlock {
 export function isBlocked(blocks: Pick<ScheduleBlock, "doctor" | "date" | "start">[], id: DoctorId, date: string, time: string) {
   return blocks.some((b) => (b.doctor === id || b.doctor === "all") && b.date === date && (b.start === null || b.start === time));
 }
+
+// Splits a day's slots by the doctor's shifts, so pickers can show "morning" and "evening" separately.
+// Doctors with a single shift get one group.
+export function groupByShift(id: DoctorId, slots: string[]) {
+  return DOCTORS[id].shifts
+    .map(([start, end]) => slots.filter((s) => toMinutes(s) >= toMinutes(start) && toMinutes(s) < toMinutes(end)))
+    .filter((group) => group.length > 0);
+}

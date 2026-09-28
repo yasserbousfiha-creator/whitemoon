@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import type { Booking } from "@/lib/booking-labels";
-import { DOCTOR_IDS, DOCTORS, type DoctorId, type ScheduleBlock, doctorSlots, isBlocked } from "@/lib/doctors";
+import { DOCTOR_IDS, DOCTORS, type DoctorId, type ScheduleBlock, doctorSlots, groupByShift, isBlocked } from "@/lib/doctors";
 import { DAYS_AHEAD, addDays, formatDay, formatTime, riyadhToday } from "@/lib/slots";
 import { setScheduleBlock } from "./actions";
 
@@ -117,42 +117,50 @@ export default function SchedulePanel({ blocks, bookings }: { blocks: BlockKey[]
               <span className="h-3 w-3 rounded bg-stone-400" /> محجوز
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
-            {doctorSlots(target, date).map((time) => {
-              const booked = bookedAt(time);
-              const closed = isBlocked(current, target, date, time);
-              const slotBlock = current.some((b) => same(b, { doctor: target, date, start: time }));
-              if (booked) {
-                return (
-                  <div
-                    key={time}
-                    className="rounded-xl bg-stone-200 px-2 py-2 text-center text-sm text-stone-600"
-                    title={booked.name}
-                  >
-                    <span className="block font-bold">{formatTime(time, "ar")}</span>
-                    <span className="block truncate text-xs">{booked.name}</span>
-                  </div>
-                );
-              }
-              return (
-                <button
-                  key={time}
-                  type="button"
-                  // A slot closed by the whole-day block reopens with "فتح اليوم", not individually.
-                  disabled={pending || (closed && !slotBlock)}
-                  onClick={() => toggle({ doctor: target, date, start: time }, !closed)}
-                  className={`rounded-xl px-2 py-2.5 text-center text-sm font-bold text-white transition disabled:opacity-60 ${
-                    closed ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"
-                  }`}
-                >
-                  {formatTime(time, "ar")}
-                </button>
-              );
-            })}
-            {doctorSlots(target, date).length === 0 && (
-              <p className="col-span-full text-ink-soft">لا دوام للطبيب في هذا اليوم.</p>
-            )}
-          </div>
+          {doctorSlots(target, date).length === 0 && <p className="text-ink-soft">لا دوام للطبيب في هذا اليوم.</p>}
+          {groupByShift(target, doctorSlots(target, date)).map((group, gi, groups) => (
+            <div key={group[0]} className="space-y-2">
+              {groups.length > 1 && (
+                <p className="flex items-center gap-2 text-sm font-bold text-gold">
+                  {Number(group[0].slice(0, 2)) < 12 ? "الفترة الصباحية" : "الفترة المسائية"}
+                  <span className="h-px flex-1 bg-line/30" />
+                </p>
+              )}
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
+                {group.map((time) => {
+                  const booked = bookedAt(time);
+                  const closed = isBlocked(current, target, date, time);
+                  const slotBlock = current.some((b) => same(b, { doctor: target, date, start: time }));
+                  if (booked) {
+                    return (
+                      <div
+                        key={time}
+                        className="rounded-xl bg-stone-200 px-2 py-2 text-center text-sm text-stone-600"
+                        title={booked.name}
+                      >
+                        <span className="block font-bold">{formatTime(time, "ar")}</span>
+                        <span className="block truncate text-xs">{booked.name}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      // A slot closed by the whole-day block reopens with "فتح اليوم", not individually.
+                      disabled={pending || (closed && !slotBlock)}
+                      onClick={() => toggle({ doctor: target, date, start: time }, !closed)}
+                      className={`rounded-xl px-2 py-2.5 text-center text-sm font-bold text-white transition disabled:opacity-60 ${
+                        closed ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"
+                      }`}
+                    >
+                      {formatTime(time, "ar")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </>
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}

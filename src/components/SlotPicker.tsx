@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Availability } from "@/app/api/availability/route";
-import { type DoctorId, isBlocked } from "@/lib/doctors";
+import { DOCTORS, type DoctorId, groupByShift, isBlocked } from "@/lib/doctors";
 import { useLocale } from "@/lib/locale-context";
 import { bookableDays, formatDay, formatTime, timeSlots } from "@/lib/slots";
 
@@ -27,7 +27,11 @@ export default function SlotPicker({
 }) {
   const { t, locale } = useLocale();
   const b = t.booking;
-  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
   const [availability, setAvailability] = useState<{ doctor: DoctorId; data: Availability } | null>(null);
 
   useEffect(() => {
@@ -52,6 +56,9 @@ export default function SlotPicker({
   const days = bookableDays(new Date(), doctorId);
   const dayFull = (d: string) => !!doctorId && timeSlots(d, new Date(), doctorId).every((s) => unavailable(d, s));
   const slots = date ? timeSlots(date, new Date(), doctorId) : [];
+  // Two-shift doctors get their slots split into morning and evening; everyone else one plain group.
+  const splitDoctor = !!doctorId && DOCTORS[doctorId].shifts.length > 1;
+  const groups = doctorId ? groupByShift(doctorId, slots) : slots.length ? [slots] : [];
 
   const chip = (active: boolean, off: boolean) =>
     `shrink-0 rounded-xl border px-3 py-2 text-[13.5px] transition ${
@@ -71,7 +78,9 @@ export default function SlotPicker({
             const off = dayFull(d);
             return (
               <button key={d} type="button" disabled={off} onClick={() => onDate(d)} className={chip(d === date, off)}>
-                <span className="block text-[11.5px] opacity-80">{formatDay(d, locale, { day: undefined, month: undefined })}</span>
+                <span className="block text-[11.5px] opacity-80">
+                  {formatDay(d, locale, { day: undefined, month: undefined })}
+                </span>
                 <span className="block">{formatDay(d, locale, { weekday: undefined })}</span>
               </button>
             );
@@ -82,16 +91,33 @@ export default function SlotPicker({
         <p className="text-[13px] font-bold text-ink-soft">{b.time}</p>
         {date ? (
           <>
-            <div className="mt-1.5 grid grid-cols-4 gap-2 sm:grid-cols-6">
-              {slots.map((s) => {
-                const off = unavailable(date, s);
-                return (
-                  <button key={s} type="button" disabled={off} onClick={() => onTime(s)} className={chip(s === time && !off, off)}>
-                    {formatTime(s, locale)}
-                  </button>
-                );
-              })}
-            </div>
+            {groups.map((group) => (
+              <div key={group[0]}>
+                {/* A heading per shift for doctors with a morning and an evening shift. */}
+                {groups.length > 1 || splitDoctor ? (
+                  <p className="mt-3 mb-1.5 flex items-center gap-2 text-[12.5px] font-bold text-gold">
+                    {Number(group[0].slice(0, 2)) < 12 ? b.morning : b.evening}
+                    <span className="h-px flex-1 bg-line/30" />
+                  </p>
+                ) : null}
+                <div className="mt-1.5 grid grid-cols-4 gap-2 sm:grid-cols-6">
+                  {group.map((s) => {
+                    const off = unavailable(date, s);
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={off}
+                        onClick={() => onTime(s)}
+                        className={chip(s === time && !off, off)}
+                      >
+                        {formatTime(s, locale)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
             {doctorId && slots.some((s) => unavailable(date, s)) && (
               <p className="mt-1.5 text-[12px] text-red-500">{b.closedHint}</p>
             )}

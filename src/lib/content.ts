@@ -63,6 +63,8 @@ export interface BookingStrings {
   removeDoctor: string;
   unavailable: string;
   closedHint: string;
+  morning: string;
+  evening: string;
   select: string;
   submit: string;
   sending: string;
@@ -326,6 +328,8 @@ export const arContent: Content = {
     removeDoctor: "إزالة الطبيب",
     unavailable: "هذا الموعد لم يعد متاحاً، اختر وقتاً آخر.",
     closedHint: "الأوقات باللون الأحمر غير متاحة.",
+    morning: "الفترة الصباحية",
+    evening: "الفترة المسائية",
     select: "اختر...",
     submit: "إرسال طلب الحجز",
     sending: "جارٍ الإرسال...",
@@ -511,6 +515,8 @@ export const enContent: Content = {
     removeDoctor: "Remove doctor",
     unavailable: "That time is no longer available. Please pick another.",
     closedHint: "Times in red aren't available.",
+    morning: "Morning",
+    evening: "Evening",
     select: "Select...",
     submit: "Send booking request",
     sending: "Sending...",
