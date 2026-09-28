@@ -43,12 +43,12 @@ body {
   scroll-margin-top: 96px;
 }
 
-/* Page-load entrance: the hero logo sweeps in from beyond the page edge and settles into place, then the
+/* Page-load entrance: the hero logo glides in from beyond the page edge and settles into place, then the
    headline and specialty labels rise in one after another (stagger with an inline animation-delay). */
 @keyframes logo-sweep-in {
   0% {
     opacity: 0;
-    transform: translateX(var(--sweep-from, 60vw)) rotate(var(--sweep-turn, 200deg)) scale(0.55);
+    transform: translateX(var(--sweep-from, 60vw)) scale(0.55);
     filter: blur(6px);
   }
   70% {
@@ -56,11 +56,11 @@ body {
     filter: blur(0);
   }
   85% {
-    transform: translateX(0) rotate(-6deg) scale(1.04);
+    transform: translateX(0) scale(1.04);
   }
   100% {
     opacity: 1;
-    transform: translateX(0) rotate(0) scale(1);
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -82,7 +82,6 @@ body {
 /* In Arabic the logo sits on the left, so it comes in from the left edge. */
 [dir="rtl"] .logo-sweep-in {
   --sweep-from: -60vw;
-  --sweep-turn: -200deg;
 }
 
 .rise-in {

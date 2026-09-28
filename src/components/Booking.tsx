@@ -73,7 +73,7 @@ export default function Booking() {
         <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{b.heading}</h2>
         <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">{b.intro}</p>
 
-        <form onSubmit={onSubmit} className="mt-8 grid gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2">
+        <form onSubmit={onSubmit} className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2">
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
           <label className="text-[13px] font-bold text-ink-soft md:col-span-2">

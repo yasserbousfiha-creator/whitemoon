@@ -32,7 +32,7 @@ export default function SlotPicker({
 
   return (
     <>
-      <div className="md:col-span-2">
+      <div className="min-w-0 md:col-span-2">
         <p className="text-[13px] font-bold text-ink-soft">{b.date}</p>
         <div className="mt-1.5 flex gap-2 overflow-x-auto pb-1">
           {days.map((d) => (
