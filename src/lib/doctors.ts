@@ -1,7 +1,8 @@
 // Doctor working hours (Riyadh time), used by the booking form, the booking API and the /admin schedule tab.
 // Keep in sync with whitemoon-app/src/lib/doctors.ts. Slots are every 30 minutes from the start of each shift; the
 // last one starts half an hour before the shift ends.
-export type DoctorId = "yasmine" | "souad" | "fatima-alzahraa" | "ahmed-althubaiti";
+export type DoctorId =
+  "yasmine" | "fatima-alzahraa" | "ahmed-althubaiti" | "souad" | "ali-alkhalili" | "ahmed-sobhi" | "abdullah-alotaibi";
 
 type Shift = [start: string, end: string]; // "HH:MM"
 
@@ -14,6 +15,8 @@ interface DoctorSchedule {
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
+// Clinic hours, for doctors whose own schedule hasn't been provided yet.
+const CLINIC_HOURS: Shift[] = [["09:00", "22:00"]];
 
 export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   yasmine: {
@@ -29,7 +32,7 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   souad: {
     names: ["د. سعاد", "Dr. Souad"],
     branch: "khamseen",
-    service: "derma",
+    service: "dentistry",
     days: EVERY_DAY,
     shifts: [
       ["09:30", "12:30"],
@@ -49,6 +52,27 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
     service: "derma",
     days: [0, 3], // Sunday and Wednesday
     shifts: [["17:00", "21:00"]],
+  },
+  "ali-alkhalili": {
+    names: ["د. علي الخليلي", "Dr. Ali Al-Khalili"],
+    branch: "khamseen",
+    service: "dentistry",
+    days: EVERY_DAY,
+    shifts: CLINIC_HOURS,
+  },
+  "ahmed-sobhi": {
+    names: ["د. أحمد صبحي", "Dr. Ahmed Sobhi"],
+    branch: "khamseen",
+    service: "dentistry",
+    days: EVERY_DAY,
+    shifts: CLINIC_HOURS,
+  },
+  "abdullah-alotaibi": {
+    names: ["د. عبدالله العتيبي", "Dr. Abdullah Al-Otaibi"],
+    branch: "khamseen",
+    service: "dentistry",
+    days: EVERY_DAY,
+    shifts: CLINIC_HOURS,
   },
 };
 

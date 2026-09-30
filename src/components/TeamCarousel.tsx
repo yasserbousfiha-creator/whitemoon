@@ -56,7 +56,12 @@ export default function TeamCarousel({ team, service }: { team: TeamMember[]; se
           )}
           <span className="text-center">
             {member.name && <span className="block text-[14px] font-bold text-ink">{member.name}</span>}
-            <span className={member.name ? "block text-[12px] text-ink-soft" : "text-[13px] font-bold text-ink"}>{member.role}</span>
+            <span className={member.name ? "block text-[12px] text-ink-soft" : "text-[13px] font-bold text-ink"}>
+              {member.role}
+            </span>
+            {member.branch && (
+              <span className="block text-[11.5px] text-gold">{t.branches.find((b) => b.id === member.branch)?.name}</span>
+            )}
           </span>
           {member.name && (
             <button

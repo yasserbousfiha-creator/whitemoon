@@ -20,6 +20,8 @@ export interface TeamMember {
   branch?: Branch["id"];
   // Links to their working hours in lib/doctors.ts.
   id?: DoctorId;
+  // Taller crop for the medical staff section; falls back to photo.
+  portrait?: string;
 }
 
 export interface ServiceContent {
@@ -260,7 +262,12 @@ export const arContent: Content = {
       extraLabel: "دليل درجات البياض",
       extraType: "shadeGuide",
       note: "دقة تشبه الحِرفة، لابتسامة تبدو أنها لم تُعالَج قط.",
-      team: [{ role: "استشاري طب أسنان" }, { role: "أخصائية تجميل أسنان" }, { role: "أخصائي تقويم" }],
+      team: [
+        { name: "د. أحمد صبحي", role: "استشاري جراحة وزراعة الأسنان", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
+        { name: "د. علي الخليلي", role: "أخصائي علاج العصب والجذور", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
+        { name: "د. سعاد", role: "أخصائية تركيبات وتجميل الأسنان", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
+        { name: "د. عبدالله العتيبي", role: "طبيب أسنان عام", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
+      ],
     },
     {
       icon: "derma",
@@ -270,9 +277,8 @@ export const arContent: Content = {
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
-        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", branch: "khamseen", id: "yasmine" },
-        { name: "د. سعاد", role: "الجلدية والتجميل", photo: "/images/team/souad.jpg", branch: "khamseen", id: "souad" },
-        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
@@ -451,7 +457,12 @@ export const enContent: Content = {
       extraLabel: "Shade Guide Reference",
       extraType: "shadeGuide",
       note: "Craftsman precision, for a smile that never looks treated.",
-      team: [{ role: "Dental Consultant" }, { role: "Cosmetic Dentistry Specialist" }, { role: "Orthodontics Specialist" }],
+      team: [
+        { name: "Dr. Ahmed Sobhi", role: "Consultant, Oral Surgery & Implants", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
+        { name: "Dr. Ali Al-Khalili", role: "Endodontics (Root Canal) Specialist", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
+        { name: "Dr. Souad", role: "Prosthodontics & Cosmetic Dentistry", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
+        { name: "Dr. Abdullah Al-Otaibi", role: "General Dentist", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
+      ],
     },
     {
       icon: "derma",
@@ -461,9 +472,8 @@ export const enContent: Content = {
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
-        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", branch: "khamseen", id: "yasmine" },
-        { name: "Dr. Souad", role: "Dermatology & Aesthetics", photo: "/images/team/souad.jpg", branch: "khamseen", id: "souad" },
-        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
