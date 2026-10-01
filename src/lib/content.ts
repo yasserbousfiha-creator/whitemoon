@@ -183,6 +183,7 @@ export interface Content {
   doctorsHeading: string;
   doctorsIntro: string;
   casesLabel: string;
+  casesEmpty: string;
   teamPhotoNote: string;
 
   journeyEyebrow: string;
@@ -288,6 +289,7 @@ export const arContent: Content = {
         { name: "د. علي الخليلي", role: "طبيب أسنان عام", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
         { name: "د. سعاد", role: "أخصائية تركيبات وتجميل الأسنان", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "د. عبدالله العتيبي", role: "طبيب أسنان عام", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
+        { name: "د. ياسمين", role: "أخصائية تقويم الأسنان", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
       ],
     },
     {
@@ -298,7 +300,6 @@ export const arContent: Content = {
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
-        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine", cases: ["/images/cases/yasmine-1.jpg", "/images/cases/yasmine-2.jpg", "/images/cases/yasmine-3.jpg"] },
         { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
@@ -344,6 +345,7 @@ export const arContent: Content = {
   doctorsHeading: "أطباء تثق بهم",
   doctorsIntro: "نخبة من الأطباء المتخصصين، احجز موعدك مباشرة مع الطبيب الذي تفضّله.",
   casesLabel: "حالات",
+  casesEmpty: "ستُضاف صور الحالات قريباً.",
   teamPhotoNote: "الصور الفعلية للفريق ستُضاف قريبًا",
   journeyEyebrow: "من التواصل إلى الإشراقة",
   journeyHeading: "رحلتك معنا، خطوة بخطوة",
@@ -409,7 +411,7 @@ export const arContent: Content = {
   contactHeading: "زورونا في الطائف",
   branchesLabel: "فروعنا",
   galleryLabel: "المعرض",
-  gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "جولة في مجمع وايت مون" }],
+  gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
     { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen },
@@ -491,6 +493,7 @@ export const enContent: Content = {
         { name: "Dr. Ali Al-Khalili", role: "General Dentist", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
         { name: "Dr. Souad", role: "Prosthodontics & Cosmetic Dentistry", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "Dr. Abdullah Al-Otaibi", role: "General Dentist", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
+        { name: "Dr. Yasmine", role: "Orthodontist", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
       ],
     },
     {
@@ -501,7 +504,6 @@ export const enContent: Content = {
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
-        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine", cases: ["/images/cases/yasmine-1.jpg", "/images/cases/yasmine-2.jpg", "/images/cases/yasmine-3.jpg"] },
         { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
@@ -547,6 +549,7 @@ export const enContent: Content = {
   doctorsHeading: "Doctors you can trust",
   doctorsIntro: "Specialist doctors you can book with directly — pick the one you prefer.",
   casesLabel: "Cases",
+  casesEmpty: "Before-and-after photos are coming soon.",
   teamPhotoNote: "Real team photos coming soon",
   journeyEyebrow: "From First Contact to Full Glow",
   journeyHeading: "Your journey, one phase at a time",
@@ -612,7 +615,7 @@ export const enContent: Content = {
   contactHeading: "Visit us in Taif",
   branchesLabel: "Our Branches",
   galleryLabel: "Gallery",
-  gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "A tour of White Moon Clinic" }],
+  gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
     { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen },

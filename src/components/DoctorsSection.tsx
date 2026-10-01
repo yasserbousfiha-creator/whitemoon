@@ -55,7 +55,8 @@ export default function DoctorsSection() {
                         sizes="(min-width: 768px) 25vw, 50vw"
                         className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
-                      {d.cases?.length ? (
+                      {/* On every doctor; photos are added per doctor in content.ts (cases), until then it says "coming soon". */}
+                      {d.name ? (
                         <button
                           type="button"
                           onClick={() => setCases(d)}
@@ -97,8 +98,13 @@ export default function DoctorsSection() {
           );
         })}
       </div>
-      {cases?.cases && (
-        <CasesViewer title={`${t.casesLabel} · ${cases.name}`} photos={cases.cases} onClose={() => setCases(null)} />
+      {cases && (
+        <CasesViewer
+          title={`${t.casesLabel} · ${cases.name}`}
+          photos={cases.cases ?? []}
+          empty={t.casesEmpty}
+          onClose={() => setCases(null)}
+        />
       )}
     </section>
   );

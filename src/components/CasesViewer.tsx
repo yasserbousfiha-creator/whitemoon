@@ -9,10 +9,12 @@ import { createPortal } from "react-dom";
 export default function CasesViewer({
   title,
   photos,
+  empty,
   onClose,
 }: {
   title: string;
   photos: string[];
+  empty: string; // shown while a doctor has no case photos yet
   onClose: () => void;
 }) {
   const strip = useRef<HTMLDivElement>(null);
@@ -50,7 +52,8 @@ export default function CasesViewer({
     <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] flex flex-col bg-black/90">
       <div className="flex items-center justify-between px-4 py-3 text-white">
         <p className="text-sm font-bold">
-          {title} · {index + 1}/{photos.length}
+          {title}
+          {photos.length > 0 && ` · ${index + 1}/${photos.length}`}
         </p>
         <button
           type="button"
@@ -62,7 +65,13 @@ export default function CasesViewer({
         </button>
       </div>
 
-      <div className="relative min-h-0 flex-1">
+      {photos.length === 0 && (
+        <div className="grid flex-1 place-items-center p-6">
+          <p className="max-w-xs text-center text-[15px] leading-relaxed text-white/85">{empty}</p>
+        </div>
+      )}
+
+      <div className={`relative min-h-0 flex-1 ${photos.length === 0 ? "hidden" : ""}`}>
         <div
           ref={strip}
           onScroll={onScroll}

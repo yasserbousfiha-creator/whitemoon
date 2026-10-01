@@ -22,7 +22,7 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   yasmine: {
     names: ["د. ياسمين", "Dr. Yasmine"],
     branch: "khamseen",
-    service: "derma",
+    service: "dentistry",
     days: EVERY_DAY,
     shifts: [
       ["09:30", "12:30"],
