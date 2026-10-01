@@ -54,8 +54,8 @@ export default function Contact() {
 
   return (
     <section id="contact" className="scroll-anchor bg-surface2">
-      <div className="mx-auto flex max-w-[1160px] flex-col gap-8 px-6 py-[52px] md:flex-row md:py-[70px]">
-        <div className="flex-1">
+      <div className="mx-auto max-w-[760px] px-6 py-[52px] md:py-[70px]">
+        <div>
           <Eyebrow text={t.contactEyebrow} />
           <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{t.contactHeading}</h2>
 
@@ -84,14 +84,6 @@ export default function Contact() {
             >
               {t.ctaCallNow}
             </a>
-          </div>
-        </div>
-
-        <div className="flex-1">
-          <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-2xl border border-line/25 bg-surface p-5 text-center">
-            <MapPin size={30} className="text-gold" />
-            <p className="mt-2.5 font-display text-[18px] text-ink">{t.mapPinTitle}</p>
-            <p className="mt-2 max-w-[260px] text-[12px] leading-relaxed text-ink-soft">{t.mapPinNote}</p>
           </div>
         </div>
       </div>

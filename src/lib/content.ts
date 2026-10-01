@@ -119,6 +119,9 @@ export interface Branch {
   name: string;
   address: string;
   mapUrl: string;
+  // Vertical tour video of the branch, with the still shown before it plays.
+  video?: string;
+  poster?: string;
 }
 
 export interface NavItem {
@@ -179,13 +182,13 @@ export interface Content {
   contactEyebrow: string;
   contactHeading: string;
   branchesLabel: string;
+  branchTour: string;
   branches: Branch[];
   workingHoursValue: string;
   phoneLabel: string;
   followLabel: string;
   followValue: string;
   mapPinTitle: string;
-  mapPinNote: string;
 
   aboutEyebrow: string;
   aboutHeading: string;
@@ -380,9 +383,10 @@ export const arContent: Content = {
   contactEyebrow: "تواصل معنا",
   contactHeading: "زورونا في الطائف",
   branchesLabel: "فروعنا",
+  branchTour: "جولة في الفرع",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen },
+    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen, video: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg" },
     { id: "shahar", name: "فرع شهار", address: "حي شهار، الطائف", mapUrl: mapUrls.shahar },
     { id: "wisam", name: "فرع الوسام", address: "حي الوسام، الطائف", mapUrl: mapUrls.wisam },
   ],
@@ -391,7 +395,6 @@ export const arContent: Content = {
   followLabel: "تابعونا",
   followValue: "Instagram · TikTok · Snapchat — @whitemoonclinic",
   mapPinTitle: "3 فروع في الطائف",
-  mapPinNote: "مواقع تقريبية — سيتم ربطها بخريطة تفاعلية عند البناء النهائي",
   aboutEyebrow: "من نحن",
   aboutHeading: "قصة وايت مون",
   aboutBody1:
@@ -575,9 +578,10 @@ export const enContent: Content = {
   contactEyebrow: "Get in Touch",
   contactHeading: "Visit us in Taif",
   branchesLabel: "Our Branches",
+  branchTour: "Branch tour",
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen },
+    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen, video: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg" },
     { id: "shahar", name: "Shahar Branch", address: "Shahar District, Taif", mapUrl: mapUrls.shahar },
     { id: "wisam", name: "Al-Wisam Branch", address: "Al-Wisam District, Taif", mapUrl: mapUrls.wisam },
   ],
@@ -586,7 +590,6 @@ export const enContent: Content = {
   followLabel: "Follow Us",
   followValue: "Instagram · TikTok · Snapchat — @whitemoonclinic",
   mapPinTitle: "3 Branches in Taif",
-  mapPinNote: "Approximate locations — will link to an interactive map in the final build",
   aboutEyebrow: "About Us",
   aboutHeading: "The White Moon Story",
   aboutBody1:

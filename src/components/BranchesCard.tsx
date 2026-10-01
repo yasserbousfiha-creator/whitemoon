@@ -2,6 +2,7 @@
 
 import { Clock, MapPin, Navigation } from "lucide-react";
 import { useLocale } from "@/lib/locale-context";
+import BranchVideo from "./BranchVideo";
 
 export default function BranchesCard() {
   const { t } = useLocale();
@@ -23,22 +24,24 @@ export default function BranchesCard() {
 
       <div className="divide-y divide-line/15">
         {t.branches.map((b) => (
-          <a
-            key={b.name}
-            href={b.mapUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-start gap-3.5 py-4 last:pb-0"
-          >
-            <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2 transition-colors group-hover:bg-gold-bright/30">
-              <MapPin size={18} className="text-gold" />
-            </span>
-            <span className="flex-1">
-              <span className="block text-[14.5px] font-bold text-ink">{b.name}</span>
-              <span className="mt-0.5 block text-[13px] text-ink-soft">{b.address}</span>
-            </span>
-            <Navigation size={16} className="mt-1 shrink-0 text-gold opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
+          <div key={b.name} className="py-4 last:pb-0">
+            <a href={b.mapUrl} target="_blank" rel="noopener noreferrer" className="group flex items-start gap-3.5">
+              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2 transition-colors group-hover:bg-gold-bright/30">
+                <MapPin size={18} className="text-gold" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-[14.5px] font-bold text-ink">{b.name}</span>
+                <span className="mt-0.5 block text-[13px] text-ink-soft">{b.address}</span>
+              </span>
+              <Navigation
+                size={16}
+                className="mt-1 shrink-0 text-gold opacity-60 transition-opacity group-hover:opacity-100"
+              />
+            </a>
+            {b.video && b.poster && (
+              <BranchVideo src={b.video} poster={b.poster} label={`${t.branchTour} · ${b.name}`} />
+            )}
+          </div>
         ))}
       </div>
     </div>
