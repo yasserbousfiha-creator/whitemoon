@@ -119,9 +119,14 @@ export interface Branch {
   name: string;
   address: string;
   mapUrl: string;
-  // Vertical tour video of the branch, with the still shown before it plays.
-  video?: string;
+}
+
+// One gallery entry: a video (shown as its still until tapped) or a photo (opens enlarged).
+export interface GalleryItem {
+  kind: "video" | "image";
+  src: string;
   poster?: string;
+  caption?: string;
 }
 
 export interface NavItem {
@@ -182,7 +187,9 @@ export interface Content {
   contactEyebrow: string;
   contactHeading: string;
   branchesLabel: string;
-  branchTour: string;
+  galleryLabel: string;
+  galleryHeading: string;
+  gallery: GalleryItem[];
   branches: Branch[];
   workingHoursValue: string;
   phoneLabel: string;
@@ -383,10 +390,12 @@ export const arContent: Content = {
   contactEyebrow: "تواصل معنا",
   contactHeading: "زورونا في الطائف",
   branchesLabel: "فروعنا",
-  branchTour: "جولة في الفرع",
+  galleryLabel: "المعرض",
+  galleryHeading: "لمحات من وايت مون",
+  gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "جولة في مجمع وايت مون" }],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen, video: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg" },
+    { id: "khamseen", name: "فرع الخمسين", address: "شارع الخمسين، الجال، الطائف", mapUrl: mapUrls.khamseen },
     { id: "shahar", name: "فرع شهار", address: "حي شهار، الطائف", mapUrl: mapUrls.shahar },
     { id: "wisam", name: "فرع الوسام", address: "حي الوسام، الطائف", mapUrl: mapUrls.wisam },
   ],
@@ -578,10 +587,12 @@ export const enContent: Content = {
   contactEyebrow: "Get in Touch",
   contactHeading: "Visit us in Taif",
   branchesLabel: "Our Branches",
-  branchTour: "Branch tour",
+  galleryLabel: "Gallery",
+  galleryHeading: "Inside White Moon",
+  gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "A tour of White Moon Clinic" }],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
-    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen, video: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg" },
+    { id: "khamseen", name: "Al-Khamseen Branch", address: "Al-Khamseen St, Al-Jal, Taif", mapUrl: mapUrls.khamseen },
     { id: "shahar", name: "Shahar Branch", address: "Shahar District, Taif", mapUrl: mapUrls.shahar },
     { id: "wisam", name: "Al-Wisam Branch", address: "Al-Wisam District, Taif", mapUrl: mapUrls.wisam },
   ],
