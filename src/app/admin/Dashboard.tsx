@@ -61,7 +61,9 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
-        active ? "border-gold-bright bg-gold-bright font-bold text-night2" : "border-line/30 bg-surface hover:border-gold-bright"
+        active
+          ? "border-gold-bright bg-gold-bright font-bold text-night2"
+          : "border-line/30 bg-surface hover:border-gold-bright"
       }`}
     >
       {children}
@@ -182,9 +184,13 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
       </form>
 
       <p className="mt-1.5 text-[11px] text-ink-soft">
-        أُرسل {createdFormat.format(new Date(b.created_at))} · {b.source === "app" ? "من التطبيق" : "من الموقع"} · #{b.id}
+        أُرسل {createdFormat.format(new Date(b.created_at))} · {b.source === "app" ? "من التطبيق" : "من الموقع"} · #
+        {b.id}
       </p>
-      <p aria-live="polite" className={`min-h-4 text-xs ${message?.ok === false ? "text-red-600" : "text-emerald-700"}`}>
+      <p
+        aria-live="polite"
+        className={`min-h-4 text-xs ${message?.ok === false ? "text-red-600" : "text-emerald-700"}`}
+      >
         {pending ? "جارٍ الحفظ…" : message?.text}
       </p>
     </div>
@@ -200,12 +206,18 @@ function PersonCard({ bookings, today, reload }: { bookings: Booking[]; today: s
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-lg font-bold">{first.name}</h2>
         {bookings.length > 1 && (
-          <span className="shrink-0 rounded-full bg-gold-bright/30 px-3 py-1 text-xs font-bold">{bookings.length} مواعيد</span>
+          <span className="shrink-0 rounded-full bg-gold-bright/30 px-3 py-1 text-xs font-bold">
+            {bookings.length} مواعيد
+          </span>
         )}
       </div>
 
       <div className="mt-2 flex flex-wrap gap-2 text-sm">
-        <a href={`tel:${first.phone}`} dir="ltr" className="rounded-full border border-line/30 px-3 py-1.5 hover:border-gold-bright">
+        <a
+          href={`tel:${first.phone}`}
+          dir="ltr"
+          className="rounded-full border border-line/30 px-3 py-1.5 hover:border-gold-bright"
+        >
           {first.phone}
         </a>
         <a
@@ -240,7 +252,10 @@ function PersonCard({ bookings, today, reload }: { bookings: Booking[]; today: s
 // Filters run in the browser over the bookings the server already sent, so switching them is instant.
 const REFRESH_SECONDS = 20;
 
-const lastUpdatedFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { timeStyle: "medium", timeZone: "Asia/Riyadh" });
+const lastUpdatedFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
+  timeStyle: "medium",
+  timeZone: "Asia/Riyadh",
+});
 
 export default function Dashboard({
   staff,
@@ -272,14 +287,17 @@ export default function Dashboard({
   // Opens on today's confirmed appointments, the list reception works from; "all" brings back every booking.
   const [view, setView] = useState<"today" | "all">("today");
   const [status, setStatus] = useState<BookingStatus | null>(null);
-  const [branch, setBranch] = useState<BranchId | null>(null);
+  // Everything is shown one branch at a time. A branch account is fixed to its branch; others switch at the top.
+  const [pickedBranch, setBranch] = useState<BranchId>("khamseen");
+  const branch: BranchId = staff.branch ?? pickedBranch;
+  const branchBookings = bookings.filter((b) => b.branch === branch);
   const [service, setService] = useState<ServiceId | null>(null);
 
   const today = todayRiyadh();
   const shown = bookings.filter(
     (b) =>
       (view === "today" ? b.status === "confirmed" && b.appointment_date === today : !status || b.status === status) &&
-      (!branch || b.branch === branch) &&
+      b.branch === branch &&
       (!service || b.service === service),
   );
 
@@ -296,7 +314,7 @@ export default function Dashboard({
 
   const attended = shown.filter((b) => b.attendance === "attended").length;
   const noShow = shown.filter((b) => b.attendance === "no_show").length;
-  const newCount = bookings.filter((b) => b.status === "new").length;
+  const newCount = branchBookings.filter((b) => b.status === "new").length;
 
   return (
     <main className="min-h-screen bg-bg pb-16">
@@ -305,7 +323,7 @@ export default function Dashboard({
           <div>
             <h1 className="font-display text-xl">لوحة الحجوزات</h1>
             <p className="text-xs text-ink-soft">
-              {staff.name} · {staff.branch ? BRANCHES[staff.branch] : "كل الفروع"}
+              {staff.name} · {BRANCHES[branch]}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -323,11 +341,34 @@ export default function Dashboard({
               </button>
             ) : null}
             <form action={signOut}>
-              <button className="rounded-full border border-line/40 px-4 py-1.5 text-sm hover:border-gold-bright">خروج</button>
+              <button className="rounded-full border border-line/40 px-4 py-1.5 text-sm hover:border-gold-bright">
+                خروج
+              </button>
             </form>
           </div>
         </div>
       </header>
+      {!staff.branch && (
+        <div className="mx-auto flex max-w-5xl flex-wrap gap-2 px-4 pt-3">
+          {(Object.keys(BRANCHES) as BranchId[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setBranch(id)}
+              className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
+                branch === id
+                  ? "border-gold-bright bg-gold-bright text-night2"
+                  : "border-line/30 bg-surface text-ink-soft hover:border-gold-bright"
+              }`}
+            >
+              {BRANCHES[id]}
+              <span className="ms-2 rounded-full bg-black/10 px-2 text-xs">
+                {bookings.filter((b) => b.branch === id && b.status === "new").length || ""}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <p className="mx-auto max-w-5xl px-4 pt-2 text-xs text-ink-soft">
         آخر تحديث: {lastUpdatedFormat.format(new Date(data.loadedAt))} · يتحدث تلقائياً كل {REFRESH_SECONDS} ثانية
       </p>
@@ -358,7 +399,7 @@ export default function Dashboard({
       </nav>
 
       {tab === "schedule" ? (
-        <SchedulePanel blocks={blocks} bookings={bookings} reload={reload} />
+        <SchedulePanel branch={branch} blocks={blocks} bookings={branchBookings} reload={reload} />
       ) : tab === "spins" ? (
         <SpinsPanel spins={spins} reload={reload} />
       ) : (
@@ -391,12 +432,6 @@ export default function Dashboard({
               </div>
             )}
             <div className="flex flex-wrap gap-2">
-              {!staff.branch &&
-                (Object.keys(BRANCHES) as BranchId[]).map((id) => (
-                  <Chip key={id} active={branch === id} onClick={() => setBranch(branch === id ? null : id)}>
-                    {BRANCHES[id]}
-                  </Chip>
-                ))}
               {(Object.keys(SERVICES) as ServiceId[]).map((id) => (
                 <Chip key={id} active={service === id} onClick={() => setService(service === id ? null : id)}>
                   {SERVICES[id]}
@@ -408,7 +443,9 @@ export default function Dashboard({
                 <span className="rounded-full bg-surface2 px-3 py-1">{shown.length} موعد اليوم</span>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-900">حضر: {attended}</span>
                 <span className="rounded-full bg-red-100 px-3 py-1 text-red-900">لم يحضر: {noShow}</span>
-                <span className="rounded-full bg-gold-bright/30 px-3 py-1">بانتظار: {shown.length - attended - noShow}</span>
+                <span className="rounded-full bg-gold-bright/30 px-3 py-1">
+                  بانتظار: {shown.length - attended - noShow}
+                </span>
               </div>
             )}
           </div>

@@ -88,6 +88,28 @@ body {
   animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Branch picker on the home page: the backdrop fades in, the card pops up, then the three branches rise in turn. */
+@keyframes picker-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes picker-pop {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+}
+.branch-picker {
+  animation: picker-fade 0.4s ease both;
+}
+.branch-picker-card {
+  animation: picker-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.branch-picker-option {
+  animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Hero logo on hover (mouse only): lifts a little, a soft golden halo breathes behind it, and one band of light
    sweeps across the face. */
 .logo-hover {
@@ -154,6 +176,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .logo-sweep-in,
   .rise-in,
+  .branch-picker,
+  .branch-picker-card,
+  .branch-picker-option,
   .logo-hover:hover .logo-halo,
   .logo-hover:hover .logo-shine::after {
     animation: none;

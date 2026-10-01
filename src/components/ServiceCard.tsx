@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { CalendarCheck } from "lucide-react";
+import { inBranch, useBranch } from "@/lib/branch-context";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { ServiceContent } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
@@ -59,6 +60,10 @@ function ServiceExtra({ service }: { service: ServiceContent }) {
 export default function ServiceCard({ service }: { service: ServiceContent }) {
   const Icon = serviceIconMap[service.icon];
   const { t } = useLocale();
+  // A branch page shows only that branch's team and devices.
+  const branch = useBranch();
+  const devices = service.devices?.filter((d) => inBranch(branch, d.branch)) ?? [];
+  const team = service.team.filter((m) => !m.name || inBranch(branch, m.branch));
   const { expandedIcon, setExpandedIcon } = useServicesUI();
 
   const isExpanded = expandedIcon === service.icon;
@@ -131,12 +136,12 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
         <div className="overflow-hidden">
           <p className="text-[13px] leading-relaxed text-ink-soft italic">{service.note}</p>
           <div className="mt-4">
-            {service.devices?.length ? (
-              <DevicesGrid devices={service.devices} />
+            {devices.length ? (
+              <DevicesGrid devices={devices} />
             ) : (
               <TeamCarousel
                 key={isExpanded ? `${service.icon}-open` : `${service.icon}-closed`}
-                team={service.team}
+                team={team}
                 service={service.icon}
               />
             )}

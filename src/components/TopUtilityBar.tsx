@@ -2,6 +2,8 @@
 
 import { MapPin, Phone } from "lucide-react";
 import { siInstagram, siTiktok, siSnapchat, siWhatsapp } from "simple-icons";
+import Link from "next/link";
+import { useBranch } from "@/lib/branch-context";
 import { Content } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 
@@ -14,6 +16,8 @@ const brands = [
 
 export default function TopUtilityBar() {
   const { t, locale, toggleLocale } = useLocale();
+  const branchId = useBranch();
+  const branch = t.branches.find((b) => b.id === branchId);
 
   return (
     <div className="border-b border-line/20 bg-surface2">
@@ -27,10 +31,24 @@ export default function TopUtilityBar() {
             <Phone size={13} />
             {t.phoneDisplay}
           </a>
-          <a href="#branches" className="flex items-center gap-1.5 text-[12.5px] text-ink-soft underline-offset-4 hover:text-ink hover:underline">
-            <MapPin size={13} />
-            {t.mapPinTitle}
-          </a>
+          {/* On a branch page: its name and a way back to the branch picker. */}
+          {branch ? (
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 text-[12.5px] text-ink-soft underline-offset-4 hover:text-ink hover:underline"
+            >
+              <MapPin size={13} />
+              {branch.name} · {t.branchPicker.change}
+            </Link>
+          ) : (
+            <a
+              href="#branches"
+              className="flex items-center gap-1.5 text-[12.5px] text-ink-soft underline-offset-4 hover:text-ink hover:underline"
+            >
+              <MapPin size={13} />
+              {t.mapPinTitle}
+            </a>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">

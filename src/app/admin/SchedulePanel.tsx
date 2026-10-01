@@ -1,12 +1,23 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import type { Booking } from "@/lib/booking-labels";
-import { DOCTOR_IDS, DOCTORS, type DoctorId, type ScheduleBlock, doctorSlots, groupByShift, isBlocked } from "@/lib/doctors";
+import type { Booking, BranchId } from "@/lib/booking-labels";
+import {
+  type BlockTarget,
+  DOCTOR_IDS,
+  DOCTORS,
+  type DoctorId,
+  type ScheduleBlock,
+  doctorSlots,
+  groupByShift,
+  isBlocked,
+} from "@/lib/doctors";
 import { DAYS_AHEAD, addDays, formatDay, formatTime, riyadhToday } from "@/lib/slots";
 import { setScheduleBlock } from "./actions";
 
-type Target = DoctorId | "all";
+// One doctor, or the whole branch (closing a day for every doctor there).
+type Target = DoctorId | `all-${BranchId}`;
+const isDoctor = (t: Target): t is DoctorId => !t.startsWith("all-");
 type BlockKey = Pick<ScheduleBlock, "doctor" | "date" | "start">;
 type Change = { block: BlockKey; closed: boolean };
 
@@ -15,15 +26,27 @@ const same = (a: BlockKey, b: BlockKey) => a.doctor === b.doctor && a.date === b
 // Reception opens a doctor and a day to see every slot: green = open, red = closed by the admin, grey = booked.
 // Tapping an open or closed slot toggles it; the day can be closed or reopened in one go.
 export default function SchedulePanel({
+  branch,
   blocks,
   bookings,
   reload,
 }: {
+  branch: BranchId;
   blocks: BlockKey[];
   bookings: Booking[];
   reload: () => Promise<void>;
 }) {
-  const [target, setTarget] = useState<Target>("yasmine");
+  const branchDoctors = DOCTOR_IDS.filter((id) => DOCTORS[id].branch === branch);
+  const wholeBranch: Target = `all-${branch}`;
+  const [picked, setTarget] = useState<Target>(branchDoctors[0] ?? wholeBranch);
+  // Switching branch in the dashboard falls back to that branch's first doctor.
+  const target: Target = isDoctor(picked)
+    ? DOCTORS[picked].branch === branch
+      ? picked
+      : (branchDoctors[0] ?? wholeBranch)
+    : wholeBranch;
+  // Blocks that close this target's whole day besides its own: everyone, and (for a doctor) their branch.
+  const widerTargets: BlockTarget[] = isDoctor(target) ? ["all", wholeBranch] : ["all"];
   const [date, setDate] = useState(() => riyadhToday());
   const [current, applyChange] = useOptimistic(blocks, (state, c: Change) =>
     c.closed ? [...state.filter((b) => !same(b, c.block)), c.block] : state.filter((b) => !same(b, c.block)),
@@ -43,12 +66,12 @@ export default function SchedulePanel({
 
   const today = riyadhToday();
   const days = Array.from({ length: DAYS_AHEAD + 1 }, (_, i) => addDays(today, i)).filter(
-    (d) => target === "all" || doctorSlots(target, d).length > 0,
+    (d) => !isDoctor(target) || doctorSlots(target, d).length > 0,
   );
   const dayClosed = (d: string) =>
-    current.some((b) => b.date === d && b.start === null && (b.doctor === target || b.doctor === "all"));
+    current.some((b) => b.date === d && b.start === null && (b.doctor === target || widerTargets.includes(b.doctor)));
   const ownDayBlock = current.some((b) => b.doctor === target && b.date === date && b.start === null);
-  const closedByAll = target !== "all" && current.some((b) => b.doctor === "all" && b.date === date && b.start === null);
+  const closedByAll = current.some((b) => widerTargets.includes(b.doctor) && b.date === date && b.start === null);
   const bookedAt = (time: string) =>
     bookings.find(
       (b) =>
@@ -60,19 +83,21 @@ export default function SchedulePanel({
 
   const chip = (active: boolean) =>
     `rounded-full border px-3.5 py-1.5 text-sm transition ${
-      active ? "border-gold-bright bg-gold-bright font-bold text-night2" : "border-line/30 bg-surface hover:border-gold-bright"
+      active
+        ? "border-gold-bright bg-gold-bright font-bold text-night2"
+        : "border-line/30 bg-surface hover:border-gold-bright"
     }`;
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 px-4 pt-5">
       <div className="flex flex-wrap gap-2">
-        {DOCTOR_IDS.map((id) => (
+        {branchDoctors.map((id) => (
           <button key={id} type="button" className={chip(target === id)} onClick={() => setTarget(id)}>
             {DOCTORS[id].names[0]}
           </button>
         ))}
-        <button type="button" className={chip(target === "all")} onClick={() => setTarget("all")}>
-          كل الأطباء (إغلاق يوم كامل)
+        <button type="button" className={chip(target === wholeBranch)} onClick={() => setTarget(wholeBranch)}>
+          كل أطباء الفرع (إغلاق يوم كامل)
         </button>
       </div>
 
@@ -109,11 +134,11 @@ export default function SchedulePanel({
             ownDayBlock ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
-          {ownDayBlock ? "فتح اليوم" : target === "all" ? "إغلاق اليوم لكل الأطباء" : "إغلاق اليوم بالكامل"}
+          {ownDayBlock ? "فتح اليوم" : !isDoctor(target) ? "إغلاق اليوم لكل أطباء الفرع" : "إغلاق اليوم بالكامل"}
         </button>
       </div>
 
-      {target !== "all" && (
+      {isDoctor(target) && (
         <>
           <div className="flex flex-wrap gap-4 text-xs text-ink-soft">
             <span className="flex items-center gap-1.5">

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib/booking-labels";
-import { type DoctorId, isDoctorId } from "@/lib/doctors";
+import { type BlockTarget, isDoctorId } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
 
@@ -95,15 +95,16 @@ export async function redeemSpin(id: number): Promise<UpdateResult> {
   return { ok: true };
 }
 
-// Closes (or reopens) a whole day (start null) or a single 30-minute slot for one doctor, or for everyone ("all").
+// Closes (or reopens) a whole day (start null) or a single 30-minute slot for one doctor, for every doctor of a
+// branch ("all-khamseen"…), or for everyone ("all").
 export async function setScheduleBlock(
-  doctor: DoctorId | "all",
+  doctor: BlockTarget,
   date: string,
   start: string | null,
   closed: boolean,
 ): Promise<UpdateResult> {
   if (
-    !(doctor === "all" || isDoctorId(doctor)) ||
+    !(doctor === "all" || /^all-(khamseen|shahar|wisam)$/.test(doctor) || isDoctorId(doctor)) ||
     !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
     (start !== null && !/^\d{2}:\d{2}$/.test(start))
   ) {

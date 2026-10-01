@@ -2,7 +2,7 @@
 // Keep in sync with whitemoon-app/src/lib/doctors.ts. Slots are every 30 minutes from the start of each shift; the
 // last one starts half an hour before the shift ends.
 export type DoctorId =
-  "yasmine" | "fatima-alzahraa" | "ahmed-althubaiti" | "souad" | "ali-alkhalili" | "ahmed-sobhi" | "abdullah-alotaibi";
+  "yasmine" | "fatima-alzahraa" | "ola-atef" | "ahmed-althubaiti" | "souad" | "ali-alkhalili" | "ahmed-sobhi" | "abdullah-alotaibi";
 
 type Shift = [start: string, end: string]; // "HH:MM"
 
@@ -45,6 +45,14 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
     service: "derma",
     days: EVERY_DAY,
     shifts: [["13:30", "21:30"]],
+  },
+  // Clinic hours until her own schedule is provided.
+  "ola-atef": {
+    names: ["د. علا عاطف", "Dr. Ola Atef"],
+    branch: "khamseen",
+    service: "derma",
+    days: EVERY_DAY,
+    shifts: [["09:00", "22:00"]],
   },
   "ahmed-althubaiti": {
     names: ["أحمد الثبيتي", "Ahmed Al-Thubaiti", "د. أحمد الثبيتي", "Dr. Ahmed Al-Thubaiti"],
@@ -121,16 +129,20 @@ export function doctorSlots(id: DoctorId, isoDate: string) {
 }
 
 // Admin-set unavailability: a whole day (start null) or one 30-minute slot. doctor "all" closes it for everyone.
+// Who a block closes: one doctor, every doctor in one branch ("all-khamseen"…), or everyone ("all").
+export type BlockTarget = DoctorId | "all" | `all-${DoctorSchedule["branch"]}`;
+
 export interface ScheduleBlock {
   id: number;
-  doctor: DoctorId | "all";
+  doctor: BlockTarget;
   date: string;
   start: string | null; // "HH:MM"
 }
 
-// A slot is closed if a whole-day or matching-slot block covers it for this doctor or for all doctors.
+// A slot is closed if a whole-day or matching-slot block covers it for this doctor, their branch, or everyone.
 export function isBlocked(blocks: Pick<ScheduleBlock, "doctor" | "date" | "start">[], id: DoctorId, date: string, time: string) {
-  return blocks.some((b) => (b.doctor === id || b.doctor === "all") && b.date === date && (b.start === null || b.start === time));
+  const who = [id, "all", `all-${DOCTORS[id].branch}`];
+  return blocks.some((b) => who.includes(b.doctor) && b.date === date && (b.start === null || b.start === time));
 }
 
 // Splits a day's slots by the doctor's shifts, so pickers can show "morning" and "evening" separately.

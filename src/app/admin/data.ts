@@ -1,11 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Booking, WheelSpin } from "@/lib/booking-labels";
-import type { DoctorId } from "@/lib/doctors";
+import type { BlockTarget } from "@/lib/doctors";
 import { riyadhToday } from "@/lib/slots";
 import { createServiceClient } from "@/lib/supabase";
 import { riyadhMonth } from "@/lib/wheel";
 
-export type ScheduleBlockRow = { doctor: DoctorId | "all"; date: string; start: string | null };
+export type ScheduleBlockRow = { doctor: BlockTarget; date: string; start: string | null };
 
 export interface DashboardData {
   bookings: Booking[];
@@ -53,7 +53,7 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
     bookings: bookings.data ?? [],
     spins: spins?.data ?? [],
     blocks: (blocks?.data ?? []).map((b) => ({
-      doctor: b.doctor as DoctorId | "all",
+      doctor: b.doctor as BlockTarget,
       date: b.date as string,
       start: (b.start_time as string | null)?.slice(0, 5) ?? null,
     })),

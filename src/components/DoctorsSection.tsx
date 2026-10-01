@@ -4,6 +4,7 @@ import Image from "next/image";
 import { CalendarCheck, Images, MapPin } from "lucide-react";
 import { useState } from "react";
 import type { TeamMember } from "@/lib/content";
+import { inBranch, useBranch } from "@/lib/branch-context";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { useLocale } from "@/lib/locale-context";
 import CasesViewer from "./CasesViewer";
@@ -11,14 +12,16 @@ import Eyebrow from "./Eyebrow";
 import { serviceIconMap } from "./icon-map";
 
 // Named doctors grouped by department (dentistry, dermatology…), each with their branch and a one-tap
-// "book with" that fills in the booking form.
+// "book with" that fills in the booking form. A branch page lists only that branch's doctors.
 export default function DoctorsSection() {
   const { t } = useLocale();
+  const branch = useBranch();
   const [cases, setCases] = useState<TeamMember | null>(null);
   const departments = t.services
-    .map((s) => ({ service: s, doctors: s.team.filter((m) => m.name && m.photo) }))
+    .map((s) => ({ service: s, doctors: s.team.filter((m) => m.name && m.photo && inBranch(branch, m.branch)) }))
     .filter((d) => d.doctors.length > 0);
-  if (departments.length === 0) return null;
+  // A branch without listed doctors yet still gets the section, with a "coming soon" line.
+  if (departments.length === 0 && !branch) return null;
 
   return (
     <section id="doctors" className="scroll-anchor bg-surface2">
@@ -28,6 +31,12 @@ export default function DoctorsSection() {
           <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{t.doctorsHeading}</h2>
           <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">{t.doctorsIntro}</p>
         </div>
+
+        {departments.length === 0 && (
+          <p className="mt-8 rounded-2xl border border-dashed border-line/40 bg-surface p-6 text-center text-[15px] text-ink-soft">
+            {t.branchDoctorsSoon}
+          </p>
+        )}
 
         {departments.map(({ service, doctors }) => {
           const Icon = serviceIconMap[service.icon];

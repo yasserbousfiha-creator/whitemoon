@@ -1,10 +1,15 @@
 "use client";
 
 import { Clock, MapPin, Navigation } from "lucide-react";
+import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 
 export default function BranchesCard() {
   const { t } = useLocale();
+  // A branch page shows its own branch only, and only Al-Khamseen has a confirmed map location so far.
+  const branch = useBranch();
+  const shown = branch ? t.branches.filter((b) => b.id === branch) : t.branches;
+  const hasMap = (id: string) => !branch || id === "khamseen";
 
   return (
     <div
@@ -22,24 +27,38 @@ export default function BranchesCard() {
       </div>
 
       <div className="divide-y divide-line/15">
-        {t.branches.map((b) => (
-          <a
-            key={b.name}
-            href={b.mapUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-start gap-3.5 py-4 last:pb-0"
-          >
-            <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2 transition-colors group-hover:bg-gold-bright/30">
-              <MapPin size={18} className="text-gold" />
-            </span>
-            <span className="flex-1">
-              <span className="block text-[14.5px] font-bold text-ink">{b.name}</span>
-              <span className="mt-0.5 block text-[13px] text-ink-soft">{b.address}</span>
-            </span>
-            <Navigation size={16} className="mt-1 shrink-0 text-gold opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
-        ))}
+        {shown.map((b) => {
+          const body = (
+            <>
+              <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] bg-surface2 transition-colors group-hover:bg-gold-bright/30">
+                <MapPin size={18} className="text-gold" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-[14.5px] font-bold text-ink">{b.name}</span>
+                <span className="mt-0.5 block text-[13px] text-ink-soft">{b.address}</span>
+              </span>
+            </>
+          );
+          return hasMap(b.id) ? (
+            <a
+              key={b.id}
+              href={b.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-3.5 py-4 last:pb-0"
+            >
+              {body}
+              <Navigation
+                size={16}
+                className="mt-1 shrink-0 text-gold opacity-60 transition-opacity group-hover:opacity-100"
+              />
+            </a>
+          ) : (
+            <div key={b.id} className="flex items-start gap-3.5 py-4 last:pb-0">
+              {body}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { MapPin, MessageCircle } from "lucide-react";
+import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 
@@ -11,11 +13,24 @@ function scrollToSection(id: string) {
 
 export default function Hero() {
   const { t } = useLocale();
+  const branchId = useBranch();
+  const branch = t.branches.find((b) => b.id === branchId);
 
   return (
     <section id="home" className="scroll-anchor relative overflow-hidden bg-bg">
       <div className="relative mx-auto flex max-w-[1160px] flex-col items-center gap-10 px-6 py-14 md:flex-row md:py-[76px]">
         <div className="order-2 flex-[6] md:order-1">
+          {branch && (
+            <div className="rise-in mb-4 flex flex-wrap items-center gap-2" style={{ animationDelay: "0.4s" }}>
+              <span className="flex items-center gap-1.5 rounded-full border border-gold-bright/60 bg-surface px-3.5 py-1.5 text-[13px] font-bold text-ink">
+                <MapPin size={14} className="text-gold" />
+                {branch.name}
+              </span>
+              <Link href="/" className="text-[12.5px] font-bold text-gold underline-offset-4 hover:underline">
+                {t.branchPicker.change}
+              </Link>
+            </div>
+          )}
           <div className="rise-in" style={{ animationDelay: "0.55s" }}>
             <Eyebrow text={t.heroEyebrow} />
           </div>

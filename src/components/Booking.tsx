@@ -1,10 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { UserRound, X } from "lucide-react";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
 import { DOCTORS, type DoctorId } from "@/lib/doctors";
+import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
@@ -22,7 +22,9 @@ export default function Booking() {
   const [time, setTime] = useState<string | null>(null);
   // Controlled so a doctor or service card elsewhere on the page can pre-select them (see lib/booking-prefill.ts).
   const [service, setService] = useState("");
-  const [branch, setBranch] = useState("");
+  // A branch page books at that branch unless the visitor picks another.
+  const pageBranch = useBranch();
+  const [branch, setBranch] = useState<string>(pageBranch ?? "");
   const [doctor, setDoctor] = useState<string | null>(null);
   const [doctorId, setDoctorId] = useState<DoctorId | null>(null);
   const [availabilityKey, setAvailabilityKey] = useState(0);
@@ -54,6 +56,10 @@ export default function Booking() {
     return () => window.removeEventListener(PREFILL_EVENT, onPrefill);
   }, []);
 
+  const doctorChoices = (t.services.find((s) => s.icon === service)?.team ?? []).filter(
+    (m): m is typeof m & { id: DoctorId; name: string } => !!m.id && !!m.name && m.branch === branch,
+  );
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -74,7 +80,11 @@ export default function Booking() {
         const { token } = (await res.json().catch(() => ({}))) as { token?: string | null };
         if (token) {
           recordBooking(
-            { name: String(fields.name).trim(), phone: String(fields.phone).trim(), email: String(fields.email).trim() },
+            {
+              name: String(fields.name).trim(),
+              phone: String(fields.phone).trim(),
+              email: String(fields.email).trim(),
+            },
             {
               token,
               service: service as AccountBooking["service"],
@@ -201,26 +211,30 @@ export default function Booking() {
             </select>
           </label>
 
-          {doctor && (
-            <div className="flex items-center gap-3 rounded-xl border border-gold-bright/50 bg-surface2 px-4 py-3 md:col-span-2">
-              <UserRound size={18} className="shrink-0 text-gold" />
-              <span className="flex-1 text-[14px]">
-                <span className="text-ink-soft">{b.doctor}: </span>
-                <span className="font-bold text-ink">{doctor}</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setDoctor(null);
-                  setDoctorId(null);
-                }}
-                aria-label={b.removeDoctor}
-                className="grid h-7 w-7 place-items-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          )}
+          {/* Optional: the doctors of the chosen department at the chosen branch; "any" books without one. */}
+          <label className="text-[13px] font-bold text-ink-soft md:col-span-2">
+            {b.doctorOptional}
+            <select
+              value={doctorId ?? ""}
+              disabled={doctorChoices.length === 0}
+              onChange={(e) => {
+                const picked = doctorChoices.find((m) => m.id === e.target.value);
+                setDoctorId(picked?.id ?? null);
+                setDoctor(picked?.name ?? null);
+                // Each doctor has their own hours, so the day/time is picked again.
+                setDate(null);
+                setTime(null);
+              }}
+              className={`${fieldClass} disabled:opacity-60`}
+            >
+              <option value="">{service && branch ? b.anyDoctor : b.doctorPickFirst}</option>
+              {doctorChoices.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} — {m.role}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <SlotPicker
             date={date}

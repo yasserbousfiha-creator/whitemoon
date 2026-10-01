@@ -15,6 +15,7 @@ export interface Device {
   name: string; // brand name, kept in English
   use: string;
   photo: string;
+  branch: Branch["id"]; // where the device is
 }
 
 export interface TeamMember {
@@ -71,6 +72,9 @@ export interface BookingStrings {
   time: string;
   pickDateFirst: string;
   doctor: string;
+  doctorOptional: string;
+  anyDoctor: string;
+  doctorPickFirst: string;
   bookWith: string;
   removeDoctor: string;
   unavailable: string;
@@ -200,6 +204,8 @@ export interface Content {
   contactEyebrow: string;
   contactHeading: string;
   branchesLabel: string;
+  branchPicker: { title: string; subtitle: string; close: string; change: string };
+  branchDoctorsSoon: string;
   galleryLabel: string;
   gallery: GalleryItem[];
   branches: Branch[];
@@ -301,6 +307,7 @@ export const arContent: Content = {
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
         { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "د. علا عاطف", role: "أخصائية جلدية وتجميل", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
         { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
@@ -314,9 +321,9 @@ export const arContent: Content = {
       note: "أطوال موجية دقيقة، مُعايرة لكل نوع بشرة.",
       team: [],
       devices: [
-        { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg" },
-        { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg" },
-        { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg" },
+        { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
+        { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
+        { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
       ],
     },
   ],
@@ -368,6 +375,9 @@ export const arContent: Content = {
     time: "الوقت المفضّل",
     pickDateFirst: "اختر اليوم أولاً لعرض الأوقات المتاحة.",
     doctor: "الطبيب",
+    doctorOptional: "الطبيب (اختياري)",
+    anyDoctor: "أي طبيب متاح",
+    doctorPickFirst: "اختر القسم والفرع أولاً",
     bookWith: "احجز مع",
     removeDoctor: "إزالة الطبيب",
     unavailable: "هذا الموعد لم يعد متاحاً، اختر وقتاً آخر.",
@@ -410,6 +420,8 @@ export const arContent: Content = {
   contactEyebrow: "تواصل معنا",
   contactHeading: "زورونا في الطائف",
   branchesLabel: "فروعنا",
+  branchPicker: { title: "اختر الفرع", subtitle: "اختر الفرع الأقرب إليك لتصفّح خدماته وأطبائه والحجز فيه.", close: "إغلاق", change: "تغيير الفرع" },
+  branchDoctorsSoon: "سيُعلن عن أطباء هذا الفرع قريباً.",
   galleryLabel: "المعرض",
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
@@ -505,6 +517,7 @@ export const enContent: Content = {
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
         { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
+        { name: "Dr. Ola Atef", role: "Dermatology & Aesthetics Specialist", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
         { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
     },
@@ -518,9 +531,9 @@ export const enContent: Content = {
       note: "Precise wavelengths, calibrated to every skin type.",
       team: [],
       devices: [
-        { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg" },
-        { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg" },
-        { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg" },
+        { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
+        { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
+        { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
       ],
     },
   ],
@@ -572,6 +585,9 @@ export const enContent: Content = {
     time: "Preferred time",
     pickDateFirst: "Pick a day to see the available times.",
     doctor: "Doctor",
+    doctorOptional: "Doctor (optional)",
+    anyDoctor: "Any available doctor",
+    doctorPickFirst: "Choose the department and branch first",
     bookWith: "Book with",
     removeDoctor: "Remove doctor",
     unavailable: "That time is no longer available. Please pick another.",
@@ -614,6 +630,8 @@ export const enContent: Content = {
   contactEyebrow: "Get in Touch",
   contactHeading: "Visit us in Taif",
   branchesLabel: "Our Branches",
+  branchPicker: { title: "Choose a branch", subtitle: "Pick the branch nearest to you to see its services and doctors and book there.", close: "Close", change: "Change branch" },
+  branchDoctorsSoon: "This branch's doctors will be announced soon.",
   galleryLabel: "Gallery",
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
