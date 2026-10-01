@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import HomePage from "@/components/HomePage";
-import { BRANCH_IDS, isBranchId } from "@/lib/branch-context";
+import { BRANCH_IDS, isBranchId } from "@/lib/branches";
 import { arContent, enContent } from "@/lib/content";
 
 // One page per branch: /khamseen, /shahar, /wisam. Anything else is a 404.
