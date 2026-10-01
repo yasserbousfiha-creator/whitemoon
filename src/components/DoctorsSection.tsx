@@ -1,9 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { CalendarCheck, MapPin } from "lucide-react";
+import { CalendarCheck, Images, MapPin } from "lucide-react";
+import { useState } from "react";
+import type { TeamMember } from "@/lib/content";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { useLocale } from "@/lib/locale-context";
+import CasesViewer from "./CasesViewer";
 import Eyebrow from "./Eyebrow";
 import { serviceIconMap } from "./icon-map";
 
@@ -11,6 +14,7 @@ import { serviceIconMap } from "./icon-map";
 // "book with" that fills in the booking form.
 export default function DoctorsSection() {
   const { t } = useLocale();
+  const [cases, setCases] = useState<TeamMember | null>(null);
   const departments = t.services
     .map((s) => ({ service: s, doctors: s.team.filter((m) => m.name && m.photo) }))
     .filter((d) => d.doctors.length > 0);
@@ -51,6 +55,16 @@ export default function DoctorsSection() {
                         sizes="(min-width: 768px) 25vw, 50vw"
                         className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
+                      {d.cases?.length ? (
+                        <button
+                          type="button"
+                          onClick={() => setCases(d)}
+                          className="absolute start-2 top-2 flex items-center gap-1.5 rounded-full bg-night2/75 px-3 py-1.5 text-[12px] font-bold text-white backdrop-blur transition-colors hover:bg-gold-bright hover:text-night2"
+                        >
+                          <Images size={14} />
+                          {t.casesLabel}
+                        </button>
+                      ) : null}
                     </div>
                     <div className="flex flex-1 flex-col items-center gap-1 px-3 pt-3.5 pb-4 text-center">
                       <p className="text-[15px] font-bold text-ink">{d.name}</p>
@@ -83,6 +97,9 @@ export default function DoctorsSection() {
           );
         })}
       </div>
+      {cases?.cases && (
+        <CasesViewer title={`${t.casesLabel} · ${cases.name}`} photos={cases.cases} onClose={() => setCases(null)} />
+      )}
     </section>
   );
 }

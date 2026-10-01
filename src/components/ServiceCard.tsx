@@ -7,6 +7,7 @@ import { ServiceContent } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 import { useServicesUI } from "@/lib/services-ui-context";
 import { serviceIconMap } from "./icon-map";
+import DevicesGrid from "./DevicesGrid";
 import TeamCarousel from "./TeamCarousel";
 
 // Whitening shades from bleach white to a soft natural white, shown inside a gold frame.
@@ -124,15 +125,21 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
         </div>
       </div>
 
-      <div className={`grid transition-all duration-500 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+      <div
+        className={`grid transition-all duration-500 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
         <div className="overflow-hidden">
           <p className="text-[13px] leading-relaxed text-ink-soft italic">{service.note}</p>
           <div className="mt-4">
-            <TeamCarousel
-              key={isExpanded ? `${service.icon}-open` : `${service.icon}-closed`}
-              team={service.team}
-              service={service.icon}
-            />
+            {service.devices?.length ? (
+              <DevicesGrid devices={service.devices} />
+            ) : (
+              <TeamCarousel
+                key={isExpanded ? `${service.icon}-open` : `${service.icon}-closed`}
+                team={service.team}
+                service={service.icon}
+              />
+            )}
           </div>
           <button
             type="button"

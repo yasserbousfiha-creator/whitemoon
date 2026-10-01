@@ -11,6 +11,12 @@ export interface QualityBadge {
 
 import type { DoctorId } from "./doctors";
 
+export interface Device {
+  name: string; // brand name, kept in English
+  use: string;
+  photo: string;
+}
+
 export interface TeamMember {
   role: string;
   name?: string;
@@ -22,6 +28,8 @@ export interface TeamMember {
   id?: DoctorId;
   // Taller crop for the medical staff section; falls back to photo.
   portrait?: string;
+  // Before/after photos of their patients, shown in a swipeable viewer.
+  cases?: string[];
 }
 
 export interface ServiceContent {
@@ -33,6 +41,8 @@ export interface ServiceContent {
   waveTags?: string[];
   note: string;
   team: TeamMember[];
+  // Equipment shown instead of the team, for services that are about the devices (laser & skin).
+  devices?: Device[];
 }
 
 export interface JourneyPhase {
@@ -167,10 +177,12 @@ export interface Content {
   servicesIntro: string;
   services: ServiceContent[];
   teamLabel: string;
+  devicesLabel: string;
   doctorsEyebrow: string;
   account: AccountStrings;
   doctorsHeading: string;
   doctorsIntro: string;
+  casesLabel: string;
   teamPhotoNote: string;
 
   journeyEyebrow: string;
@@ -286,7 +298,7 @@ export const arContent: Content = {
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
       team: [
-        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "د. ياسمين", role: "الجلدية والتجميل", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine", cases: ["/images/cases/yasmine-1.jpg", "/images/cases/yasmine-2.jpg", "/images/cases/yasmine-3.jpg"] },
         { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
@@ -299,10 +311,16 @@ export const arContent: Content = {
       extraType: "waveTags",
       waveTags: ["755nm", "810nm", "1064nm"],
       note: "أطوال موجية دقيقة، مُعايرة لكل نوع بشرة.",
-      team: [{ role: "أخصائي ليزر" }, { role: "أخصائية عناية بالبشرة" }],
+      team: [],
+      devices: [
+        { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg" },
+        { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg" },
+        { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg" },
+      ],
     },
   ],
   teamLabel: "الفريق الطبي",
+  devicesLabel: "الأجهزة والتقنيات",
   account: {
     title: "حسابي",
     guestTitle: "لم تسجّل بعد",
@@ -325,6 +343,7 @@ export const arContent: Content = {
   doctorsEyebrow: "الكادر الطبي",
   doctorsHeading: "أطباء تثق بهم",
   doctorsIntro: "نخبة من الأطباء المتخصصين، احجز موعدك مباشرة مع الطبيب الذي تفضّله.",
+  casesLabel: "حالات",
   teamPhotoNote: "الصور الفعلية للفريق ستُضاف قريبًا",
   journeyEyebrow: "من التواصل إلى الإشراقة",
   journeyHeading: "رحلتك معنا، خطوة بخطوة",
@@ -482,7 +501,7 @@ export const enContent: Content = {
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
       team: [
-        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "Dr. Yasmine", role: "Dermatology & Aesthetics", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine", cases: ["/images/cases/yasmine-1.jpg", "/images/cases/yasmine-2.jpg", "/images/cases/yasmine-3.jpg"] },
         { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
       ],
@@ -495,10 +514,16 @@ export const enContent: Content = {
       extraType: "waveTags",
       waveTags: ["755nm", "810nm", "1064nm"],
       note: "Precise wavelengths, calibrated to every skin type.",
-      team: [{ role: "Laser Specialist" }, { role: "Skincare Specialist" }],
+      team: [],
+      devices: [
+        { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg" },
+        { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg" },
+        { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg" },
+      ],
     },
   ],
   teamLabel: "Medical Team",
+  devicesLabel: "Devices & Technologies",
   account: {
     title: "My Account",
     guestTitle: "Not signed in yet",
@@ -521,6 +546,7 @@ export const enContent: Content = {
   doctorsEyebrow: "Our Medical Team",
   doctorsHeading: "Doctors you can trust",
   doctorsIntro: "Specialist doctors you can book with directly — pick the one you prefer.",
+  casesLabel: "Cases",
   teamPhotoNote: "Real team photos coming soon",
   journeyEyebrow: "From First Contact to Full Glow",
   journeyHeading: "Your journey, one phase at a time",

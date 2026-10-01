@@ -25,7 +25,10 @@ export default function Hero() {
           >
             {t.heroHeadline}
           </h1>
-          <p className="rise-in mt-5 max-w-[480px] text-[16px] leading-relaxed text-ink-soft" style={{ animationDelay: "0.95s" }}>
+          <p
+            className="rise-in mt-5 max-w-[480px] text-[16px] leading-relaxed text-ink-soft"
+            style={{ animationDelay: "0.95s" }}
+          >
             {t.heroLede}
           </p>
 
@@ -50,9 +53,23 @@ export default function Hero() {
         </div>
 
         <div className="order-1 flex-[4] md:order-2">
-          <div className="logo-sweep-in relative mx-auto flex h-[260px] w-[260px] items-center justify-center rounded-full border border-gold/25 bg-gradient-to-b from-surface2 to-surface p-9 drop-shadow-[0_25px_40px_rgba(156,122,46,0.25)] md:h-[380px] md:w-[380px] md:p-12">
-            <div className="relative h-full w-full">
-              <Image src="/images/logo.png" alt={t.brandName} fill className="object-contain" sizes="380px" priority />
+          {/* Entrance on the outer box, hover lift/glow on the inner one, so the two transforms don't fight. */}
+          <div className="logo-sweep-in mx-auto h-[260px] w-[260px] md:h-[380px] md:w-[380px]">
+            <div className="logo-hover relative h-full w-full">
+              <span aria-hidden className="logo-halo" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-full border border-gold/25 bg-gradient-to-b from-surface2 to-surface p-9 drop-shadow-[0_25px_40px_rgba(156,122,46,0.25)] md:p-12">
+                <div className="relative h-full w-full">
+                  <Image
+                    src="/images/logo.png"
+                    alt={t.brandName}
+                    fill
+                    className="object-contain"
+                    sizes="380px"
+                    priority
+                  />
+                </div>
+                <span aria-hidden className="logo-shine" />
+              </div>
             </div>
           </div>
         </div>
