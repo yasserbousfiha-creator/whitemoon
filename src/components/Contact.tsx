@@ -3,6 +3,7 @@
 import { MapPin, Phone, LayoutGrid, MessageCircle } from "lucide-react";
 import { useLocale } from "@/lib/locale-context";
 import BranchesCard from "./BranchesCard";
+import GalleryCard from "./GalleryCard";
 import Eyebrow from "./Eyebrow";
 
 function IconPlate({ icon: Icon }: { icon: typeof MapPin }) {
@@ -61,6 +62,10 @@ export default function Contact() {
 
           <div className="mt-[26px] mb-[18px]">
             <BranchesCard />
+          </div>
+
+          <div className="mb-[18px]">
+            <GalleryCard />
           </div>
 
           <div>

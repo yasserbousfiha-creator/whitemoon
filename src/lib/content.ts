@@ -188,7 +188,6 @@ export interface Content {
   contactHeading: string;
   branchesLabel: string;
   galleryLabel: string;
-  galleryHeading: string;
   gallery: GalleryItem[];
   branches: Branch[];
   workingHoursValue: string;
@@ -391,7 +390,6 @@ export const arContent: Content = {
   contactHeading: "زورونا في الطائف",
   branchesLabel: "فروعنا",
   galleryLabel: "المعرض",
-  galleryHeading: "لمحات من وايت مون",
   gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "جولة في مجمع وايت مون" }],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
@@ -588,7 +586,6 @@ export const enContent: Content = {
   contactHeading: "Visit us in Taif",
   branchesLabel: "Our Branches",
   galleryLabel: "Gallery",
-  galleryHeading: "Inside White Moon",
   gallery: [{ kind: "video", src: "/videos/branch-tour.mp4", poster: "/videos/branch-tour-poster.jpg", caption: "A tour of White Moon Clinic" }],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [

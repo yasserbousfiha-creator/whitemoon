@@ -4,7 +4,6 @@ import { Play, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { GalleryItem } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
-import Eyebrow from "./Eyebrow";
 
 // A video shows its still with a play button and only loads once tapped, then plays in place.
 function VideoTile({ item }: { item: GalleryItem }) {
@@ -37,7 +36,7 @@ function Caption({ text }: { text?: string }) {
 }
 
 // Clinic videos and photos (tours, before/after cases). Photos open enlarged; videos play in their tile.
-export default function GallerySection() {
+export default function GalleryCard() {
   const { t } = useLocale();
   const [open, setOpen] = useState<GalleryItem | null>(null);
 
@@ -52,14 +51,18 @@ export default function GallerySection() {
   const single = t.gallery.length === 1;
 
   return (
-    <section id="gallery" className="scroll-anchor bg-bg">
-      <div className="mx-auto max-w-[1160px] px-6 py-12 md:py-16">
-        <div className="text-center">
-          <Eyebrow text={t.galleryLabel} />
-          <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{t.galleryHeading}</h2>
-        </div>
+    <div
+      id="gallery"
+      className="scroll-anchor rounded-2xl border border-line/25 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(156,122,46,0.35)]"
+    >
+      <div className="border-b border-line/20 pb-4">
+        <span className="text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
+          {t.galleryLabel}
+        </span>
+      </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
+      <div>
+        <div className="mt-5 flex flex-wrap justify-center gap-4">
           {t.gallery.map((item) => (
             <div
               key={item.src}
@@ -70,7 +73,12 @@ export default function GallerySection() {
               {item.kind === "video" ? (
                 <VideoTile item={item} />
               ) : (
-                <button type="button" onClick={() => setOpen(item)} aria-label={item.caption} className="block h-full w-full">
+                <button
+                  type="button"
+                  onClick={() => setOpen(item)}
+                  aria-label={item.caption}
+                  className="block h-full w-full"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element -- gallery photos are plain files of any size */}
                   <img src={item.src} alt={item.caption ?? ""} className="h-full w-full object-cover" loading="lazy" />
                   <Caption text={item.caption} />
@@ -100,6 +108,6 @@ export default function GallerySection() {
           {open.caption && <p className="mt-3 text-center text-sm font-bold text-white">{open.caption}</p>}
         </div>
       )}
-    </section>
+    </div>
   );
 }
