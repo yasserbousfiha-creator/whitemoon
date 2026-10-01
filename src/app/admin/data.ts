@@ -23,15 +23,13 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
   const db = createServiceClient();
   const lastMonth = riyadhMonth(new Date(Date.now() - 31 * 24 * 60 * 60 * 1000));
 
-  const [bookings, spins, blocks] = await Promise.all([
-    staffClient
-      .from("bookings")
-      .select(
-        "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id",
-      )
-      .order("created_at", { ascending: false })
-      .limit(500)
-      .returns<Booking[]>(),
+  const columns =
+    "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id";
+  const readBookings = (cols: string) =>
+    staffClient.from("bookings").select(cols).order("created_at", { ascending: false }).limit(500).returns<Booking[]>();
+
+  const [withAttendance, spins, blocks] = await Promise.all([
+    readBookings(columns + ", attendance"),
     db
       ? db
           .from("wheel_spins")
@@ -43,6 +41,9 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
       : null,
     db ? db.from("doctor_blocks").select("doctor, date, start_time").gte("date", riyadhToday()).order("date") : null,
   ]);
+
+  // 42703: the attendance column isn't there yet (007_attendance.sql not run); show bookings without it.
+  const bookings = withAttendance.error?.code === "42703" ? await readBookings(columns) : withAttendance;
 
   if (bookings.error) console.error("Bookings lookup failed:", bookings.error);
   if (spins?.error) console.error("Wheel spins lookup failed:", spins.error);

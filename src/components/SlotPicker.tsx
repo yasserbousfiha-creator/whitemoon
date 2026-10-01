@@ -69,7 +69,7 @@ export default function SlotPicker({
   const slots = date ? timeSlots(date, new Date(), doctorId) : [];
   // Two-shift doctors get their slots split into morning and evening; everyone else one plain group.
   const splitDoctor = !!doctorId && DOCTORS[doctorId].shifts.length > 1;
-  const groups = doctorId ? groupByShift(doctorId, slots) : slots.length ? [slots] : [];
+  const groups = doctorId ? groupByShift(doctorId, slots, date ?? undefined) : slots.length ? [slots] : [];
 
   // Same colours as the /admin schedule tab: red = closed or booked, green = open, gold = the one picked.
   const chip = (active: boolean, off: boolean) =>

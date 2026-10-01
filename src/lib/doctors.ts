@@ -12,6 +12,8 @@ interface DoctorSchedule {
   service: "dentistry" | "derma" | "laser"; // their department: choosing another one drops the doctor
   days: number[]; // weekdays worked, 0 = Sunday … 6 = Saturday
   shifts: Shift[];
+  // Hours that differ by weekday; overrides days/shifts when set.
+  byDay?: Partial<Record<number, Shift[]>>;
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
@@ -57,15 +59,24 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
     names: ["د. علي الخليلي", "Dr. Ali Al-Khalili"],
     branch: "khamseen",
     service: "dentistry",
-    days: EVERY_DAY,
-    shifts: CLINIC_HOURS,
+    days: [0, 1, 2, 3, 4, 6],
+    shifts: [["12:00", "21:00"]],
+    // Saturday, Wednesday, Thursday 12–8 PM; Sunday, Monday, Tuesday 1–9 PM; no Friday.
+    byDay: {
+      6: [["12:00", "20:00"]],
+      3: [["12:00", "20:00"]],
+      4: [["12:00", "20:00"]],
+      0: [["13:00", "21:00"]],
+      1: [["13:00", "21:00"]],
+      2: [["13:00", "21:00"]],
+    },
   },
   "ahmed-sobhi": {
     names: ["د. أحمد صبحي", "Dr. Ahmed Sobhi"],
     branch: "khamseen",
     service: "dentistry",
     days: EVERY_DAY,
-    shifts: CLINIC_HOURS,
+    shifts: [["13:00", "21:00"]],
   },
   "abdullah-alotaibi": {
     names: ["د. عبدالله العتيبي", "Dr. Abdullah Al-Otaibi"],
@@ -95,11 +106,17 @@ const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, "0")
 export const weekday = (isoDate: string) => new Date(`${isoDate}T00:00:00Z`).getUTCDay();
 
 // All slot start times the doctor works on that date (ignores time of day and blocks).
-export function doctorSlots(id: DoctorId, isoDate: string) {
+// The shifts a doctor works on a given date (none on days off).
+export function shiftsOn(id: DoctorId, isoDate: string): Shift[] {
   const d = DOCTORS[id];
-  if (!d.days.includes(weekday(isoDate))) return [];
+  const day = weekday(isoDate);
+  if (d.byDay) return d.byDay[day] ?? [];
+  return d.days.includes(day) ? d.shifts : [];
+}
+
+export function doctorSlots(id: DoctorId, isoDate: string) {
   const slots: string[] = [];
-  for (const [start, end] of d.shifts) {
+  for (const [start, end] of shiftsOn(id, isoDate)) {
     for (let m = toMinutes(start); m <= toMinutes(end) - 30; m += 30) slots.push(toHHMM(m));
   }
   return slots;
@@ -120,8 +137,8 @@ export function isBlocked(blocks: Pick<ScheduleBlock, "doctor" | "date" | "start
 
 // Splits a day's slots by the doctor's shifts, so pickers can show "morning" and "evening" separately.
 // Doctors with a single shift get one group.
-export function groupByShift(id: DoctorId, slots: string[]) {
-  return DOCTORS[id].shifts
+export function groupByShift(id: DoctorId, slots: string[], isoDate?: string) {
+  return (isoDate ? shiftsOn(id, isoDate) : DOCTORS[id].shifts)
     .map(([start, end]) => slots.filter((s) => toMinutes(s) >= toMinutes(start) && toMinutes(s) < toMinutes(end)))
     .filter((group) => group.length > 0);
 }

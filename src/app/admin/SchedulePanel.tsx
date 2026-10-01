@@ -127,7 +127,7 @@ export default function SchedulePanel({
             </span>
           </div>
           {doctorSlots(target, date).length === 0 && <p className="text-ink-soft">لا دوام للطبيب في هذا اليوم.</p>}
-          {groupByShift(target, doctorSlots(target, date)).map((group, gi, groups) => (
+          {groupByShift(target, doctorSlots(target, date), date).map((group, gi, groups) => (
             <div key={group[0]} className="space-y-2">
               {groups.length > 1 && (
                 <p className="flex items-center gap-2 text-sm font-bold text-gold">

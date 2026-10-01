@@ -264,7 +264,7 @@ export const arContent: Content = {
       note: "دقة تشبه الحِرفة، لابتسامة تبدو أنها لم تُعالَج قط.",
       team: [
         { name: "د. أحمد صبحي", role: "استشاري جراحة وزراعة الأسنان", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
-        { name: "د. علي الخليلي", role: "أخصائي علاج العصب والجذور", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
+        { name: "د. علي الخليلي", role: "طبيب أسنان عام", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
         { name: "د. سعاد", role: "أخصائية تركيبات وتجميل الأسنان", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "د. عبدالله العتيبي", role: "طبيب أسنان عام", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
       ],
@@ -459,7 +459,7 @@ export const enContent: Content = {
       note: "Craftsman precision, for a smile that never looks treated.",
       team: [
         { name: "Dr. Ahmed Sobhi", role: "Consultant, Oral Surgery & Implants", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
-        { name: "Dr. Ali Al-Khalili", role: "Endodontics (Root Canal) Specialist", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
+        { name: "Dr. Ali Al-Khalili", role: "General Dentist", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
         { name: "Dr. Souad", role: "Prosthodontics & Cosmetic Dentistry", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "Dr. Abdullah Al-Otaibi", role: "General Dentist", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
       ],

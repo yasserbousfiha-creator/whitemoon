@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { STATUSES, type BookingStatus } from "@/lib/booking-labels";
+import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib/booking-labels";
 import { type DoctorId, isDoctorId } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
@@ -29,7 +29,10 @@ export type UpdateResult = { ok: true } | { ok: false; error: string };
 // Access is checked by reading the booking as the staff member (row level security hides other branches); the write
 // then goes through the service client and can only touch status and notes. A staff-session UPDATE blocked by RLS
 // reports success with zero rows, which is why saves could silently do nothing before.
-export async function updateBooking(id: number, changes: { status?: BookingStatus; notes?: string }): Promise<UpdateResult> {
+export async function updateBooking(
+  id: number,
+  changes: { status?: BookingStatus; notes?: string; attendance?: Attendance | null },
+): Promise<UpdateResult> {
   if (!Number.isInteger(id)) return { ok: false, error: "طلب غير صالح." };
 
   const supabase = await createStaffClient();
@@ -43,12 +46,19 @@ export async function updateBooking(id: number, changes: { status?: BookingStatu
   const update: Record<string, string | null> = { updated_at: new Date().toISOString(), updated_by: userId };
   if (changes.status && changes.status in STATUSES) update.status = changes.status;
   if (typeof changes.notes === "string") update.notes = changes.notes.trim().slice(0, 1000) || null;
+  if (changes.attendance === null || (changes.attendance && changes.attendance in ATTENDANCE)) {
+    update.attendance = changes.attendance;
+    update.attendance_at = changes.attendance ? new Date().toISOString() : null;
+  }
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
   const { error } = await db.from("bookings").update(update).eq("id", id);
   if (error) {
     console.error("Booking update failed:", error);
+    if (error.code === "PGRST204" || error.code === "42703") {
+      return { ok: false, error: "تسجيل الحضور يحتاج تشغيل ملف 007_attendance.sql في Supabase." };
+    }
     return { ok: false, error: `تعذّر الحفظ (${error.code ?? error.message}).` };
   }
   revalidatePath("/admin");
