@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 // Full-screen before/after photos, one per screen, swiped sideways (snaps to each photo). Follows the page
 // direction, so in Arabic the first photo is on the right and the next ones come from the left.
@@ -43,8 +44,10 @@ export default function CasesViewer({
       });
   };
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col bg-black/90">
+  // Portalled to <body>: the doctors section sits inside an animated (transformed) wrapper, which would otherwise
+  // pin this "fixed" overlay to that section instead of the screen, under the sticky header.
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] flex flex-col bg-black/90">
       <div className="flex items-center justify-between px-4 py-3 text-white">
         <p className="text-sm font-bold">
           {title} · {index + 1}/{photos.length}
@@ -105,6 +108,7 @@ export default function CasesViewer({
           />
         ))}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

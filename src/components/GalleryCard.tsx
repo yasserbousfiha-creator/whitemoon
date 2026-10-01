@@ -2,6 +2,7 @@
 
 import { Play, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { GalleryItem } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
 
@@ -89,25 +90,32 @@ export default function GalleryCard() {
         </div>
       </div>
 
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setOpen(null)}
-          className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4"
-        >
-          <button
-            type="button"
-            aria-label="إغلاق"
-            className="absolute end-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white"
+      {/* Portalled to <body> so the animated section wrapper can't trap this fixed overlay. */}
+      {open &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setOpen(null)}
+            className="fixed inset-0 z-[100] grid place-items-center bg-black/85 p-4"
           >
-            <X size={22} />
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
-          <img src={open.src} alt={open.caption ?? ""} className="max-h-[85vh] max-w-full rounded-xl object-contain" />
-          {open.caption && <p className="mt-3 text-center text-sm font-bold text-white">{open.caption}</p>}
-        </div>
-      )}
+            <button
+              type="button"
+              aria-label="إغلاق"
+              className="absolute end-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white"
+            >
+              <X size={22} />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
+            <img
+              src={open.src}
+              alt={open.caption ?? ""}
+              className="max-h-[85vh] max-w-full rounded-xl object-contain"
+            />
+            {open.caption && <p className="mt-3 text-center text-sm font-bold text-white">{open.caption}</p>}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
