@@ -17,8 +17,6 @@ interface DoctorSchedule {
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
-// Clinic hours, for doctors whose own schedule hasn't been provided yet.
-const CLINIC_HOURS: Shift[] = [["09:00", "22:00"]];
 
 export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   yasmine: {
@@ -83,7 +81,7 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
     branch: "khamseen",
     service: "dentistry",
     days: EVERY_DAY,
-    shifts: CLINIC_HOURS,
+    shifts: [["17:00", "21:00"]],
   },
 };
 
