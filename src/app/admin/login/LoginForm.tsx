@@ -11,8 +11,8 @@ export default function LoginForm() {
   return (
     <form action={action} className="space-y-4">
       <label className="block text-xs font-bold text-ink-soft">
-        البريد الإلكتروني
-        <input name="email" type="email" autoComplete="username" required dir="ltr" className={field} />
+        اسم المستخدم
+        <input name="email" type="text" autoComplete="username" autoCapitalize="none" required dir="ltr" className={field} />
       </label>
       <label className="block text-xs font-bold text-ink-soft">
         كلمة المرور

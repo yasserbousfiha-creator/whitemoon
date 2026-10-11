@@ -7,14 +7,20 @@ import { type BlockTarget, isDoctorId } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
 
+/** Staff sign in with a plain username (e.g. "admin"); Supabase Auth still needs
+ * an email, so a username maps to a synthetic, non-routable one. A real email
+ * still works as-is. */
+const STAFF_EMAIL_DOMAIN = "staff.whitemoonclinic.local";
+
 export async function signIn(_prev: string | null, formData: FormData): Promise<string | null> {
-  const email = String(formData.get("email") ?? "").trim();
+  const login = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  if (!email || !password) return "أدخل البريد الإلكتروني وكلمة المرور.";
+  if (!login || !password) return "أدخل اسم المستخدم وكلمة المرور.";
+  const email = login.includes("@") ? login : `${login}@${STAFF_EMAIL_DOMAIN}`;
 
   const supabase = await createStaffClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
+  if (error) return "اسم المستخدم أو كلمة المرور غير صحيحة.";
   redirect("/admin");
 }
 
