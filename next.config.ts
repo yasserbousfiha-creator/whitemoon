@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { source: "/login", destination: `${PORTALS}/login`, permanent: false },
       { source: "/portal", destination: `${PORTALS}/portal`, permanent: false },
       // Visit ratings: the branch QR posters point here (short link), the page lives on the portals.
+      { source: "/rate", destination: `${PORTALS}/rate`, permanent: false },
       { source: "/rate/:code", destination: `${PORTALS}/rate/:code`, permanent: false },
     ];
   },
