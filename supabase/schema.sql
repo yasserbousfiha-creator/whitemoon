@@ -12,7 +12,7 @@ create table public.bookings (
   name text not null check (char_length(name) between 2 and 100),
   phone text not null,
   email text not null,
-  service text not null check (service in ('dentistry', 'derma', 'laser')),
+  service text not null check (service in ('dentistry', 'derma', 'laser', 'gynecology', 'pediatrics', 'general')),
   branch text not null check (branch in ('khamseen', 'shahar', 'wisam')),
   source text not null default 'web' check (source in ('web', 'app')),
   status public.booking_status not null default 'new',

@@ -34,11 +34,14 @@ export interface TeamMember {
 }
 
 export interface ServiceContent {
-  icon: "dentistry" | "derma" | "laser";
+  icon: "dentistry" | "derma" | "laser" | "gynecology" | "pediatrics" | "general";
   title: string;
   items: string[];
-  extraLabel: string;
-  extraType: ServiceExtraType;
+  // Departments only some branches have (gynecology…); left out = every branch.
+  branches?: Branch["id"][];
+  // The small visual under the list; departments without one skip it.
+  extraLabel?: string;
+  extraType?: ServiceExtraType;
   waveTags?: string[];
   note: string;
   team: TeamMember[];
@@ -270,7 +273,7 @@ export const arContent: Content = {
   heroLede:
     "مجمع وايت مون الطبي، حيث تلتقي الخبرة الطبية بأحدث تقنيات طب الأسنان والجلدية والليزر، لنتائج طبيعية تراعي تفاصيلك في أجواء هادئة وخاصة.",
   introEyebrow: "من نحن",
-  introHeading: "مجمع طبي متكامل يجمع ثلاث ركائز تحت سقف واحد",
+  introHeading: "مجمع طبي متكامل يجمع تخصصات عدة تحت سقف واحد",
   introBody:
     "يضم وايت مون نخبة من الأطباء المتخصصين في طب الأسنان والجلدية والليزر، ويعتمد على أحدث الأجهزة والتقنيات الطبية لتقديم رعاية دقيقة تحافظ على ملامحك الطبيعية، ضمن معايير جودة واحترافية عالية.",
   badges: [
@@ -280,7 +283,7 @@ export const arContent: Content = {
     { icon: "spa", title: "أجواء خاصة", subtitle: "راحة تامة من أول زيارة" },
   ],
   servicesEyebrow: "تخصصاتنا",
-  servicesHeading: "ثلاث ركائز طبية، فريق واحد",
+  servicesHeading: "تخصصات طبية متعددة، فريق واحد",
   servicesIntro: "كل تخصص لدينا يُدار بفريقه الخاص وأدواته الدقيقة، ضمن معايير واحدة من الجودة والاحترافية.",
   services: [
     {
@@ -296,6 +299,13 @@ export const arContent: Content = {
         { name: "د. سعاد", role: "أخصائية تركيبات وتجميل الأسنان", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "د. عبدالله العتيبي", role: "طبيب أسنان عام", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
         { name: "د. ياسمين", role: "أخصائية تقويم الأسنان", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "د. محمد الثقفي", role: "طبيب أسنان عام", photo: "/images/team/mohammed-althaqafi.jpg", portrait: "/images/team/mohammed-althaqafi-portrait.jpg", branch: "khamseen", id: "mohammed-althaqafi" },
+        { name: "د. سيف العتيبي", role: "طبيب أسنان", photo: "/images/team/saif-alotaibi.jpg", portrait: "/images/team/saif-alotaibi-portrait.jpg", branch: "shahar", id: "saif-alotaibi" },
+        { name: "د. أحمد يحيى", role: "استشاري تقويم الأسنان والفكين", photo: "/images/team/ahmed-yahya.jpg", portrait: "/images/team/ahmed-yahya-portrait.jpg", branch: "shahar", id: "ahmed-yahya" },
+        { name: "د. أسماء أبو بكر", role: "استشارية تركيبات الأسنان", photo: "/images/team/asmaa-abubakr.jpg", portrait: "/images/team/asmaa-abubakr-portrait.jpg", branch: "shahar", id: "asmaa-abubakr" },
+        { name: "د. ميثاق أحمد", role: "أخصائي زراعة وجراحة الأسنان", photo: "/images/team/methaq-ahmed.jpg", portrait: "/images/team/methaq-ahmed-portrait.jpg", branch: "shahar", id: "methaq-ahmed" },
+        { name: "د. إنعام علي", role: "أخصائية أسنان الأطفال", photo: "/images/team/enam-ali.jpg", portrait: "/images/team/enam-ali-portrait.jpg", branch: "shahar", id: "enam-ali" },
+        { name: "د. أسامة الشهري", role: "طبيب أسنان عام", photo: "/images/team/osama-alshehri.jpg", portrait: "/images/team/osama-alshehri-portrait.jpg", branch: "shahar", id: "osama-alshehri" },
       ],
     },
     {
@@ -309,6 +319,7 @@ export const arContent: Content = {
         { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "د. علا عاطف", role: "أخصائية جلدية وتجميل", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
         { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
+        { name: "د. إيمان إسماعيل", role: "أخصائية جلدية وليزر", photo: "/images/team/eman-ismail.jpg", portrait: "/images/team/eman-ismail-portrait.jpg", branch: "shahar", id: "eman-ismail" },
       ],
     },
     {
@@ -324,6 +335,36 @@ export const arContent: Content = {
         { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
         { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
         { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
+      ],
+    },
+    {
+      icon: "gynecology",
+      title: "النساء والولادة",
+      items: ["متابعة الحمل", "الكشف والفحوصات النسائية", "تنظيم الأسرة", "علاج اضطرابات الدورة"],
+      branches: ["shahar"],
+      note: "رعاية تُصغي إليكِ، في كل مرحلة من مراحل حياتك.",
+      team: [
+        { name: "د. رانيا مصطفى", role: "أخصائية نساء وولادة", photo: "/images/team/rania-mostafa.jpg", portrait: "/images/team/rania-mostafa-portrait.jpg", branch: "shahar", id: "rania-mostafa" },
+      ],
+    },
+    {
+      icon: "pediatrics",
+      title: "طب الأطفال",
+      items: ["رعاية حديثي الولادة", "متابعة النمو والتطور", "علاج أمراض الأطفال الشائعة", "الاستشارات الصحية للأطفال"],
+      branches: ["shahar"],
+      note: "عناية هادئة تطمئن الطفل ووالديه معًا.",
+      team: [
+        { name: "د. خالد عمر", role: "أخصائي أطفال وحديثي الولادة", photo: "/images/team/khaled-omar.jpg", portrait: "/images/team/khaled-omar-portrait.jpg", branch: "shahar", id: "khaled-omar" },
+      ],
+    },
+    {
+      icon: "general",
+      title: "الطب العام",
+      items: ["الكشف الطبي العام", "متابعة الأمراض المزمنة", "الاستشارات الطبية", "التوجيه للتخصص المناسب"],
+      branches: ["shahar"],
+      note: "نقطة البداية الصحيحة لكل ما يخص صحتك.",
+      team: [
+        { name: "د. دينا توفيق", role: "طبيبة عامة", photo: "/images/team/dina-tawfik.jpg", portrait: "/images/team/dina-tawfik-portrait.jpg", branch: "shahar", id: "dina-tawfik" },
       ],
     },
   ],
@@ -480,7 +521,7 @@ export const enContent: Content = {
   heroLede:
     "White Moon Medical Complex, where medical expertise meets the latest in dentistry, dermatology and laser technology — natural results, attentive care, a calm and private setting.",
   introEyebrow: "About the Complex",
-  introHeading: "One complex, three specialties, a single standard of care",
+  introHeading: "One complex, many specialties, a single standard of care",
   introBody:
     "White Moon brings together specialist physicians in dentistry, dermatology and laser medicine, working with modern equipment and techniques to deliver precise care that respects your natural features — held to a high standard of quality and professionalism.",
   badges: [
@@ -490,7 +531,7 @@ export const enContent: Content = {
     { icon: "spa", title: "Private Setting", subtitle: "Comfort from your first visit" },
   ],
   servicesEyebrow: "Our Specialties",
-  servicesHeading: "Three medical pillars, one team",
+  servicesHeading: "Many specialties, one team",
   servicesIntro: "Each specialty runs with its own team and precise tools, held to one shared standard of quality and professionalism.",
   services: [
     {
@@ -506,6 +547,13 @@ export const enContent: Content = {
         { name: "Dr. Souad", role: "Prosthodontics & Cosmetic Dentistry", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
         { name: "Dr. Abdullah Al-Otaibi", role: "General Dentist", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
         { name: "Dr. Yasmine", role: "Orthodontist", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
+        { name: "Dr. Mohammed Al-Thaqafi", role: "General Dentist", photo: "/images/team/mohammed-althaqafi.jpg", portrait: "/images/team/mohammed-althaqafi-portrait.jpg", branch: "khamseen", id: "mohammed-althaqafi" },
+        { name: "Dr. Saif Al-Otaibi", role: "Dentist", photo: "/images/team/saif-alotaibi.jpg", portrait: "/images/team/saif-alotaibi-portrait.jpg", branch: "shahar", id: "saif-alotaibi" },
+        { name: "Dr. Ahmed Yahya", role: "Consultant, Orthodontics & Jaw Orthopedics", photo: "/images/team/ahmed-yahya.jpg", portrait: "/images/team/ahmed-yahya-portrait.jpg", branch: "shahar", id: "ahmed-yahya" },
+        { name: "Dr. Asmaa Abu Bakr", role: "Consultant, Prosthodontics", photo: "/images/team/asmaa-abubakr.jpg", portrait: "/images/team/asmaa-abubakr-portrait.jpg", branch: "shahar", id: "asmaa-abubakr" },
+        { name: "Dr. Methaq Ahmed", role: "Implant & Oral Surgery Specialist", photo: "/images/team/methaq-ahmed.jpg", portrait: "/images/team/methaq-ahmed-portrait.jpg", branch: "shahar", id: "methaq-ahmed" },
+        { name: "Dr. Enam Ali", role: "Pediatric Dentist", photo: "/images/team/enam-ali.jpg", portrait: "/images/team/enam-ali-portrait.jpg", branch: "shahar", id: "enam-ali" },
+        { name: "Dr. Osama Al-Shehri", role: "General Dentist", photo: "/images/team/osama-alshehri.jpg", portrait: "/images/team/osama-alshehri-portrait.jpg", branch: "shahar", id: "osama-alshehri" },
       ],
     },
     {
@@ -519,6 +567,7 @@ export const enContent: Content = {
         { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
         { name: "Dr. Ola Atef", role: "Dermatology & Aesthetics Specialist", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
         { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
+        { name: "Dr. Eman Ismail", role: "Dermatology & Laser Specialist", photo: "/images/team/eman-ismail.jpg", portrait: "/images/team/eman-ismail-portrait.jpg", branch: "shahar", id: "eman-ismail" },
       ],
     },
     {
@@ -534,6 +583,36 @@ export const enContent: Content = {
         { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
         { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
         { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
+      ],
+    },
+    {
+      icon: "gynecology",
+      title: "Obstetrics & Gynecology",
+      items: ["Pregnancy follow-up", "Gynecological exams & tests", "Family planning", "Menstrual disorder care"],
+      branches: ["shahar"],
+      note: "Care that listens to you, at every stage of life.",
+      team: [
+        { name: "Dr. Rania Mostafa", role: "Obstetrics & Gynecology Specialist", photo: "/images/team/rania-mostafa.jpg", portrait: "/images/team/rania-mostafa-portrait.jpg", branch: "shahar", id: "rania-mostafa" },
+      ],
+    },
+    {
+      icon: "pediatrics",
+      title: "Pediatrics",
+      items: ["Newborn care", "Growth & development follow-up", "Common childhood illnesses", "Child health consultations"],
+      branches: ["shahar"],
+      note: "Calm care that reassures children and parents alike.",
+      team: [
+        { name: "Dr. Khaled Omar", role: "Pediatrics & Neonatology Specialist", photo: "/images/team/khaled-omar.jpg", portrait: "/images/team/khaled-omar-portrait.jpg", branch: "shahar", id: "khaled-omar" },
+      ],
+    },
+    {
+      icon: "general",
+      title: "General Medicine",
+      items: ["General medical check-ups", "Chronic condition follow-up", "Medical consultations", "Referral to the right specialty"],
+      branches: ["shahar"],
+      note: "The right starting point for everything about your health.",
+      team: [
+        { name: "Dr. Dina Tawfik", role: "General Practitioner", photo: "/images/team/dina-tawfik.jpg", portrait: "/images/team/dina-tawfik-portrait.jpg", branch: "shahar", id: "dina-tawfik" },
       ],
     },
   ],

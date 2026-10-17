@@ -57,7 +57,7 @@ function ServiceExtra({ service }: { service: ServiceContent }) {
   );
 }
 
-export default function ServiceCard({ service }: { service: ServiceContent }) {
+export default function ServiceCard({ service, row }: { service: ServiceContent; row: ServiceContent["icon"][] }) {
   const Icon = serviceIconMap[service.icon];
   const { t } = useLocale();
   // A branch page shows only that branch's team and devices.
@@ -67,7 +67,7 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
   const { expandedIcon, setExpandedIcon } = useServicesUI();
 
   const isExpanded = expandedIcon === service.icon;
-  const isCompact = expandedIcon !== null && !isExpanded;
+  const isCompact = expandedIcon !== null && !isExpanded && row.includes(expandedIcon);
 
   // Mouse users open cards by hovering; any other press (finger, pen) toggles on tap. Decided per press rather than
   // by the (hover: none) media query, which some phone browsers report wrongly, leaving the card impossible to open.
@@ -121,14 +121,16 @@ export default function ServiceCard({ service }: { service: ServiceContent }) {
         ))}
       </ul>
 
-      <div className="mt-3 border-t border-line/25 pt-4">
-        <p className="text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
-          {service.extraLabel}
-        </p>
-        <div className="mt-2.5">
-          <ServiceExtra service={service} />
+      {service.extraType && (
+        <div className="mt-3 border-t border-line/25 pt-4">
+          <p className="text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
+            {service.extraLabel}
+          </p>
+          <div className="mt-2.5">
+            <ServiceExtra service={service} />
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         className={`grid transition-all duration-500 ease-in-out ${isExpanded ? "mt-4 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}

@@ -1,5 +1,12 @@
 // Labels shared by the booking email and the /admin dashboard. Ids match the bookings table checks in supabase/schema.sql.
-export const SERVICES = { dentistry: "طب الأسنان", derma: "الجلدية والتجميل", laser: "الليزر" } as const;
+export const SERVICES = {
+  dentistry: "طب الأسنان",
+  derma: "الجلدية والتجميل",
+  laser: "الليزر",
+  gynecology: "النساء والولادة",
+  pediatrics: "طب الأطفال",
+  general: "الطب العام",
+} as const;
 export const BRANCHES = { khamseen: "فرع الخمسين", shahar: "فرع شهار", wisam: "فرع الوسام" } as const;
 export const STATUSES = { new: "جديد", contacted: "تم التواصل", confirmed: "مؤكد", cancelled: "ملغي" } as const;
 export const ATTENDANCE = { attended: "حضر", no_show: "لم يحضر" } as const;

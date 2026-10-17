@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { offeredIn, useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 
 function scrollToSection(id: string) {
@@ -52,6 +53,7 @@ function FooterLink({
 
 export default function Footer() {
   const { t } = useLocale();
+  const branch = useBranch();
 
   return (
     <footer className="bg-surface2">
@@ -76,7 +78,7 @@ export default function Footer() {
           </FooterCol>
 
           <FooterCol title={t.footerSpecialties}>
-            {t.services.map((s) => (
+            {t.services.filter((s) => offeredIn(branch, s)).map((s) => (
               <FooterLink key={s.title} onClick={() => scrollToSection("services")}>
                 {s.title}
               </FooterLink>

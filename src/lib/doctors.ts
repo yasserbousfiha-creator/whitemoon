@@ -2,14 +2,15 @@
 // Keep in sync with whitemoon-app/src/lib/doctors.ts. Slots are every 30 minutes from the start of each shift; the
 // last one starts half an hour before the shift ends.
 export type DoctorId =
-  "yasmine" | "fatima-alzahraa" | "ola-atef" | "ahmed-althubaiti" | "souad" | "ali-alkhalili" | "ahmed-sobhi" | "abdullah-alotaibi";
+  "yasmine" | "fatima-alzahraa" | "ola-atef" | "ahmed-althubaiti" | "souad" | "ali-alkhalili" | "ahmed-sobhi" | "abdullah-alotaibi"
+  | "mohammed-althaqafi" | "saif-alotaibi" | "eman-ismail" | "ahmed-yahya" | "rania-mostafa" | "khaled-omar" | "asmaa-abubakr" | "methaq-ahmed" | "dina-tawfik" | "enam-ali" | "osama-alshehri";
 
 type Shift = [start: string, end: string]; // "HH:MM"
 
 interface DoctorSchedule {
   names: string[]; // every display name (Arabic and English) that may arrive with a booking
   branch: "khamseen" | "shahar" | "wisam"; // where they work: choosing another branch drops the doctor
-  service: "dentistry" | "derma" | "laser"; // their department: choosing another one drops the doctor
+  service: "dentistry" | "derma" | "laser" | "gynecology" | "pediatrics" | "general"; // their department: choosing another one drops the doctor
   days: number[]; // weekdays worked, 0 = Sunday … 6 = Saturday
   shifts: Shift[];
   // Hours that differ by weekday; overrides days/shifts when set.
@@ -17,6 +18,7 @@ interface DoctorSchedule {
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
+const SAT_TO_THU = [6, 0, 1, 2, 3, 4]; // closed on Friday
 
 export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
   yasmine: {
@@ -90,6 +92,84 @@ export const DOCTORS: Record<DoctorId, DoctorSchedule> = {
     service: "dentistry",
     days: EVERY_DAY,
     shifts: [["17:00", "21:00"]],
+  },
+  "mohammed-althaqafi": {
+    names: ["د. محمد الثقفي", "Dr. Mohammed Al-Thaqafi"],
+    branch: "khamseen",
+    service: "dentistry",
+    days: EVERY_DAY,
+    shifts: [["13:30", "21:30"]],
+  },
+  "saif-alotaibi": {
+    names: ["د. سيف العتيبي", "Dr. Saif Al-Otaibi"],
+    branch: "shahar",
+    service: "dentistry",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "eman-ismail": {
+    names: ["د. إيمان إسماعيل", "Dr. Eman Ismail"],
+    branch: "shahar",
+    service: "derma",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  // No fixed days (attends by appointment): requestable Saturday to Thursday, and the clinic confirms.
+  "ahmed-yahya": {
+    names: ["د. أحمد يحيى", "Dr. Ahmed Yahya"],
+    branch: "shahar",
+    service: "dentistry",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "rania-mostafa": {
+    names: ["د. رانيا مصطفى", "Dr. Rania Mostafa"],
+    branch: "shahar",
+    service: "gynecology",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "khaled-omar": {
+    names: ["د. خالد عمر", "Dr. Khaled Omar"],
+    branch: "shahar",
+    service: "pediatrics",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "asmaa-abubakr": {
+    names: ["د. أسماء أبو بكر", "Dr. Asmaa Abu Bakr"],
+    branch: "shahar",
+    service: "dentistry",
+    days: [6, 0, 1, 2, 3], // Saturday to Wednesday
+    shifts: [["15:00", "21:00"]],
+  },
+  "methaq-ahmed": {
+    names: ["د. ميثاق أحمد", "Dr. Methaq Ahmed"],
+    branch: "shahar",
+    service: "dentistry",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "dina-tawfik": {
+    names: ["د. دينا توفيق", "Dr. Dina Tawfik"],
+    branch: "shahar",
+    service: "general",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "enam-ali": {
+    names: ["د. إنعام علي", "Dr. Enam Ali"],
+    branch: "shahar",
+    service: "dentistry",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
+  },
+  "osama-alshehri": {
+    names: ["د. أسامة الشهري", "Dr. Osama Al-Shehri"],
+    branch: "shahar",
+    service: "dentistry",
+    days: SAT_TO_THU,
+    shifts: [["13:30", "21:30"]],
   },
 };
 

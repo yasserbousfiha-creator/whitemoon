@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
 import { DOCTORS, type DoctorId } from "@/lib/doctors";
-import { useBranch } from "@/lib/branch-context";
+import { isBranchId } from "@/lib/branches";
+import { offeredIn, useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
@@ -55,6 +56,9 @@ export default function Booking() {
     window.addEventListener(PREFILL_EVENT, onPrefill);
     return () => window.removeEventListener(PREFILL_EVENT, onPrefill);
   }, []);
+
+  // Departments some branches lack (gynecology…) are listed only once a branch that has them is picked, or none yet.
+  const serviceChoices = t.services.filter((s) => offeredIn(isBranchId(branch) ? branch : null, s));
 
   const doctorChoices = (t.services.find((s) => s.icon === service)?.team ?? []).filter(
     (m): m is typeof m & { id: DoctorId; name: string } => !!m.id && !!m.name && m.branch === branch,
@@ -181,7 +185,7 @@ export default function Booking() {
               <option value="" disabled>
                 {b.select}
               </option>
-              {t.services.map((s) => (
+              {serviceChoices.map((s) => (
                 <option key={s.icon} value={s.icon}>
                   {s.title}
                 </option>
@@ -197,6 +201,8 @@ export default function Booking() {
               onChange={(e) => {
                 setBranch(e.target.value);
                 dropDoctorUnless("branch", e.target.value);
+                const picked = t.services.find((s) => s.icon === service);
+                if (picked && isBranchId(e.target.value) && !offeredIn(e.target.value, picked)) setService("");
               }}
               className={fieldClass}
             >

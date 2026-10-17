@@ -1,5 +1,6 @@
 "use client";
 
+import { offeredIn, useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import { serviceIconMap } from "./icon-map";
 
@@ -9,11 +10,12 @@ function scrollToServices() {
 
 export default function SpecialtyHighlights() {
   const { t } = useLocale();
+  const branch = useBranch();
 
   return (
     <section className="bg-surface">
       <div className="mx-auto flex max-w-[1160px] flex-wrap justify-center px-6 md:flex-nowrap">
-        {t.services.map((s, i) => {
+        {t.services.filter((s) => offeredIn(branch, s)).map((s, i) => {
           const Icon = serviceIconMap[s.icon];
           return (
             <button
