@@ -62,7 +62,7 @@ export default function ServiceCard({ service, row }: { service: ServiceContent;
   const { t } = useLocale();
   // A branch page shows only that branch's team and devices.
   const branch = useBranch();
-  const devices = service.devices?.filter((d) => inBranch(branch, d.branch)) ?? [];
+  const devices = service.devices?.filter((d) => branch === null || d.branches.includes(branch)) ?? [];
   const team = service.team.filter((m) => !m.name || inBranch(branch, m.branch));
   const { expandedIcon, setExpandedIcon } = useServicesUI();
 

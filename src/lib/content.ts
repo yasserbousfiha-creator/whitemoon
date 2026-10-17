@@ -15,7 +15,7 @@ export interface Device {
   name: string; // brand name, kept in English
   use: string;
   photo: string;
-  branch: Branch["id"]; // where the device is
+  branches: Branch["id"][]; // where the device is (the same model may be in several branches)
 }
 
 export interface TeamMember {
@@ -332,9 +332,9 @@ export const arContent: Content = {
       note: "أطوال موجية دقيقة، مُعايرة لكل نوع بشرة.",
       team: [],
       devices: [
-        { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
-        { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
-        { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
+        { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg", branches: ["khamseen", "shahar"] },
+        { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg", branches: ["khamseen", "shahar"] },
+        { name: "HydraFacial", use: "تنظيف وترطيب البشرة", photo: "/images/devices/hydrafacial.jpg", branches: ["khamseen", "shahar"] },
       ],
     },
     {
@@ -580,9 +580,9 @@ export const enContent: Content = {
       note: "Precise wavelengths, calibrated to every skin type.",
       team: [],
       devices: [
-        { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg", branch: "khamseen" },
-        { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg", branch: "khamseen" },
-        { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg", branch: "khamseen" },
+        { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg", branches: ["khamseen", "shahar"] },
+        { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg", branches: ["khamseen", "shahar"] },
+        { name: "HydraFacial", use: "Deep cleansing & hydration", photo: "/images/devices/hydrafacial.jpg", branches: ["khamseen", "shahar"] },
       ],
     },
     {
