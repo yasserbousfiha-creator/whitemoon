@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { offeredIn, useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
+import CbahiBadge from "./CbahiBadge";
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -67,6 +68,7 @@ export default function Footer() {
               <span className="font-display text-[17px] text-ink">{t.brandName}</span>
             </div>
             <p className="mt-4 text-[13.5px] text-ink-soft">{t.footerDesc}</p>
+            <CbahiBadge variant="footer" />
           </div>
 
           <FooterCol title={t.footerSite}>

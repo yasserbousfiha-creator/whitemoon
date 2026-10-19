@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MapPin, MessageCircle } from "lucide-react";
 import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
+import CbahiBadge from "./CbahiBadge";
 import Eyebrow from "./Eyebrow";
 
 function scrollToSection(id: string) {
@@ -65,6 +66,7 @@ export default function Hero() {
               {t.ctaExploreServices}
             </button>
           </div>
+          <CbahiBadge variant="hero" />
         </div>
 
         <div className="order-1 flex-[4] md:order-2">
