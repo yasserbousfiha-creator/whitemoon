@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useOptimistic, useState, useTransition } from "react";
 import {
   ATTENDANCE,
@@ -350,12 +351,17 @@ export default function Dashboard({
   return (
     <main className="min-h-screen bg-bg pb-16">
       <header className="sticky top-0 z-10 border-b border-line/25 bg-surface2/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <div>
-            <h1 className="font-display text-xl">لوحة الحجوزات</h1>
-            <p className="text-xs text-ink-soft">
-              {staff.name} · {BRANCHES[branch]}
-            </p>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <span className="relative h-11 w-11 shrink-0">
+              <Image src="/images/logo.png" alt="وايت مون" fill sizes="44px" className="object-contain" priority />
+            </span>
+            <div>
+              <h1 className="font-display text-xl">لوحة الحجوزات</h1>
+              <p className="text-xs text-ink-soft">
+                {staff.name} · {BRANCHES[branch]}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {newCount && tabs.includes("bookings") ? (
@@ -386,6 +392,26 @@ export default function Dashboard({
           </div>
         </div>
       </header>
+      {/* The sections as a column on the right (user's choice), the work beside it; a scrolling row on phones. */}
+      <div className="mx-auto flex max-w-7xl flex-col md:flex-row md:items-start md:gap-2 md:px-4">
+        <aside className="md:sticky md:top-[76px] md:w-52 md:shrink-0 md:pt-5">
+          <nav className="flex gap-2 overflow-x-auto border-b border-line/20 px-4 py-3 md:flex-col md:overflow-visible md:rounded-2xl md:border md:border-line/25 md:bg-surface md:p-2">
+            {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                aria-current={tab === id ? "page" : undefined}
+                className={`shrink-0 whitespace-nowrap rounded-xl px-4 py-2.5 text-start text-sm font-bold transition ${
+                  tab === id ? "bg-gold-bright text-night2" : "text-ink-soft hover:bg-surface2 hover:text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+        <div className="min-w-0 flex-1">
       {!staff.branch && (
         <div className="mx-auto flex max-w-5xl flex-wrap gap-2 px-4 pt-3">
           {(Object.keys(BRANCHES) as BranchId[]).map((id) => (
@@ -417,18 +443,6 @@ export default function Dashboard({
         <p className="bg-red-50 p-3 text-center text-sm text-red-700">تعذّر تحميل جوائز العجلة ({data.spinsError}).</p>
       )}
 
-      <nav className="mx-auto flex max-w-5xl gap-6 border-b border-line/20 px-4 pt-3">
-        {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`-mb-px border-b-2 pb-2 text-sm font-bold ${tab === id ? "border-gold-bright text-ink" : "border-transparent text-ink-soft"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
 
       {passwordOpen && <PasswordDialog onClose={() => setPasswordOpen(false)} />}
       {tabs.length === 0 ? (
@@ -513,6 +527,8 @@ export default function Dashboard({
           </section>
         </>
       )}
+        </div>
+      </div>
     </main>
   );
 }
