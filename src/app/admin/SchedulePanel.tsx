@@ -22,12 +22,15 @@ export default function SchedulePanel({
   blocks,
   bookings,
   reload,
+  readOnly = false,
 }: {
   branch: BranchId;
   doctors: Doctor[]; // visible ones
   blocks: BlockKey[];
   bookings: Booking[];
   reload: () => Promise<void>;
+  /** View only: the schedule and what's closed, without opening or closing anything. */
+  readOnly?: boolean;
 }) {
   const branchDoctors = doctors.filter((d) => d.branch === branch);
   const wholeBranch: Target = `all-${branch}`;
@@ -116,6 +119,7 @@ export default function SchedulePanel({
           {formatDay(date, "ar", { year: "numeric" })}
           {closedByAll && <span className="ms-2 text-sm font-normal text-red-700">(مغلق لكل الأطباء)</span>}
         </p>
+        {!readOnly && (
         <button
           type="button"
           disabled={pending || closedByAll}
@@ -126,16 +130,17 @@ export default function SchedulePanel({
         >
           {ownDayBlock ? "فتح اليوم" : !doctor ? "إغلاق اليوم لكل أطباء الفرع" : "إغلاق اليوم بالكامل"}
         </button>
+        )}
       </div>
 
       {doctor && (
         <>
           <div className="flex flex-wrap gap-4 text-xs text-ink-soft">
             <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded bg-emerald-500" /> متاح (اضغط للإغلاق)
+              <span className="h-3 w-3 rounded bg-emerald-500" /> {readOnly ? "متاح" : "متاح (اضغط للإغلاق)"}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-3 w-3 rounded bg-red-500" /> مغلق (اضغط للفتح)
+              <span className="h-3 w-3 rounded bg-red-500" /> {readOnly ? "مغلق" : "مغلق (اضغط للفتح)"}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-3 w-3 rounded bg-stone-400" /> محجوز
@@ -172,9 +177,9 @@ export default function SchedulePanel({
                       key={time}
                       type="button"
                       // A slot closed by the whole-day block reopens with "فتح اليوم", not individually.
-                      disabled={pending || (closed && !slotBlock)}
+                      disabled={pending || readOnly || (closed && !slotBlock)}
                       onClick={() => toggle({ doctor: target, date, start: time }, !closed)}
-                      className={`rounded-xl px-2 py-2.5 text-center text-sm font-bold text-white transition disabled:opacity-60 ${
+                      className={`rounded-xl px-2 py-2.5 text-center text-sm font-bold text-white transition ${readOnly ? "disabled:cursor-default" : "disabled:opacity-60"} ${
                         closed ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"
                       }`}
                     >

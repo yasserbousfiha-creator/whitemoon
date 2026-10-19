@@ -12,7 +12,7 @@ const dateFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
   timeZone: "Asia/Riyadh",
 });
 
-function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<void> }) {
+function SpinCard({ spin, reload, readOnly }: { spin: WheelSpin; reload: () => Promise<void>; readOnly: boolean }) {
   const [redeemedAt, markRedeemed] = useOptimistic(spin.redeemed_at, (_state, at: string) => at);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<voi
         رُبحت {dateFormat.format(new Date(spin.created_at))}
         {redeemedAt ? ` · استُخدمت ${dateFormat.format(new Date(redeemedAt))}` : ""}
       </p>
-      {!redeemedAt && !expired && (
+      {!redeemedAt && !expired && !readOnly && (
         <button
           type="button"
           disabled={pending}
@@ -71,10 +71,13 @@ export default function SpinsPanel({
   spins,
   reload,
   wheel,
+  readOnly,
 }: {
   spins: WheelSpin[];
   reload: () => Promise<void>;
-  wheel: { settings: WheelSettings; error: string | null } | null; // null for branch accounts
+  wheel: { settings: WheelSettings; error: string | null; readOnly: boolean } | null; // null without that permission
+  /** View only: the codes, without "use the prize". */
+  readOnly: boolean;
 }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toUpperCase();
@@ -88,7 +91,7 @@ export default function SpinsPanel({
     <div className="mx-auto max-w-5xl px-4 pt-5">
       {wheel && (
         <div className="mb-5">
-          <WheelSettingsCard initial={wheel.settings} error={wheel.error} reload={reload} />
+          <WheelSettingsCard initial={wheel.settings} error={wheel.error} reload={reload} readOnly={wheel.readOnly} />
         </div>
       )}
       <input
@@ -100,7 +103,7 @@ export default function SpinsPanel({
       <section className="mt-4 grid gap-3 md:grid-cols-2">
         {shown.length === 0 && <p className="text-ink-soft">لا توجد جوائز.</p>}
         {shown.map((s) => (
-          <SpinCard key={s.id} spin={s} reload={reload} />
+          <SpinCard key={s.id} spin={s} reload={reload} readOnly={readOnly} />
         ))}
       </section>
     </div>

@@ -82,11 +82,14 @@ export default function DoctorsPanel({
   error,
   branch,
   reload,
+  readOnly = false,
 }: {
   doctors: Doctor[];
   error: string | null;
   branch: BranchId;
   reload: () => Promise<void>;
+  /** View only: the doctors shown on the site, with their hours — nothing to add, edit, hide or delete. */
+  readOnly?: boolean;
 }) {
   const [editing, setEditing] = useState<DoctorInput | null>(null);
   const [pending, startTransition] = useTransition();
@@ -104,7 +107,7 @@ export default function DoctorsPanel({
     });
   };
 
-  const branchDoctors = doctors.filter((d) => d.branch === branch);
+  const branchDoctors = doctors.filter((d) => d.branch === branch && (!readOnly || d.active));
   const departments = (Object.keys(SERVICES) as ServiceId[])
     .map((s) => ({ service: s, list: branchDoctors.filter((d) => d.service === s) }))
     .filter((g) => g.list.length > 0);
@@ -127,8 +130,9 @@ export default function DoctorsPanel({
     <div className="mx-auto max-w-5xl space-y-5 px-4 pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-soft">
-          أطباء {BRANCHES[branch]}: {branchDoctors.length}. التعديلات تظهر في الموقع ونموذج الحجز خلال ثوانٍ.
+          أطباء {BRANCHES[branch]}: {branchDoctors.length}.{readOnly ? "" : " التعديلات تظهر في الموقع ونموذج الحجز خلال ثوانٍ."}
         </p>
+        {!readOnly && (
         <button
           type="button"
           onClick={() => setEditing(blank(branch))}
@@ -136,6 +140,7 @@ export default function DoctorsPanel({
         >
           + إضافة طبيب
         </button>
+        )}
       </div>
 
       {error && (
@@ -186,6 +191,7 @@ export default function DoctorsPanel({
                   {d.cases.length ? `صور الحالات: ${d.cases.length}` : "لا توجد صور حالات بعد"}
                 </p>
               </div>
+              {!readOnly && (
               <div className="flex flex-wrap gap-1.5 text-sm">
                 <button
                   type="button"
@@ -239,6 +245,7 @@ export default function DoctorsPanel({
                   حذف
                 </button>
               </div>
+              )}
             </article>
           ))}
         </section>

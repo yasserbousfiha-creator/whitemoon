@@ -21,7 +21,7 @@ import DoctorsPanel from "./DoctorsPanel";
 import OffersPanel from "./OffersPanel";
 import UsersPanel from "./UsersPanel";
 import PasswordDialog from "./PasswordDialog";
-import { type AdminTab, TAB_LABELS } from "@/lib/staff-access";
+import { type AdminTab, type Permissions, TAB_LABELS } from "@/lib/staff-access";
 
 const STATUS_STYLE: Record<BookingStatus, string> = {
   new: "bg-gold-bright text-night2",
@@ -79,7 +79,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 type Patch = { status?: BookingStatus; notes?: string; attendance?: Attendance | null };
 
 // One appointment inside a patient's card: its details, status, attendance and note.
-function BookingItem({ booking, today, reload }: { booking: Booking; today: string; reload: () => Promise<void> }) {
+// readOnly (view-only permission): the details, status and note as text — no buttons.
+function BookingItem({ booking, today, reload, readOnly }: { booking: Booking; today: string; reload: () => Promise<void>; readOnly: boolean }) {
   const [current, applyOptimistic] = useOptimistic(
     { status: booking.status, notes: booking.notes, attendance: booking.attendance ?? null },
     (state, patch: Patch) => ({ ...state, ...patch }),
@@ -101,7 +102,7 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
 
   const b = booking;
   // Attendance can be recorded from the appointment day onwards, for bookings that weren't cancelled.
-  const canAttend = current.status !== "cancelled" && !!b.appointment_date && b.appointment_date <= today;
+  const canAttend = !readOnly && current.status !== "cancelled" && !!b.appointment_date && b.appointment_date <= today;
   return (
     <div className={`rounded-xl bg-surface2 p-3 transition ${pending ? "opacity-70" : ""}`}>
       <div className="flex items-start justify-between gap-2">
@@ -157,6 +158,10 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
         </div>
       )}
 
+      {readOnly ? (
+        current.notes && <p className="mt-2 rounded-[10px] bg-bg px-3 py-1.5 text-sm">ملاحظة: {current.notes}</p>
+      ) : (
+      <>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {(Object.keys(STATUSES) as BookingStatus[])
           .filter((s) => s !== current.status)
@@ -195,6 +200,8 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
           حفظ
         </button>
       </form>
+      </>
+      )}
 
       <p className="mt-1.5 text-[11px] text-ink-soft">
         أُرسل {createdFormat.format(new Date(b.created_at))} · {b.source === "app" ? "من التطبيق" : "من الموقع"} · #
@@ -211,7 +218,7 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
 }
 
 // A patient with all their shown bookings, so someone who booked several times appears once.
-function PersonCard({ bookings, today, reload }: { bookings: Booking[]; today: string; reload: () => Promise<void> }) {
+function PersonCard({ bookings, today, reload, readOnly }: { bookings: Booking[]; today: string; reload: () => Promise<void>; readOnly: boolean }) {
   const first = bookings[0];
   const emails = [...new Set(bookings.map((b) => b.email).filter(Boolean))];
   return (
@@ -255,7 +262,7 @@ function PersonCard({ bookings, today, reload }: { bookings: Booking[]; today: s
 
       <div className="mt-3 space-y-2">
         {bookings.map((b) => (
-          <BookingItem key={b.id} booking={b} today={today} reload={reload} />
+          <BookingItem key={b.id} booking={b} today={today} reload={reload} readOnly={readOnly} />
         ))}
       </div>
     </article>
@@ -274,8 +281,8 @@ export default function Dashboard({
   staff,
   initial,
 }: {
-  /** tabs: the sections this account may open (its permissions); isAdmin: manages the accounts. */
-  staff: { name: string; branch: BranchId | null; tabs: AdminTab[]; isAdmin: boolean };
+  /** permissions: each section hidden / view only / view and edit; isAdmin: manages the accounts. */
+  staff: { name: string; branch: BranchId | null; permissions: Permissions; isAdmin: boolean };
   initial: DashboardData;
 }) {
   // Kept up to date by polling a server action (every 20 s, and on returning to the tab), plus right after each change.
@@ -299,7 +306,13 @@ export default function Dashboard({
 
   // The sections this account may open ("wheel" lives inside the prizes tab), plus "المستخدمون" for the site admin.
   type Tab = Exclude<AdminTab, "wheel"> | "users";
-  const tabs: Tab[] = [...staff.tabs.filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel"), ...(staff.isAdmin ? (["users"] as const) : [])];
+  const can = staff.permissions;
+  const tabs: Tab[] = [
+    ...(Object.keys(can) as AdminTab[]).filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel" && can[t] !== "none"),
+    ...(staff.isAdmin ? (["users"] as const) : []),
+  ];
+  /** View only in this section: lists and details without any button that changes something. */
+  const viewOnly = (t: AdminTab) => can[t] === "view";
   const [tab, setTab] = useState<Tab>(tabs[0] ?? "bookings");
   const [passwordOpen, setPasswordOpen] = useState(false);
   // Opens on today's confirmed appointments, the list reception works from; "all" brings back every booking.
@@ -423,9 +436,9 @@ export default function Dashboard({
       ) : tab === "users" ? (
         <UsersPanel />
       ) : tab === "offers" ? (
-        <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} />
+        <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} readOnly={viewOnly("offers")} />
       ) : tab === "doctors" ? (
-        <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} />
+        <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} readOnly={viewOnly("doctors")} />
       ) : tab === "schedule" ? (
         <SchedulePanel
           branch={branch}
@@ -433,12 +446,14 @@ export default function Dashboard({
           blocks={blocks}
           bookings={branchBookings}
           reload={reload}
+          readOnly={viewOnly("schedule")}
         />
       ) : tab === "spins" ? (
         <SpinsPanel
           spins={spins}
           reload={reload}
-          wheel={staff.tabs.includes("wheel") ? { settings: data.wheel, error: data.wheelError } : null}
+          wheel={can.wheel !== "none" ? { settings: data.wheel, error: data.wheelError, readOnly: viewOnly("wheel") } : null}
+          readOnly={viewOnly("spins")}
         />
       ) : (
         <>
@@ -493,7 +508,7 @@ export default function Dashboard({
               <p className="text-ink-soft">{view === "today" ? "لا توجد مواعيد مؤكدة اليوم." : "لا توجد حجوزات."}</p>
             )}
             {[...groups].map(([key, list]) => (
-              <PersonCard key={key} bookings={list} today={today} reload={reload} />
+              <PersonCard key={key} bookings={list} today={today} reload={reload} readOnly={viewOnly("bookings")} />
             ))}
           </section>
         </>

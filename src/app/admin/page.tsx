@@ -5,7 +5,7 @@ import type { BranchId } from "@/lib/booking-labels";
 import { createStaffClient, supabaseConfigured } from "@/lib/supabase";
 import { signOut } from "./actions";
 import Dashboard from "./Dashboard";
-import { staffTabs } from "@/lib/staff-access";
+import { permissionsOf } from "@/lib/staff-access";
 import { loadDashboard } from "./data";
 
 export const metadata: Metadata = { title: "لوحة الحجوزات | وايت مون", robots: { index: false } };
@@ -46,6 +46,6 @@ export default async function AdminPage() {
   // The dashboard then keeps itself up to date through the refreshDashboard action.
   return (
     <Dashboard
-      staff={{ name: staff.name, branch: staff.branch as BranchId | null, tabs: staffTabs(staff), isAdmin: !!staff.is_admin }} initial={await loadDashboard(supabase)} />
+      staff={{ name: staff.name, branch: staff.branch as BranchId | null, permissions: permissionsOf(staff), isAdmin: !!staff.is_admin }} initial={await loadDashboard(supabase)} />
   );
 }

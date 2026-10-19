@@ -1,5 +1,5 @@
 import { createStaffClient } from "@/lib/supabase";
-import { type AdminTab, type StaffAccess, canOpen } from "@/lib/staff-access";
+import { type AdminTab, type StaffAccess, canEdit } from "@/lib/staff-access";
 
 // Shared by the doctors and offers actions. Kept out of the "use server" files so it is not callable from the browser.
 
@@ -17,11 +17,12 @@ export async function currentStaff(): Promise<{ userId: string; staff: StaffAcce
   return { userId, staff };
 }
 
-/** An account allowed into one of these /admin sections (its permissions, set from "المستخدمون"). */
+/** An account allowed to CHANGE things in one of these /admin sections ("view and edit" in its permissions, set from
+ * "المستخدمون"); a view-only account gets an error. Every write action goes through this. */
 export async function requireTab(...tabs: AdminTab[]): Promise<{ userId: string } | { error: string }> {
   const who = await currentStaff();
   if ("error" in who) return who;
-  if (!tabs.some((t) => canOpen(who.staff, t))) return { error: "لا تملك صلاحية هذا القسم." };
+  if (!tabs.some((t) => canEdit(who.staff, t))) return { error: "صلاحيتك على هذا القسم للعرض فقط." };
   return { userId: who.userId };
 }
 

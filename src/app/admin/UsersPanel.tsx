@@ -2,39 +2,54 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { BRANCHES, type BranchId } from "@/lib/booking-labels";
-import { ADMIN_TABS, type AdminTab, TAB_LABELS, defaultTabs } from "@/lib/staff-access";
+import { ADMIN_TABS, type Access, EDIT_MEANS, type Permissions, TAB_LABELS, defaultPermissions } from "@/lib/staff-access";
 import { type StaffUser, createStaffUser, listStaffUsers, resetStaffPassword, updateStaffUser } from "./user-actions";
 
 const field = "mt-1 w-full rounded-lg border border-line/40 bg-bg px-3 py-2 text-sm outline-none focus:border-gold-bright";
 
-/** The two call-center accounts (user's choice): every branch, bookings and the doctors' schedule. */
+/** The two call-center accounts (user's choice): every branch; bookings and the doctors' schedule. */
 const CALL_CENTER = [
   { username: "callcenter1", name: "الكول سنتر 1" },
   { username: "callcenter2", name: "الكول سنتر 2" },
 ];
-const CALL_CENTER_TABS: AdminTab[] = ["bookings", "schedule"];
+// …and sees the doctors and the live offers to answer patients, without changing them.
+const CALL_CENTER_PERMISSIONS: Permissions = { ...defaultPermissions("khamseen"), spins: "none", bookings: "edit", schedule: "edit", doctors: "view", offers: "view" };
 const CALL_CENTER_PASSWORD = "123456";
 
 const signInFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" });
 
-function TabPicker({ value, onChange }: { value: AdminTab[]; onChange: (v: AdminTab[]) => void }) {
+const LEVELS: [Access, string][] = [
+  ["none", "مخفي"],
+  ["view", "عرض فقط"],
+  ["edit", "عرض وتعديل"],
+];
+
+/** Each section: hidden, view only, or view and edit. */
+function PermissionsEditor({ value, onChange }: { value: Permissions; onChange: (v: Permissions) => void }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {ADMIN_TABS.map((t) => {
-        const on = value.includes(t);
-        return (
-          <button
-            key={t}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(on ? value.filter((x) => x !== t) : [...value, t])}
-            className={`rounded-full border px-3 py-1 text-xs font-bold ${on ? "border-gold-bright bg-gold-bright/20 text-ink" : "border-line/30 text-ink-soft"}`}
-          >
-            {on ? "✓ " : ""}
-            {TAB_LABELS[t]}
-          </button>
-        );
-      })}
+    <div className="divide-y divide-line/15 rounded-xl border border-line/20">
+      {ADMIN_TABS.map((t) => (
+        <div key={t} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-sm font-bold">{TAB_LABELS[t]}</p>
+            <p className="text-[11px] text-ink-soft">التعديل: {EDIT_MEANS[t]}</p>
+          </div>
+          <div className="flex overflow-hidden rounded-full border border-line/30 text-xs font-bold" role="radiogroup" aria-label={TAB_LABELS[t]}>
+            {LEVELS.map(([level, label]) => (
+              <button
+                key={level}
+                type="button"
+                role="radio"
+                aria-checked={value[t] === level}
+                onClick={() => onChange({ ...value, [t]: level })}
+                className={`px-3 py-1 ${value[t] === level ? (level === "none" ? "bg-stone-300 text-stone-800" : level === "view" ? "bg-sky-200 text-sky-900" : "bg-gold-bright text-night2") : "text-ink-soft"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -53,12 +68,12 @@ function BranchSelect({ id, value, onChange }: { id: string; value: BranchId | n
 }
 
 function UserCard({ user, reload }: { user: StaffUser; reload: () => void }) {
-  const [tabs, setTabs] = useState<AdminTab[]>(user.tabs ?? defaultTabs(user.branch));
+  const [permissions, setPermissions] = useState<Permissions>(user.permissions);
   const [branch, setBranch] = useState<BranchId | null>(user.branch);
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, start] = useTransition();
-  const changed = branch !== user.branch || tabs.join() !== (user.tabs ?? defaultTabs(user.branch)).join();
+  const changed = branch !== user.branch || JSON.stringify(permissions) !== JSON.stringify(user.permissions);
 
   const run = (fn: () => Promise<{ ok: true } | { ok: false; error: string }>, okText: string) =>
     start(async () => {
@@ -88,8 +103,8 @@ function UserCard({ user, reload }: { user: StaffUser; reload: () => void }) {
       ) : (
         <>
           <div>
-            <p className="mb-1.5 text-xs font-bold text-ink-soft">الأقسام المسموحة</p>
-            <TabPicker value={tabs} onChange={setTabs} />
+            <p className="mb-1.5 text-xs font-bold text-ink-soft">الصلاحيات</p>
+            <PermissionsEditor value={permissions} onChange={setPermissions} />
           </div>
           <label className="block max-w-xs text-xs font-bold text-ink-soft">
             الفرع
@@ -98,7 +113,7 @@ function UserCard({ user, reload }: { user: StaffUser; reload: () => void }) {
           <button
             type="button"
             disabled={pending || !changed}
-            onClick={() => run(() => updateStaffUser(user.userId, { branch, tabs }), "تم حفظ الصلاحيات.")}
+            onClick={() => run(() => updateStaffUser(user.userId, { branch, permissions }), "تم حفظ الصلاحيات.")}
             className="rounded-full bg-gold-bright px-5 py-1.5 text-sm font-bold text-night2 disabled:opacity-40"
           >
             حفظ الصلاحيات
@@ -134,7 +149,7 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [branch, setBranch] = useState<BranchId | null>(null);
-  const [tabs, setTabs] = useState<AdminTab[]>(["bookings", "schedule"]);
+  const [permissions, setPermissions] = useState<Permissions>(CALL_CENTER_PERMISSIONS);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -144,7 +159,7 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
         e.preventDefault();
         setError(null);
         start(async () => {
-          const r = await createStaffUser({ username, name, password, branch, tabs });
+          const r = await createStaffUser({ username, name, password, branch, permissions });
           if (r.ok) onDone();
           else setError(r.error);
         });
@@ -171,8 +186,8 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
         <BranchSelect id="new-branch" value={branch} onChange={setBranch} />
       </label>
       <div>
-        <p className="mb-1.5 text-xs font-bold text-ink-soft">الأقسام المسموحة</p>
-        <TabPicker value={tabs} onChange={setTabs} />
+        <p className="mb-1.5 text-xs font-bold text-ink-soft">الصلاحيات</p>
+        <PermissionsEditor value={permissions} onChange={setPermissions} />
       </div>
       {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       <button disabled={pending} className="rounded-full bg-gold-bright px-5 py-2 text-sm font-bold text-night2 disabled:opacity-50">
@@ -219,7 +234,7 @@ export default function UsersPanel() {
               start(async () => {
                 setCcMsg(null);
                 for (const c of missingCc) {
-                  const r = await createStaffUser({ ...c, password: CALL_CENTER_PASSWORD, branch: null, tabs: CALL_CENTER_TABS });
+                  const r = await createStaffUser({ ...c, password: CALL_CENTER_PASSWORD, branch: null, permissions: CALL_CENTER_PERMISSIONS });
                   if (!r.ok) return setCcMsg(r.error);
                 }
                 reload();
@@ -245,7 +260,7 @@ export default function UsersPanel() {
       {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {!users && !error && <p className="text-ink-soft">جارٍ التحميل…</p>}
       <div className="grid gap-3 md:grid-cols-2">
-        {users?.map((u) => <UserCard key={`${u.userId}-${u.tabs?.join() ?? "d"}-${u.branch ?? "all"}`} user={u} reload={reload} />)}
+        {users?.map((u) => <UserCard key={`${u.userId}-${JSON.stringify(u.permissions)}-${u.branch ?? "all"}`} user={u} reload={reload} />)}
       </div>
     </div>
   );

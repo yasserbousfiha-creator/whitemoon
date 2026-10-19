@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { type BranchId, BRANCHES } from "@/lib/booking-labels";
-import { ADMIN_TABS, type AdminTab, STAFF_EMAIL_DOMAIN, USERNAME_PATTERN } from "@/lib/staff-access";
+import { type Permissions, STAFF_EMAIL_DOMAIN, USERNAME_PATTERN, permissionsOf, toTabs } from "@/lib/staff-access";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { currentStaff, requireSiteAdmin } from "./manager";
 import type { UpdateResult } from "./actions";
@@ -18,13 +18,13 @@ export interface StaffUser {
   name: string;
   branch: BranchId | null;
   isAdmin: boolean;
-  /** null = the defaults for its branch. */
-  tabs: AdminTab[] | null;
+  /** Each section: hidden, view only, or view and edit. */
+  permissions: Permissions;
   lastSignIn: string | null;
 }
 
 const MIN_PASSWORD = 6;
-const cleanTabs = (tabs: unknown): AdminTab[] => (Array.isArray(tabs) ? ADMIN_TABS.filter((t) => tabs.includes(t)) : []);
+const cleanTabs = (p: unknown) => toTabs(p && typeof p === "object" ? (p as Record<string, unknown>) : {});
 const cleanBranch = (b: unknown): BranchId | null => (typeof b === "string" && b in BRANCHES ? (b as BranchId) : null);
 
 export async function listStaffUsers(): Promise<{ ok: true; users: StaffUser[] } | { ok: false; error: string }> {
@@ -44,7 +44,7 @@ export async function listStaffUsers(): Promise<{ ok: true; users: StaffUser[] }
       name: s.name as string,
       branch: cleanBranch(s.branch),
       isAdmin: !!s.is_admin,
-      tabs: Array.isArray(s.tabs) ? cleanTabs(s.tabs) : null,
+      permissions: permissionsOf(s),
       lastSignIn: u?.last_sign_in_at ?? null,
     };
   });
@@ -57,7 +57,7 @@ export interface NewStaffInput {
   name: string;
   password: string;
   branch: string | null;
-  tabs: string[];
+  permissions: Partial<Permissions>;
 }
 
 export async function createStaffUser(input: NewStaffInput): Promise<UpdateResult> {
@@ -77,7 +77,7 @@ export async function createStaffUser(input: NewStaffInput): Promise<UpdateResul
     const taken = /already|registered|exists/i.test(error?.message ?? "");
     return { ok: false, error: taken ? "اسم المستخدم مستخدم لحساب آخر." : `تعذّر إنشاء الحساب (${error?.message ?? ""}).` };
   }
-  const { error: rowError } = await db.from("staff").insert({ user_id: data.user.id, name, branch: cleanBranch(input.branch), tabs: cleanTabs(input.tabs), is_admin: false });
+  const { error: rowError } = await db.from("staff").insert({ user_id: data.user.id, name, branch: cleanBranch(input.branch), tabs: cleanTabs(input.permissions), is_admin: false });
   if (rowError) {
     await db.auth.admin.deleteUser(data.user.id); // don't leave a sign-in without a staff row
     return { ok: false, error: rowError.code === "42703" ? "شغّل ملف 013_staff_permissions.sql في Supabase أولًا." : `تعذّر الحفظ (${rowError.code ?? rowError.message}).` };
@@ -86,7 +86,7 @@ export async function createStaffUser(input: NewStaffInput): Promise<UpdateResul
   return { ok: true };
 }
 
-export async function updateStaffUser(userId: string, changes: { name?: string; branch?: string | null; tabs?: string[]; isAdmin?: boolean }): Promise<UpdateResult> {
+export async function updateStaffUser(userId: string, changes: { name?: string; branch?: string | null; permissions?: Partial<Permissions>; isAdmin?: boolean }): Promise<UpdateResult> {
   const who = await requireSiteAdmin();
   if ("error" in who) return { ok: false, error: who.error };
   if (typeof userId !== "string") return { ok: false, error: "طلب غير صالح." };
@@ -95,7 +95,7 @@ export async function updateStaffUser(userId: string, changes: { name?: string; 
   const update: Record<string, unknown> = {};
   if (typeof changes.name === "string" && changes.name.trim().length >= 2) update.name = changes.name.trim().slice(0, 80);
   if (changes.branch !== undefined) update.branch = cleanBranch(changes.branch);
-  if (changes.tabs !== undefined) update.tabs = cleanTabs(changes.tabs);
+  if (changes.permissions !== undefined) update.tabs = cleanTabs(changes.permissions);
   if (typeof changes.isAdmin === "boolean") update.is_admin = changes.isAdmin;
   if (!Object.keys(update).length) return { ok: true };
   const db = createServiceClient();

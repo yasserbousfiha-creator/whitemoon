@@ -21,10 +21,13 @@ export default function WheelSettingsCard({
   initial,
   error: loadError,
   reload,
+  readOnly = false,
 }: {
   initial: WheelSettings;
   error: string | null;
   reload: () => Promise<void>;
+  /** View only: whether it shows, and the prizes — no switch, no editing. */
+  readOnly?: boolean;
 }) {
   const [settings, setSettings] = useState(initial);
   const [open, setOpen] = useState(false);
@@ -65,6 +68,8 @@ export default function WheelSettingsCard({
             {initial.enabled ? "ظاهرة في الموقع ويمكن للزوار المحاولة." : "مخفية من الموقع، ولا تُقبل محاولات جديدة."}
           </p>
         </div>
+        {!readOnly && (
+        <>
         <button
           type="button"
           disabled={pending}
@@ -90,7 +95,18 @@ export default function WheelSettingsCard({
         >
           {open ? "إغلاق" : "تعديل الجوائز"}
         </button>
+        </>
+        )}
       </div>
+      {readOnly && (
+        <ul className="flex flex-wrap gap-2 text-sm">
+          {initial.prizes.map((p) => (
+            <li key={p.id} className="rounded-full border border-line/30 px-3 py-1">
+              {p.ar}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {loadError && loadError !== "missing" && (
         <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">تعذّر تحميل إعدادات العجلة ({loadError}).</p>

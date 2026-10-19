@@ -50,11 +50,15 @@ export default function OffersPanel({
   error,
   branch,
   reload,
+  readOnly = false,
 }: {
   offers: Offer[];
   error: string | null;
   branch: BranchId;
   reload: () => Promise<void>;
+  /** View only (e.g. the call center answering patients): the offers live on the site now, with their details —
+   * nothing to add, edit, hide or delete. */
+  readOnly?: boolean;
 }) {
   const [editing, setEditing] = useState<OfferInput | null>(null);
   const [pending, startTransition] = useTransition();
@@ -88,7 +92,8 @@ export default function OffersPanel({
     );
   }
 
-  const shown = onlyBranch ? offers.filter((o) => offerIn(o, branch)) : offers;
+  const visible = readOnly ? offers.filter((o) => isLive(o, today)) : offers;
+  const shown = onlyBranch ? visible.filter((o) => offerIn(o, branch)) : visible;
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 px-4 pt-5">
@@ -97,6 +102,7 @@ export default function OffersPanel({
           العروض الظاهرة في الموقع الآن: {offers.filter((o) => isLive(o, today)).length}. التعديلات تظهر خلال ثوانٍ، والعرض
           المنتهي يختفي تلقائياً بعد آخر يوم له.
         </p>
+        {!readOnly && (
         <button
           type="button"
           onClick={() => setEditing(blank(branch))}
@@ -104,6 +110,7 @@ export default function OffersPanel({
         >
           + إضافة عرض
         </button>
+        )}
       </div>
 
       <label className="flex items-center gap-2 text-sm">
@@ -158,6 +165,8 @@ export default function OffersPanel({
                   </p>
                 )}
                 <p className="text-xs text-ink-soft">{o.endsOn ? `ينتهي: ${formatDate(o.endsOn)}` : "بدون تاريخ انتهاء"}</p>
+                {readOnly && o.descriptionAr && <p className="whitespace-pre-line text-sm">{o.descriptionAr}</p>}
+                {!readOnly && (
                 <div className="flex flex-wrap gap-1.5 pt-1 text-sm">
                   <button
                     type="button"
@@ -211,6 +220,7 @@ export default function OffersPanel({
                     حذف
                   </button>
                 </div>
+                )}
               </div>
             </article>
           );
