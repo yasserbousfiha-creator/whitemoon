@@ -1,6 +1,9 @@
 import nodemailer from "nodemailer";
 import { BRANCHES, BranchId, SERVICES, ServiceId } from "@/lib/booking-labels";
-import { DOCTORS, type DoctorId, doctorIdFromName, isBlocked, isDoctorId } from "@/lib/doctors";
+import { doctorByName, isBlocked } from "@/lib/doctors";
+import { getDoctors } from "@/lib/doctors-server";
+import { isLive, offerIn } from "@/lib/offers";
+import { getOffers } from "@/lib/offers-server";
 import { formatDay, formatTime, isBookable } from "@/lib/slots";
 import { toAsciiDigits } from "@/lib/wheel";
 import { createServiceClient } from "@/lib/supabase";
@@ -27,11 +30,14 @@ interface NewBooking {
   appointment_time: string | null;
   // Chosen when booking from a doctor's profile.
   doctor: string | null;
-  doctor_id: DoctorId | null;
+  doctor_id: string | null;
+  // Booked from an offer (only sent once supabase/011_offers.sql has run, since live offers need its table).
+  offer_id?: number;
+  offer?: string;
 }
 
 // Returns false when email isn't configured or sending fails.
-async function sendEmail({ name, phone, email, service, branch, appointment_date, appointment_time, doctor }: NewBooking) {
+async function sendEmail({ name, phone, email, service, branch, appointment_date, appointment_time, doctor, offer }: NewBooking) {
   const to = recipientFor(service, branch);
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
   if (!to || !SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
@@ -60,8 +66,8 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
       from: SMTP_FROM || SMTP_USER,
       to,
       replyTo: email,
-      subject: `حجز جديد: ${serviceLabel} - ${branchLabel} - ${name}`,
-      text: `الاسم: ${name}\nالجوال: ${phone}\nالبريد: ${email}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${doctor ? `\nالطبيب: ${doctor}` : ""}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
+      subject: `حجز جديد${offer ? " (عرض)" : ""}: ${serviceLabel} - ${branchLabel} - ${name}`,
+      text: `الاسم: ${name}\nالجوال: ${phone}\nالبريد: ${email}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${doctor ? `\nالطبيب: ${doctor}` : ""}${offer ? `\nالعرض: ${offer}` : ""}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
       html: `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.8">
 <h2>طلب حجز جديد</h2>
 <p><b>الاسم:</b> ${escapeHtml(name)}</p>
@@ -71,6 +77,7 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
 <p><b>الفرع:</b> ${branchLabel}</p>
 <p><b>الموعد المطلوب:</b> ${when}</p>
 ${doctor ? `<p><b>الطبيب:</b> ${escapeHtml(doctor)}</p>` : ""}
+${offer ? `<p><b>العرض:</b> ${escapeHtml(offer)}</p>` : ""}
 ${dashboard ? `<p><a href="${dashboard}">فتح لوحة الحجوزات</a></p>` : ""}
 </div>`,
     });
@@ -101,13 +108,19 @@ export async function POST(request: Request) {
   const date = typeof body.date === "string" ? body.date : null;
   const time = typeof body.time === "string" ? body.time : null;
   let doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
-  // Newer clients send the id; older app versions only the display name.
-  let doctorId = isDoctorId(body.doctorId) ? body.doctorId : doctorIdFromName(doctor);
+  // Newer clients send the id; older app versions only the display name. Hidden doctors are not bookable. If the
+  // doctors can't be read, the booking still goes through, without a doctor.
+  const doctors = await getDoctors().catch((err) => {
+    console.error(err);
+    return [];
+  });
+  let picked = doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor);
   // A doctor who does not work in the chosen branch/department is dropped rather than booked there.
-  if (doctorId && (DOCTORS[doctorId].branch !== body.branch || DOCTORS[doctorId].service !== body.service)) {
-    doctorId = null;
+  if (picked && (picked.branch !== body.branch || picked.service !== body.service)) {
+    picked = null;
     doctor = null;
   }
+  const doctorId = picked?.id ?? null;
 
   const valid =
     name.length >= 2 &&
@@ -119,7 +132,7 @@ export async function POST(request: Request) {
     branch in BRANCHES &&
     // A slot is optional (older app versions), but when sent it must be a real open slot.
     // With a doctor, it must also fall within their shifts.
-    (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time, new Date(), doctorId));
+    (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time, new Date(), picked));
   if (!valid) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
 
   const booking: NewBooking = {
@@ -133,6 +146,14 @@ export async function POST(request: Request) {
     doctor,
     doctor_id: doctorId,
   };
+  // An offer that has ended, been hidden, or is not at the chosen branch is dropped; the booking still goes through.
+  if (typeof body.offerId === "number") {
+    const offer = (await getOffers()).find((o) => o.id === body.offerId);
+    if (offer && isLive(offer) && offerIn(offer, branch)) {
+      booking.offer_id = offer.id;
+      booking.offer = offer.titleAr;
+    }
+  }
 
   // The mobile app's HTTP stack identifies itself differently from browsers.
   const userAgent = request.headers.get("user-agent") ?? "";
@@ -143,14 +164,14 @@ export async function POST(request: Request) {
   const db = createServiceClient();
   if (db) {
     // The admin may have closed this day or slot for the doctor since the form loaded.
-    if (doctorId && date && time) {
+    if (picked && date && time) {
       const { data: blocks } = await db
         .from("doctor_blocks")
         .select("doctor, date, start_time")
-        .in("doctor", [doctorId, "all"])
+        .in("doctor", [picked.id, "all", `all-${picked.branch}`])
         .eq("date", date);
       const closed = (blocks ?? []).map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null }));
-      if (isBlocked(closed, doctorId, date, time)) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+      if (isBlocked(closed, picked, date, time)) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
     }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
     // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.

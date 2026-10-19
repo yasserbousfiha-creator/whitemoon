@@ -5,6 +5,7 @@ import { CalendarCheck } from "lucide-react";
 import { inBranch, useBranch } from "@/lib/branch-context";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { ServiceContent } from "@/lib/content";
+import { useTeam } from "@/lib/doctors-context";
 import { useLocale } from "@/lib/locale-context";
 import { useServicesUI } from "@/lib/services-ui-context";
 import { serviceIconMap } from "./icon-map";
@@ -63,7 +64,7 @@ export default function ServiceCard({ service, row }: { service: ServiceContent;
   // A branch page shows only that branch's team and devices.
   const branch = useBranch();
   const devices = service.devices?.filter((d) => branch === null || d.branches.includes(branch)) ?? [];
-  const team = service.team.filter((m) => !m.name || inBranch(branch, m.branch));
+  const team = useTeam(service.icon).filter((m) => !m.name || inBranch(branch, m.branch));
   const { expandedIcon, setExpandedIcon } = useServicesUI();
 
   const isExpanded = expandedIcon === service.icon;

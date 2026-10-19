@@ -3,10 +3,13 @@
 import { FormEvent, useEffect, useState } from "react";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
-import { DOCTORS, type DoctorId } from "@/lib/doctors";
 import { isBranchId } from "@/lib/branches";
 import { offeredIn, useBranch } from "@/lib/branch-context";
+import type { ServiceContent } from "@/lib/content";
+import { useDoctor, useTeam } from "@/lib/doctors-context";
 import { useLocale } from "@/lib/locale-context";
+import { offerIn, offerTitle } from "@/lib/offers";
+import { useOffer } from "@/lib/offers-context";
 import Eyebrow from "./Eyebrow";
 import SlotPicker from "./SlotPicker";
 
@@ -16,7 +19,7 @@ const fieldClass =
   "mt-1.5 w-full rounded-[10px] border border-line/40 bg-bg px-3.5 py-2.5 text-[15px] text-ink outline-none focus:border-gold-bright";
 
 export default function Booking() {
-  const { t } = useLocale();
+  const { t, isArabic } = useLocale();
   const b = t.booking;
   const [status, setStatus] = useState<Status>("idle");
   const [date, setDate] = useState<string | null>(null);
@@ -27,14 +30,18 @@ export default function Booking() {
   const pageBranch = useBranch();
   const [branch, setBranch] = useState<string>(pageBranch ?? "");
   const [doctor, setDoctor] = useState<string | null>(null);
-  const [doctorId, setDoctorId] = useState<DoctorId | null>(null);
+  const [doctorId, setDoctorId] = useState<string | null>(null);
   const [availabilityKey, setAvailabilityKey] = useState(0);
   const account = useAccount();
+  const pickedDoctor = useDoctor(doctorId);
+  // Set by "book this offer"; kept until the visitor removes it or picks a branch the offer is not at.
+  const [offerId, setOfferId] = useState<number | null>(null);
+  const offer = useOffer(offerId);
 
   // Switching to a branch or department the chosen doctor does not work in drops the doctor, and the day/time
   // picked from their schedule.
   function dropDoctorUnless(field: "branch" | "service", value: string) {
-    if (!doctorId || DOCTORS[doctorId][field] === value) return;
+    if (!pickedDoctor || pickedDoctor[field] === value) return;
     setDoctor(null);
     setDoctorId(null);
     setDate(null);
@@ -48,6 +55,7 @@ export default function Booking() {
       if (d.branch) setBranch(d.branch);
       setDoctor(d.doctor ?? null);
       setDoctorId(d.doctorId ?? null);
+      setOfferId(d.offerId ?? null);
       // Another doctor's hours differ, so a previously picked slot may not exist for this one.
       setDate(null);
       setTime(null);
@@ -60,8 +68,8 @@ export default function Booking() {
   // Departments some branches lack (gynecology…) are listed only once a branch that has them is picked, or none yet.
   const serviceChoices = t.services.filter((s) => offeredIn(isBranchId(branch) ? branch : null, s));
 
-  const doctorChoices = (t.services.find((s) => s.icon === service)?.team ?? []).filter(
-    (m): m is typeof m & { id: DoctorId; name: string } => !!m.id && !!m.name && m.branch === branch,
+  const doctorChoices = useTeam(service as ServiceContent["icon"]).filter(
+    (m): m is typeof m & { id: string; name: string } => !!m.id && !!m.name && m.branch === branch,
   );
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -72,7 +80,7 @@ export default function Booking() {
       return;
     }
     const fields = Object.fromEntries(new FormData(form));
-    const data = { ...fields, date, time, doctor, doctorId };
+    const data = { ...fields, date, time, doctor, doctorId, offerId: offer ? offer.id : null };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -106,6 +114,7 @@ export default function Booking() {
         setBranch("");
         setDoctor(null);
         setDoctorId(null);
+        setOfferId(null);
         setStatus("success");
       } else {
         if (res.status === 409) {
@@ -133,6 +142,21 @@ export default function Booking() {
           className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2"
         >
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
+
+          {offer && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-gold-bright/50 bg-surface2 px-4 py-2.5 text-[14px] md:col-span-2">
+              <span>
+                <span className="font-bold text-gold">{t.offers.bookingOffer}:</span> {offerTitle(offer, isArabic)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOfferId(null)}
+                className="shrink-0 text-[13px] text-ink-soft underline hover:text-ink"
+              >
+                {t.offers.removeOffer}
+              </button>
+            </div>
+          )}
 
           <label className="text-[13px] font-bold text-ink-soft md:col-span-2">
             {b.name}
@@ -201,6 +225,7 @@ export default function Booking() {
               onChange={(e) => {
                 setBranch(e.target.value);
                 dropDoctorUnless("branch", e.target.value);
+                if (offer && isBranchId(e.target.value) && !offerIn(offer, e.target.value)) setOfferId(null);
                 const picked = t.services.find((s) => s.icon === service);
                 if (picked && isBranchId(e.target.value) && !offeredIn(e.target.value, picked)) setService("");
               }}
@@ -250,7 +275,7 @@ export default function Booking() {
               setTime(null);
             }}
             onTime={setTime}
-            doctorId={doctorId}
+            doctor={pickedDoctor}
             refreshKey={availabilityKey}
           />
 

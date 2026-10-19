@@ -11,7 +11,7 @@ import {
   useAccount,
   usePrizes,
 } from "@/lib/account";
-import { prizeLabel } from "@/lib/wheel";
+import { prizeName } from "@/lib/wheel";
 import { useLocale } from "@/lib/locale-context";
 import { formatDay, formatTime, riyadhToday } from "@/lib/slots";
 
@@ -38,7 +38,7 @@ function PrizeList() {
           <div key={p.code} className="flex gap-3 border-t border-line/15 pt-3 first:border-t-0 first:pt-0">
             <Gift size={18} className="mt-0.5 shrink-0 text-gold" />
             <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-bold text-ink">{prizeLabel(p.prize, locale)}</p>
+              <p className="text-[14px] font-bold text-ink">{prizeName(p.prize, locale, { ar: p.prizeAr, en: p.prizeEn })}</p>
               <p dir="ltr" className="text-start font-mono text-[15px] font-bold tracking-widest text-gold">
                 {p.code}
               </p>

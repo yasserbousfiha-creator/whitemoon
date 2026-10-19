@@ -148,7 +148,10 @@ const PRIZES_KEY = "wm-prizes-v1";
 
 export interface SavedPrize {
   code: string;
-  prize: "prosthetics15" | "free_consult" | "ortho10";
+  prize: string;
+  // The prize's name when won (prizes can be renamed or removed in /admin later); missing on older saves.
+  prizeAr?: string;
+  prizeEn?: string;
   validUntil: string; // YYYY-MM-DD, last day of the month it was won
   redeemed?: boolean;
 }
@@ -213,7 +216,7 @@ export async function refreshPrizes() {
       body: JSON.stringify({ codes: prizes.map((p) => p.code).slice(0, 50) }),
     });
     if (!res.ok) return;
-    const { prizes: latest } = (await res.json()) as { prizes: { code: string; redeemed: boolean; validUntil: string }[] };
+    const { prizes: latest } = (await res.json()) as { prizes: Pick<SavedPrize, "code" | "redeemed" | "validUntil" | "prizeAr" | "prizeEn">[] };
     const byCode = new Map(latest.map((p) => [p.code, p]));
     writePrizes(prizes.filter((p) => byCode.has(p.code)).map((p) => ({ ...p, ...byCode.get(p.code)! })));
   } catch {

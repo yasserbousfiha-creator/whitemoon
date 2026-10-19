@@ -2,22 +2,13 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import type { Booking, BranchId } from "@/lib/booking-labels";
-import {
-  type BlockTarget,
-  DOCTOR_IDS,
-  DOCTORS,
-  type DoctorId,
-  type ScheduleBlock,
-  doctorSlots,
-  groupByShift,
-  isBlocked,
-} from "@/lib/doctors";
+import { type BlockTarget, type Doctor, type ScheduleBlock, doctorSlots, groupByShift, isBlocked } from "@/lib/doctors";
 import { DAYS_AHEAD, addDays, formatDay, formatTime, riyadhToday } from "@/lib/slots";
 import { setScheduleBlock } from "./actions";
 
-// One doctor, or the whole branch (closing a day for every doctor there).
-type Target = DoctorId | `all-${BranchId}`;
-const isDoctor = (t: Target): t is DoctorId => !t.startsWith("all-");
+// One doctor (by id), or the whole branch (closing a day for every doctor there).
+type Target = string;
+const isWholeBranch = (t: Target) => t.startsWith("all-");
 type BlockKey = Pick<ScheduleBlock, "doctor" | "date" | "start">;
 type Change = { block: BlockKey; closed: boolean };
 
@@ -27,26 +18,25 @@ const same = (a: BlockKey, b: BlockKey) => a.doctor === b.doctor && a.date === b
 // Tapping an open or closed slot toggles it; the day can be closed or reopened in one go.
 export default function SchedulePanel({
   branch,
+  doctors,
   blocks,
   bookings,
   reload,
 }: {
   branch: BranchId;
+  doctors: Doctor[]; // visible ones
   blocks: BlockKey[];
   bookings: Booking[];
   reload: () => Promise<void>;
 }) {
-  const branchDoctors = DOCTOR_IDS.filter((id) => DOCTORS[id].branch === branch);
+  const branchDoctors = doctors.filter((d) => d.branch === branch);
   const wholeBranch: Target = `all-${branch}`;
-  const [picked, setTarget] = useState<Target>(branchDoctors[0] ?? wholeBranch);
-  // Switching branch in the dashboard falls back to that branch's first doctor.
-  const target: Target = isDoctor(picked)
-    ? DOCTORS[picked].branch === branch
-      ? picked
-      : (branchDoctors[0] ?? wholeBranch)
-    : wholeBranch;
+  const [picked, setTarget] = useState<Target>(branchDoctors[0]?.id ?? wholeBranch);
+  // Switching branch in the dashboard (or hiding the doctor) falls back to that branch's first doctor.
+  const doctor = isWholeBranch(picked) ? null : (branchDoctors.find((d) => d.id === picked) ?? branchDoctors[0] ?? null);
+  const target: Target = doctor?.id ?? wholeBranch;
   // Blocks that close this target's whole day besides its own: everyone, and (for a doctor) their branch.
-  const widerTargets: BlockTarget[] = isDoctor(target) ? ["all", wholeBranch] : ["all"];
+  const widerTargets: BlockTarget[] = doctor ? ["all", wholeBranch] : ["all"];
   const [date, setDate] = useState(() => riyadhToday());
   const [current, applyChange] = useOptimistic(blocks, (state, c: Change) =>
     c.closed ? [...state.filter((b) => !same(b, c.block)), c.block] : state.filter((b) => !same(b, c.block)),
@@ -66,7 +56,7 @@ export default function SchedulePanel({
 
   const today = riyadhToday();
   const days = Array.from({ length: DAYS_AHEAD + 1 }, (_, i) => addDays(today, i)).filter(
-    (d) => !isDoctor(target) || doctorSlots(target, d).length > 0,
+    (d) => !doctor || doctorSlots(doctor, d).length > 0,
   );
   const dayClosed = (d: string) =>
     current.some((b) => b.date === d && b.start === null && (b.doctor === target || widerTargets.includes(b.doctor)));
@@ -91,9 +81,9 @@ export default function SchedulePanel({
   return (
     <div className="mx-auto max-w-5xl space-y-5 px-4 pt-5">
       <div className="flex flex-wrap gap-2">
-        {branchDoctors.map((id) => (
-          <button key={id} type="button" className={chip(target === id)} onClick={() => setTarget(id)}>
-            {DOCTORS[id].names[0]}
+        {branchDoctors.map((d) => (
+          <button key={d.id} type="button" className={chip(target === d.id)} onClick={() => setTarget(d.id)}>
+            {d.nameAr}
           </button>
         ))}
         <button type="button" className={chip(target === wholeBranch)} onClick={() => setTarget(wholeBranch)}>
@@ -134,11 +124,11 @@ export default function SchedulePanel({
             ownDayBlock ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
-          {ownDayBlock ? "فتح اليوم" : !isDoctor(target) ? "إغلاق اليوم لكل أطباء الفرع" : "إغلاق اليوم بالكامل"}
+          {ownDayBlock ? "فتح اليوم" : !doctor ? "إغلاق اليوم لكل أطباء الفرع" : "إغلاق اليوم بالكامل"}
         </button>
       </div>
 
-      {isDoctor(target) && (
+      {doctor && (
         <>
           <div className="flex flex-wrap gap-4 text-xs text-ink-soft">
             <span className="flex items-center gap-1.5">
@@ -151,8 +141,8 @@ export default function SchedulePanel({
               <span className="h-3 w-3 rounded bg-stone-400" /> محجوز
             </span>
           </div>
-          {doctorSlots(target, date).length === 0 && <p className="text-ink-soft">لا دوام للطبيب في هذا اليوم.</p>}
-          {groupByShift(target, doctorSlots(target, date), date).map((group, gi, groups) => (
+          {doctorSlots(doctor, date).length === 0 && <p className="text-ink-soft">لا دوام للطبيب في هذا اليوم.</p>}
+          {groupByShift(doctor, doctorSlots(doctor, date), date).map((group, gi, groups) => (
             <div key={group[0]} className="space-y-2">
               {groups.length > 1 && (
                 <p className="flex items-center gap-2 text-sm font-bold text-gold">
@@ -163,7 +153,7 @@ export default function SchedulePanel({
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
                 {group.map((time) => {
                   const booked = bookedAt(time);
-                  const closed = isBlocked(current, target, date, time);
+                  const closed = isBlocked(current, doctor, date, time);
                   const slotBlock = current.some((b) => same(b, { doctor: target, date, start: time }));
                   if (booked) {
                     return (

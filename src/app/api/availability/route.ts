@@ -1,4 +1,5 @@
-import { isDoctorId, type ScheduleBlock } from "@/lib/doctors";
+import type { ScheduleBlock } from "@/lib/doctors";
+import { getDoctors } from "@/lib/doctors-server";
 import { DAYS_AHEAD, addDays, riyadhToday } from "@/lib/slots";
 import { createServiceClient } from "@/lib/supabase";
 
@@ -13,8 +14,9 @@ export interface Availability {
 // Closed and booked slots for one doctor over the bookable window, so the booking form can show them in red.
 // Contains no patient details.
 export async function GET(request: Request) {
-  const doctor = new URL(request.url).searchParams.get("doctor");
-  if (!isDoctorId(doctor)) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
+  const id = new URL(request.url).searchParams.get("doctor");
+  const doctor = (await getDoctors()).find((d) => d.id === id);
+  if (!doctor) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
 
   const db = createServiceClient();
   if (!db) return Response.json({ ok: false, error: "server" }, { status: 500 });
@@ -25,13 +27,13 @@ export async function GET(request: Request) {
     db
       .from("doctor_blocks")
       .select("doctor, date, start_time")
-      .in("doctor", [doctor, "all"])
+      .in("doctor", [doctor.id, "all", `all-${doctor.branch}`])
       .gte("date", from)
       .lte("date", to),
     db
       .from("bookings")
       .select("appointment_date, appointment_time")
-      .eq("doctor_id", doctor)
+      .eq("doctor_id", doctor.id)
       .neq("status", "cancelled")
       .gte("appointment_date", from)
       .lte("appointment_date", to),

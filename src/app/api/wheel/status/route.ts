@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase";
-import { monthEnd } from "@/lib/wheel";
+import { monthEnd, prizeName } from "@/lib/wheel";
 
 export const runtime = "nodejs";
 
@@ -19,13 +19,20 @@ export async function POST(request: Request) {
 
   const db = createServiceClient();
   if (!db) return Response.json({ ok: false, error: "server" }, { status: 500 });
-  const { data, error } = await db.from("wheel_spins").select("code, prize, month, redeemed_at").in("code", codes);
+  const { data, error } = await db.from("wheel_spins").select("*").in("code", codes);
   if (error) {
     console.error("Prize status lookup failed:", error);
     return Response.json({ ok: false, error: "server" }, { status: 500 });
   }
   return Response.json({
     ok: true,
-    prizes: data.map((p) => ({ code: p.code, prize: p.prize, validUntil: monthEnd(p.month), redeemed: p.redeemed_at !== null })),
+    prizes: data.map((p) => ({
+      code: p.code,
+      prize: p.prize,
+      prizeAr: prizeName(p.prize, "ar", { ar: p.prize_ar, en: p.prize_en }),
+      prizeEn: prizeName(p.prize, "en", { ar: p.prize_ar, en: p.prize_en }),
+      validUntil: monthEnd(p.month),
+      redeemed: p.redeemed_at !== null,
+    })),
   });
 }

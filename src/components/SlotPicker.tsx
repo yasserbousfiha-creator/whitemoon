@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Availability } from "@/app/api/availability/route";
-import { DOCTORS, type DoctorId, groupByShift, isBlocked } from "@/lib/doctors";
+import { type Doctor, groupByShift, hasSplitShifts, isBlocked } from "@/lib/doctors";
 import { useLocale } from "@/lib/locale-context";
 import { bookableDays, formatDay, formatTime, timeSlots } from "@/lib/slots";
 
@@ -15,14 +15,14 @@ export default function SlotPicker({
   time,
   onDate,
   onTime,
-  doctorId = null,
+  doctor = null,
   refreshKey = 0,
 }: {
   date: string | null;
   time: string | null;
   onDate: (date: string) => void;
   onTime: (time: string) => void;
-  doctorId?: DoctorId | null;
+  doctor?: Doctor | null;
   refreshKey?: number; // bump to re-fetch availability (e.g. after a slot was taken meanwhile)
 }) {
   const { t, locale } = useLocale();
@@ -32,8 +32,9 @@ export default function SlotPicker({
     () => true,
     () => false,
   );
-  const [availability, setAvailability] = useState<{ doctor: DoctorId; data: Availability } | null>(null);
+  const [availability, setAvailability] = useState<{ doctor: string; data: Availability } | null>(null);
 
+  const doctorId = doctor?.id ?? null;
   // Re-fetched when the day changes, every 30 s, and on returning to the tab, so a slot the clinic frees (a
   // cancellation) or closes shows up without reloading the page.
   useEffect(() => {
@@ -63,13 +64,13 @@ export default function SlotPicker({
 
   const avail = doctorId && availability?.doctor === doctorId ? availability.data : null;
   const unavailable = (d: string, s: string) =>
-    !!doctorId && !!avail && (isBlocked(avail.blocks, doctorId, d, s) || avail.taken.includes(`${d} ${s}`));
-  const days = bookableDays(new Date(), doctorId);
-  const dayFull = (d: string) => !!doctorId && timeSlots(d, new Date(), doctorId).every((s) => unavailable(d, s));
-  const slots = date ? timeSlots(date, new Date(), doctorId) : [];
+    !!doctor && !!avail && (isBlocked(avail.blocks, doctor, d, s) || avail.taken.includes(`${d} ${s}`));
+  const days = bookableDays(new Date(), doctor);
+  const dayFull = (d: string) => !!doctorId && timeSlots(d, new Date(), doctor).every((s) => unavailable(d, s));
+  const slots = date ? timeSlots(date, new Date(), doctor) : [];
   // Two-shift doctors get their slots split into morning and evening; everyone else one plain group.
-  const splitDoctor = !!doctorId && DOCTORS[doctorId].shifts.length > 1;
-  const groups = doctorId ? groupByShift(doctorId, slots, date ?? undefined) : slots.length ? [slots] : [];
+  const splitDoctor = !!doctor && hasSplitShifts(doctor);
+  const groups = doctor && date ? groupByShift(doctor, slots, date) : slots.length ? [slots] : [];
 
   // Same colours as the /admin schedule tab: red = closed or booked, green = open, gold = the one picked.
   const chip = (active: boolean, off: boolean) =>

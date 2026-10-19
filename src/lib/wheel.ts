@@ -1,18 +1,64 @@
-// Lucky wheel prizes. Ids match the wheel_spins.prize check in supabase/003_wheel.sql; keep labels in sync with
-// whitemoon-app/src/lib/wheel.ts. Weights are relative odds (equal by default).
-// `short` is the two-line label drawn on the wheel slice.
-export const PRIZES = [
+// Lucky wheel prizes. They live in the Supabase wheel_settings row (supabase/012_wheel_settings.sql), edited from
+// /admin; DEFAULT_PRIZES is what the wheel had before, used until that SQL is run. Weights are relative odds.
+// `shortAr`/`shortEn` are the two lines drawn on the wheel slice.
+export interface Prize {
+  id: string;
+  ar: string;
+  en: string;
+  shortAr: [string, string];
+  shortEn: [string, string];
+  weight: number;
+}
+
+export interface WheelSettings {
+  enabled: boolean; // shown on the site and accepting spins
+  prizes: Prize[];
+}
+
+export const DEFAULT_PRIZES: Prize[] = [
   { id: "prosthetics15", ar: "خصم 15% على التركيبات", en: "15% off crowns & bridges", shortAr: ["خصم 15%", "التركيبات"], shortEn: ["15% OFF", "Crowns"], weight: 1 },
   { id: "free_consult", ar: "كشف مجاني", en: "Free consultation", shortAr: ["كشف", "مجاني"], shortEn: ["FREE", "Consult"], weight: 1 },
   { id: "ortho10", ar: "خصم 10% على تقويم الأسنان", en: "10% off orthodontics", shortAr: ["خصم 10%", "التقويم"], shortEn: ["10% OFF", "Ortho"], weight: 1 },
-] as const;
+];
 
-export type PrizeId = (typeof PRIZES)[number]["id"];
+export const MIN_PRIZES = 2;
+export const MAX_PRIZES = 6;
 
-export const prizeLabel = (id: PrizeId, locale: "ar" | "en") => PRIZES.find((p) => p.id === id)![locale];
+// Checks prizes coming from the database or the admin form; null when they can't be used.
+export function cleanPrizes(input: unknown): Prize[] | null {
+  if (!Array.isArray(input) || input.length < MIN_PRIZES || input.length > MAX_PRIZES) return null;
+  const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+  const lines = (v: unknown): [string, string] => (Array.isArray(v) ? [text(v[0], 14), text(v[1], 14)] : ["", ""]);
+  const prizes: Prize[] = [];
+  for (const raw of input) {
+    if (!raw || typeof raw !== "object") return null;
+    const r = raw as Record<string, unknown>;
+    const id = text(r.id, 40);
+    const ar = text(r.ar, 80);
+    const weight = Number(r.weight);
+    if (!/^[a-z0-9_-]+$/.test(id) || ar.length < 2 || !Number.isInteger(weight) || weight < 1 || weight > 100) return null;
+    const shortAr = lines(r.shortAr);
+    if (!shortAr[0]) return null;
+    const en = text(r.en, 80) || ar;
+    const shortEn = lines(r.shortEn);
+    prizes.push({ id, ar, en, shortAr, shortEn: shortEn[0] ? shortEn : shortAr, weight });
+  }
+  return new Set(prizes.map((p) => p.id)).size === prizes.length ? prizes : null;
+}
 
-// The wheel shows each prize twice, alternating, so it reads as a real wheel rather than three wedges.
-export const SLICES: PrizeId[] = [...PRIZES.map((p) => p.id), ...PRIZES.map((p) => p.id)];
+// The prize's name: from the spin when it was saved with one (prizes can be renamed or removed later), else from the
+// current or original prizes, else the id.
+export function prizeName(
+  id: string,
+  locale: "ar" | "en",
+  saved?: { ar?: string | null; en?: string | null },
+  prizes: Prize[] = DEFAULT_PRIZES,
+) {
+  return saved?.[locale] || saved?.ar || [...prizes, ...DEFAULT_PRIZES].find((p) => p.id === id)?.[locale] || id;
+}
+
+// The slices drawn on the wheel: with up to four prizes each shows twice, alternating, so it reads as a real wheel.
+export const slicesFor = (prizes: Prize[]) => (prizes.length <= 4 ? [...prizes, ...prizes] : prizes);
 
 // Riyadh calendar month, "YYYY-MM"; the spin allowance resets on the 1st.
 export function riyadhMonth(now = new Date()) {

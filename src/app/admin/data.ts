@@ -1,9 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Booking, WheelSpin } from "@/lib/booking-labels";
-import type { BlockTarget } from "@/lib/doctors";
+import type { BlockTarget, Doctor } from "@/lib/doctors";
+import { getAllDoctors } from "@/lib/doctors-server";
+import type { Offer } from "@/lib/offers";
+import { getAllOffers } from "@/lib/offers-server";
 import { riyadhToday } from "@/lib/slots";
 import { createServiceClient } from "@/lib/supabase";
-import { riyadhMonth } from "@/lib/wheel";
+import { type WheelSettings, riyadhMonth } from "@/lib/wheel";
+import { getWheelSettingsForAdmin } from "@/lib/wheel-server";
 
 export type ScheduleBlockRow = { doctor: BlockTarget; date: string; start: string | null };
 
@@ -11,8 +15,14 @@ export interface DashboardData {
   bookings: Booking[];
   spins: WheelSpin[];
   blocks: ScheduleBlockRow[];
+  doctors: Doctor[]; // including hidden ones
   bookingsError: string | null;
   spinsError: string | null;
+  doctorsError: string | null;
+  offers: Offer[]; // including hidden and expired ones
+  offersError: string | null;
+  wheel: WheelSettings;
+  wheelError: string | null; // "missing" until supabase/012_wheel_settings.sql is run
   loadedAt: string; // ISO; shown as "last updated"
 }
 
@@ -28,22 +38,27 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
   const readBookings = (cols: string) =>
     staffClient.from("bookings").select(cols).order("created_at", { ascending: false }).limit(500).returns<Booking[]>();
 
-  const [withAttendance, spins, blocks] = await Promise.all([
-    readBookings(columns + ", attendance"),
+  const [withExtras, spins, blocks, doctors, offers, wheel] = await Promise.all([
+    readBookings(columns + ", attendance, offer"),
     db
       ? db
           .from("wheel_spins")
-          .select("id, created_at, month, name, phone, prize, code, redeemed_at")
+          .select("*")
           .gte("month", lastMonth)
           .order("created_at", { ascending: false })
           .limit(1000)
           .returns<WheelSpin[]>()
       : null,
     db ? db.from("doctor_blocks").select("doctor, date, start_time").gte("date", riyadhToday()).order("date") : null,
+    getAllDoctors(),
+    getAllOffers(),
+    getWheelSettingsForAdmin(),
   ]);
 
-  // 42703: the attendance column isn't there yet (007_attendance.sql not run); show bookings without it.
-  const bookings = withAttendance.error?.code === "42703" ? await readBookings(columns) : withAttendance;
+  // 42703: a later column isn't there yet (007_attendance.sql / 011_offers.sql not run); show bookings without it.
+  let bookings = withExtras;
+  if (bookings.error?.code === "42703") bookings = await readBookings(columns + ", attendance");
+  if (bookings.error?.code === "42703") bookings = await readBookings(columns);
 
   if (bookings.error) console.error("Bookings lookup failed:", bookings.error);
   if (spins?.error) console.error("Wheel spins lookup failed:", spins.error);
@@ -57,8 +72,14 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
       date: b.date as string,
       start: (b.start_time as string | null)?.slice(0, 5) ?? null,
     })),
+    doctors: doctors.doctors,
     bookingsError: bookings.error ? (bookings.error.code ?? bookings.error.message) : null,
     spinsError: !db ? "config" : spins?.error ? (spins.error.code ?? spins.error.message) : null,
+    doctorsError: doctors.error,
+    offers: offers.offers,
+    offersError: offers.error,
+    wheel: wheel.settings,
+    wheelError: wheel.error,
     loadedAt: new Date().toISOString(),
   };
 }

@@ -1,5 +1,4 @@
 import type { Branch, ServiceContent } from "./content";
-import type { DoctorId } from "./doctors";
 
 // Lets any section (a doctor in the team carousel, a service card…) fill in the booking form and scroll to it.
 export const PREFILL_EVENT = "wm:booking-prefill";
@@ -8,7 +7,8 @@ export interface BookingPrefill {
   service?: ServiceContent["icon"];
   branch?: Branch["id"];
   doctor?: string;
-  doctorId?: DoctorId;
+  doctorId?: string;
+  offerId?: number; // booking from an offer (lib/offers.ts)
 }
 
 export function prefillBooking(detail: BookingPrefill) {

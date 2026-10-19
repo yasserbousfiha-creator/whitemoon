@@ -1,7 +1,7 @@
 // Appointment slots, in Riyadh time (UTC+3, no DST). Keep in sync with whitemoon-app/src/lib/slots.ts.
 // Without a doctor, hours match "daily 9 AM – 10 PM"; with one, their own shifts (lib/doctors.ts). The last slot
 // starts 30 minutes before closing.
-import { type DoctorId, doctorSlots } from "./doctors";
+import { type Doctor, doctorSlots } from "./doctors";
 
 export const OPEN_HOUR = 9;
 export const CLOSE_HOUR = 22;
@@ -28,7 +28,7 @@ export function addDays(isoDate: string, days: number) {
 }
 
 // ISO dates (YYYY-MM-DD) that still have at least one open slot, starting today.
-export function bookableDays(now = new Date(), doctor: DoctorId | null = null) {
+export function bookableDays(now = new Date(), doctor: Doctor | null = null) {
   const today = riyadhNow(now).date;
   const days: string[] = [];
   for (let i = 0; i <= DAYS_AHEAD; i++) {
@@ -39,7 +39,7 @@ export function bookableDays(now = new Date(), doctor: DoctorId | null = null) {
 }
 
 // "HH:MM" slot start times on the given day (clinic hours, or the doctor's shifts), minus any starting too soon.
-export function timeSlots(isoDate: string, now = new Date(), doctor: DoctorId | null = null) {
+export function timeSlots(isoDate: string, now = new Date(), doctor: Doctor | null = null) {
   const { date: today, minutes: nowMinutes } = riyadhNow(now);
   let all: string[];
   if (doctor) all = doctorSlots(doctor, isoDate);
@@ -54,7 +54,7 @@ export function timeSlots(isoDate: string, now = new Date(), doctor: DoctorId | 
   });
 }
 
-export function isBookable(isoDate: string, time: string, now = new Date(), doctor: DoctorId | null = null) {
+export function isBookable(isoDate: string, time: string, now = new Date(), doctor: Doctor | null = null) {
   return bookableDays(now, doctor).includes(isoDate) && timeSlots(isoDate, now, doctor).includes(time);
 }
 

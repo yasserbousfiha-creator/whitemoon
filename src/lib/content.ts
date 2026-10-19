@@ -9,8 +9,6 @@ export interface QualityBadge {
   subtitle: string;
 }
 
-import type { DoctorId } from "./doctors";
-
 export interface Device {
   name: string; // brand name, kept in English
   use: string;
@@ -25,8 +23,8 @@ export interface TeamMember {
   photo?: string;
   // Where this doctor sees patients; pre-selected when booking with them.
   branch?: Branch["id"];
-  // Links to their working hours in lib/doctors.ts.
-  id?: DoctorId;
+  // The doctor (lib/doctors.ts) whose working hours booking with them uses.
+  id?: string;
   // Taller crop for the medical staff section; falls back to photo.
   portrait?: string;
   // Before/after photos of their patients, shown in a swipeable viewer.
@@ -44,7 +42,7 @@ export interface ServiceContent {
   extraType?: ServiceExtraType;
   waveTags?: string[];
   note: string;
-  team: TeamMember[];
+  // The team comes from the doctors table (lib/doctors-context.tsx useTeam).
   // Equipment shown instead of the team, for services that are about the devices (laser & skin).
   devices?: Device[];
 }
@@ -90,6 +88,21 @@ export interface BookingStrings {
   success: string;
   error: string;
   invalid: string;
+}
+
+export interface OfferStrings {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  book: string;
+  endsOn: string; // "{date}"
+  currency: string;
+  allBranches: string;
+  popupLabel: string;
+  viewAll: string;
+  close: string;
+  bookingOffer: string; // the offer chip in the booking form
+  removeOffer: string;
 }
 
 export interface WheelStrings {
@@ -189,6 +202,8 @@ export interface Content {
   account: AccountStrings;
   doctorsHeading: string;
   doctorsIntro: string;
+  // One shared row for the smaller departments (gynecology, pediatrics, general medicine), each card tagged.
+  otherSpecialties: string;
   casesLabel: string;
   casesEmpty: string;
   teamPhotoNote: string;
@@ -199,6 +214,7 @@ export interface Content {
 
   booking: BookingStrings;
   wheel: WheelStrings;
+  offers: OfferStrings;
 
   testimonialsEyebrow: string;
   testimonialsHeading: string;
@@ -293,20 +309,6 @@ export const arContent: Content = {
       extraLabel: "دليل درجات البياض",
       extraType: "shadeGuide",
       note: "دقة تشبه الحِرفة، لابتسامة تبدو أنها لم تُعالَج قط.",
-      team: [
-        { name: "د. أحمد صبحي", role: "استشاري جراحة وزراعة الأسنان", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
-        { name: "د. علي الخليلي", role: "طبيب أسنان عام", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
-        { name: "د. سعاد", role: "أخصائية تركيبات وتجميل الأسنان", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
-        { name: "د. عبدالله العتيبي", role: "طبيب أسنان عام", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
-        { name: "د. ياسمين", role: "أخصائية تقويم الأسنان", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
-        { name: "د. محمد الثقفي", role: "طبيب أسنان عام", photo: "/images/team/mohammed-althaqafi.jpg", portrait: "/images/team/mohammed-althaqafi-portrait.jpg", branch: "khamseen", id: "mohammed-althaqafi" },
-        { name: "د. سيف العتيبي", role: "طبيب أسنان", photo: "/images/team/saif-alotaibi.jpg", portrait: "/images/team/saif-alotaibi-portrait.jpg", branch: "shahar", id: "saif-alotaibi" },
-        { name: "د. أحمد يحيى", role: "استشاري تقويم الأسنان والفكين", photo: "/images/team/ahmed-yahya.jpg", portrait: "/images/team/ahmed-yahya-portrait.jpg", branch: "shahar", id: "ahmed-yahya" },
-        { name: "د. أسماء أبو بكر", role: "استشارية تركيبات الأسنان", photo: "/images/team/asmaa-abubakr.jpg", portrait: "/images/team/asmaa-abubakr-portrait.jpg", branch: "shahar", id: "asmaa-abubakr" },
-        { name: "د. ميثاق أحمد", role: "أخصائي زراعة وجراحة الأسنان", photo: "/images/team/methaq-ahmed.jpg", portrait: "/images/team/methaq-ahmed-portrait.jpg", branch: "shahar", id: "methaq-ahmed" },
-        { name: "د. إنعام علي", role: "أخصائية أسنان الأطفال", photo: "/images/team/enam-ali.jpg", portrait: "/images/team/enam-ali-portrait.jpg", branch: "shahar", id: "enam-ali" },
-        { name: "د. أسامة الشهري", role: "طبيب أسنان عام", photo: "/images/team/osama-alshehri.jpg", portrait: "/images/team/osama-alshehri-portrait.jpg", branch: "shahar", id: "osama-alshehri" },
-      ],
     },
     {
       icon: "derma",
@@ -315,12 +317,6 @@ export const arContent: Content = {
       extraLabel: "خارطة إشراقة البشرة",
       extraType: "radianceBar",
       note: "إشراقة تُقرأ في الإضاءة الطبيعية، لا في المرآة فقط.",
-      team: [
-        { name: "د. فاطمة الزهراء", role: "الجلدية والتجميل", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
-        { name: "د. علا عاطف", role: "أخصائية جلدية وتجميل", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
-        { name: "أحمد الثبيتي", role: "استشاري", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
-        { name: "د. إيمان إسماعيل", role: "أخصائية جلدية وليزر", photo: "/images/team/eman-ismail.jpg", portrait: "/images/team/eman-ismail-portrait.jpg", branch: "shahar", id: "eman-ismail" },
-      ],
     },
     {
       icon: "laser",
@@ -330,7 +326,6 @@ export const arContent: Content = {
       extraType: "waveTags",
       waveTags: ["755nm", "810nm", "1064nm"],
       note: "أطوال موجية دقيقة، مُعايرة لكل نوع بشرة.",
-      team: [],
       devices: [
         { name: "Splendor X", use: "ليزر إزالة الشعر", photo: "/images/devices/splendor-x.jpg", branches: ["khamseen", "shahar"] },
         { name: "GentleMax Pro", use: "ليزر إزالة الشعر وعلاج البشرة", photo: "/images/devices/gentlemax-pro.jpg", branches: ["khamseen", "shahar"] },
@@ -343,9 +338,6 @@ export const arContent: Content = {
       items: ["متابعة الحمل", "الكشف والفحوصات النسائية", "تنظيم الأسرة", "علاج اضطرابات الدورة"],
       branches: ["shahar"],
       note: "رعاية تُصغي إليكِ، في كل مرحلة من مراحل حياتك.",
-      team: [
-        { name: "د. رانيا مصطفى", role: "أخصائية نساء وولادة", photo: "/images/team/rania-mostafa.jpg", portrait: "/images/team/rania-mostafa-portrait.jpg", branch: "shahar", id: "rania-mostafa" },
-      ],
     },
     {
       icon: "pediatrics",
@@ -353,9 +345,6 @@ export const arContent: Content = {
       items: ["رعاية حديثي الولادة", "متابعة النمو والتطور", "علاج أمراض الأطفال الشائعة", "الاستشارات الصحية للأطفال"],
       branches: ["shahar"],
       note: "عناية هادئة تطمئن الطفل ووالديه معًا.",
-      team: [
-        { name: "د. خالد عمر", role: "أخصائي أطفال وحديثي الولادة", photo: "/images/team/khaled-omar.jpg", portrait: "/images/team/khaled-omar-portrait.jpg", branch: "shahar", id: "khaled-omar" },
-      ],
     },
     {
       icon: "general",
@@ -363,9 +352,6 @@ export const arContent: Content = {
       items: ["الكشف الطبي العام", "متابعة الأمراض المزمنة", "الاستشارات الطبية", "التوجيه للتخصص المناسب"],
       branches: ["shahar"],
       note: "نقطة البداية الصحيحة لكل ما يخص صحتك.",
-      team: [
-        { name: "د. دينا توفيق", role: "طبيبة عامة", photo: "/images/team/dina-tawfik.jpg", portrait: "/images/team/dina-tawfik-portrait.jpg", branch: "shahar", id: "dina-tawfik" },
-      ],
     },
   ],
   teamLabel: "الفريق الطبي",
@@ -392,6 +378,7 @@ export const arContent: Content = {
   doctorsEyebrow: "الكادر الطبي",
   doctorsHeading: "أطباء تثق بهم",
   doctorsIntro: "نخبة من الأطباء المتخصصين، احجز موعدك مباشرة مع الطبيب الذي تفضّله.",
+  otherSpecialties: "تخصصات أخرى",
   casesLabel: "حالات",
   casesEmpty: "ستُضاف صور الحالات قريباً.",
   teamPhotoNote: "الصور الفعلية للفريق ستُضاف قريبًا",
@@ -435,7 +422,8 @@ export const arContent: Content = {
   wheel: {
     eyebrow: "عجلة الحظ",
     heading: "جرّب حظك واربح هدية",
-    intro: "أدر العجلة مرة واحدة كل شهر واربح إحدى هدايانا: كشف مجاني، أو خصم على التركيبات أو تقويم الأسنان.",
+    // Followed by the current prizes (set in /admin), e.g. "…هدايانا: كشف مجاني، خصم 10% على تقويم الأسنان."
+    intro: "أدر العجلة مرة واحدة كل شهر واربح إحدى هدايانا:",
     name: "الاسم",
     phone: "رقم الجوال",
     spin: "أدر العجلة",
@@ -464,6 +452,20 @@ export const arContent: Content = {
   branchPicker: { title: "اختر الفرع", subtitle: "اختر الفرع الأقرب إليك لتصفّح خدماته وأطبائه والحجز فيه.", close: "إغلاق", change: "تغيير الفرع" },
   branchDoctorsSoon: "سيُعلن عن أطباء هذا الفرع قريباً.",
   galleryLabel: "المعرض",
+  offers: {
+    eyebrow: "عروض وايت مون",
+    heading: "العروض الحالية",
+    intro: "عروض لفترة محدودة على خدماتنا. احجز العرض مباشرة وسيتواصل معك فريقنا لتأكيد الموعد.",
+    book: "احجز العرض",
+    endsOn: "حتى {date}",
+    currency: "ر.س",
+    allBranches: "كل الفروع",
+    popupLabel: "عرض خاص",
+    viewAll: "كل العروض",
+    close: "إغلاق",
+    bookingOffer: "العرض",
+    removeOffer: "إلغاء العرض",
+  },
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
@@ -541,20 +543,6 @@ export const enContent: Content = {
       extraLabel: "Shade Guide Reference",
       extraType: "shadeGuide",
       note: "Craftsman precision, for a smile that never looks treated.",
-      team: [
-        { name: "Dr. Ahmed Sobhi", role: "Consultant, Oral Surgery & Implants", photo: "/images/team/ahmed-sobhi.jpg", portrait: "/images/team/ahmed-sobhi-portrait.jpg", branch: "khamseen", id: "ahmed-sobhi" },
-        { name: "Dr. Ali Al-Khalili", role: "General Dentist", photo: "/images/team/ali-alkhalili.jpg", portrait: "/images/team/ali-alkhalili-portrait.jpg", branch: "khamseen", id: "ali-alkhalili" },
-        { name: "Dr. Souad", role: "Prosthodontics & Cosmetic Dentistry", photo: "/images/team/souad.jpg", portrait: "/images/team/souad-portrait.jpg", branch: "khamseen", id: "souad" },
-        { name: "Dr. Abdullah Al-Otaibi", role: "General Dentist", photo: "/images/team/abdullah-alotaibi.jpg", portrait: "/images/team/abdullah-alotaibi-portrait.jpg", branch: "khamseen", id: "abdullah-alotaibi" },
-        { name: "Dr. Yasmine", role: "Orthodontist", photo: "/images/team/yasmine.jpg", portrait: "/images/team/yasmine-portrait.jpg", branch: "khamseen", id: "yasmine" },
-        { name: "Dr. Mohammed Al-Thaqafi", role: "General Dentist", photo: "/images/team/mohammed-althaqafi.jpg", portrait: "/images/team/mohammed-althaqafi-portrait.jpg", branch: "khamseen", id: "mohammed-althaqafi" },
-        { name: "Dr. Saif Al-Otaibi", role: "Dentist", photo: "/images/team/saif-alotaibi.jpg", portrait: "/images/team/saif-alotaibi-portrait.jpg", branch: "shahar", id: "saif-alotaibi" },
-        { name: "Dr. Ahmed Yahya", role: "Consultant, Orthodontics & Jaw Orthopedics", photo: "/images/team/ahmed-yahya.jpg", portrait: "/images/team/ahmed-yahya-portrait.jpg", branch: "shahar", id: "ahmed-yahya" },
-        { name: "Dr. Asmaa Abu Bakr", role: "Consultant, Prosthodontics", photo: "/images/team/asmaa-abubakr.jpg", portrait: "/images/team/asmaa-abubakr-portrait.jpg", branch: "shahar", id: "asmaa-abubakr" },
-        { name: "Dr. Methaq Ahmed", role: "Implant & Oral Surgery Specialist", photo: "/images/team/methaq-ahmed.jpg", portrait: "/images/team/methaq-ahmed-portrait.jpg", branch: "shahar", id: "methaq-ahmed" },
-        { name: "Dr. Enam Ali", role: "Pediatric Dentist", photo: "/images/team/enam-ali.jpg", portrait: "/images/team/enam-ali-portrait.jpg", branch: "shahar", id: "enam-ali" },
-        { name: "Dr. Osama Al-Shehri", role: "General Dentist", photo: "/images/team/osama-alshehri.jpg", portrait: "/images/team/osama-alshehri-portrait.jpg", branch: "shahar", id: "osama-alshehri" },
-      ],
     },
     {
       icon: "derma",
@@ -563,12 +551,6 @@ export const enContent: Content = {
       extraLabel: "Skin Radiance Map",
       extraType: "radianceBar",
       note: "A glow that reads in daylight, not only in the mirror.",
-      team: [
-        { name: "Dr. Fatima Al-Zahraa", role: "Dermatology & Aesthetics", photo: "/images/team/fatima-alzahraa.jpg", portrait: "/images/team/fatima-alzahraa-portrait.jpg", branch: "khamseen", id: "fatima-alzahraa" },
-        { name: "Dr. Ola Atef", role: "Dermatology & Aesthetics Specialist", photo: "/images/team/ola-atef.jpg", portrait: "/images/team/ola-atef-portrait.jpg", branch: "khamseen", id: "ola-atef" },
-        { name: "Ahmed Al-Thubaiti", role: "Consultant", photo: "/images/team/ahmed-althubaiti.jpg", branch: "khamseen", id: "ahmed-althubaiti" },
-        { name: "Dr. Eman Ismail", role: "Dermatology & Laser Specialist", photo: "/images/team/eman-ismail.jpg", portrait: "/images/team/eman-ismail-portrait.jpg", branch: "shahar", id: "eman-ismail" },
-      ],
     },
     {
       icon: "laser",
@@ -578,7 +560,6 @@ export const enContent: Content = {
       extraType: "waveTags",
       waveTags: ["755nm", "810nm", "1064nm"],
       note: "Precise wavelengths, calibrated to every skin type.",
-      team: [],
       devices: [
         { name: "Splendor X", use: "Laser hair removal", photo: "/images/devices/splendor-x.jpg", branches: ["khamseen", "shahar"] },
         { name: "GentleMax Pro", use: "Laser hair removal & skin", photo: "/images/devices/gentlemax-pro.jpg", branches: ["khamseen", "shahar"] },
@@ -591,9 +572,6 @@ export const enContent: Content = {
       items: ["Pregnancy follow-up", "Gynecological exams & tests", "Family planning", "Menstrual disorder care"],
       branches: ["shahar"],
       note: "Care that listens to you, at every stage of life.",
-      team: [
-        { name: "Dr. Rania Mostafa", role: "Obstetrics & Gynecology Specialist", photo: "/images/team/rania-mostafa.jpg", portrait: "/images/team/rania-mostafa-portrait.jpg", branch: "shahar", id: "rania-mostafa" },
-      ],
     },
     {
       icon: "pediatrics",
@@ -601,9 +579,6 @@ export const enContent: Content = {
       items: ["Newborn care", "Growth & development follow-up", "Common childhood illnesses", "Child health consultations"],
       branches: ["shahar"],
       note: "Calm care that reassures children and parents alike.",
-      team: [
-        { name: "Dr. Khaled Omar", role: "Pediatrics & Neonatology Specialist", photo: "/images/team/khaled-omar.jpg", portrait: "/images/team/khaled-omar-portrait.jpg", branch: "shahar", id: "khaled-omar" },
-      ],
     },
     {
       icon: "general",
@@ -611,9 +586,6 @@ export const enContent: Content = {
       items: ["General medical check-ups", "Chronic condition follow-up", "Medical consultations", "Referral to the right specialty"],
       branches: ["shahar"],
       note: "The right starting point for everything about your health.",
-      team: [
-        { name: "Dr. Dina Tawfik", role: "General Practitioner", photo: "/images/team/dina-tawfik.jpg", portrait: "/images/team/dina-tawfik-portrait.jpg", branch: "shahar", id: "dina-tawfik" },
-      ],
     },
   ],
   teamLabel: "Medical Team",
@@ -640,6 +612,7 @@ export const enContent: Content = {
   doctorsEyebrow: "Our Medical Team",
   doctorsHeading: "Doctors you can trust",
   doctorsIntro: "Specialist doctors you can book with directly — pick the one you prefer.",
+  otherSpecialties: "Other specialties",
   casesLabel: "Cases",
   casesEmpty: "Before-and-after photos are coming soon.",
   teamPhotoNote: "Real team photos coming soon",
@@ -683,7 +656,8 @@ export const enContent: Content = {
   wheel: {
     eyebrow: "Lucky Wheel",
     heading: "Spin and win a gift",
-    intro: "Spin once a month to win one of our gifts: a free consultation, or a discount on crowns & bridges or orthodontics.",
+    // Followed by the current prizes (set in /admin).
+    intro: "Spin once a month to win one of our gifts:",
     name: "Name",
     phone: "Mobile number",
     spin: "Spin the wheel",
@@ -712,6 +686,20 @@ export const enContent: Content = {
   branchPicker: { title: "Choose a branch", subtitle: "Pick the branch nearest to you to see its services and doctors and book there.", close: "Close", change: "Change branch" },
   branchDoctorsSoon: "This branch's doctors will be announced soon.",
   galleryLabel: "Gallery",
+  offers: {
+    eyebrow: "White Moon offers",
+    heading: "Current offers",
+    intro: "Limited-time offers on our services. Book an offer directly and our team will contact you to confirm the appointment.",
+    book: "Book this offer",
+    endsOn: "Until {date}",
+    currency: "SAR",
+    allBranches: "All branches",
+    popupLabel: "Special offer",
+    viewAll: "All offers",
+    close: "Close",
+    bookingOffer: "Offer",
+    removeOffer: "Remove offer",
+  },
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [

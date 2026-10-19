@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib/booking-labels";
-import { type BlockTarget, isDoctorId } from "@/lib/doctors";
+import { type BlockTarget, DOCTOR_ID_PATTERN } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
 
@@ -110,7 +110,7 @@ export async function setScheduleBlock(
   closed: boolean,
 ): Promise<UpdateResult> {
   if (
-    !(doctor === "all" || /^all-(khamseen|shahar|wisam)$/.test(doctor) || isDoctorId(doctor)) ||
+    !(doctor === "all" || /^all-(khamseen|shahar|wisam)$/.test(doctor) || DOCTOR_ID_PATTERN.test(doctor)) ||
     !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
     (start !== null && !/^\d{2}:\d{2}$/.test(start))
   ) {

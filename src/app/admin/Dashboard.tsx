@@ -17,6 +17,8 @@ import { refreshDashboard, signOut, updateBooking } from "./actions";
 import type { DashboardData } from "./data";
 import SchedulePanel from "./SchedulePanel";
 import SpinsPanel from "./SpinsPanel";
+import DoctorsPanel from "./DoctorsPanel";
+import OffersPanel from "./OffersPanel";
 
 const STATUS_STYLE: Record<BookingStatus, string> = {
   new: "bg-gold-bright text-night2",
@@ -109,6 +111,14 @@ function BookingItem({ booking, today, reload }: { booking: Booking; today: stri
           <br />
           {SERVICES[b.service]} · {BRANCHES[b.branch]}
           {b.doctor ? ` · ${b.doctor}` : ""}
+          {b.offer && (
+            <>
+              <br />
+              <span className="mt-1 inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-800">
+                عرض: {b.offer}
+              </span>
+            </>
+          )}
         </p>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[current.status]}`}>
@@ -283,7 +293,7 @@ export default function Dashboard({
     };
   }, [reload]);
 
-  const [tab, setTab] = useState<"bookings" | "spins" | "schedule">("bookings");
+  const [tab, setTab] = useState<"bookings" | "spins" | "schedule" | "doctors" | "offers">("bookings");
   // Opens on today's confirmed appointments, the list reception works from; "all" brings back every booking.
   const [view, setView] = useState<"today" | "all">("today");
   const [status, setStatus] = useState<BookingStatus | null>(null);
@@ -385,6 +395,13 @@ export default function Dashboard({
             ["bookings", "الحجوزات"],
             ["spins", "جوائز العجلة"],
             ["schedule", "جدول الأطباء"],
+            // Adding, editing and removing doctors and offers is for management accounts only.
+            ...(staff.branch
+              ? []
+              : ([
+                  ["doctors", "الأطباء"],
+                  ["offers", "العروض"],
+                ] as const)),
           ] as const
         ).map(([id, label]) => (
           <button
@@ -398,10 +415,24 @@ export default function Dashboard({
         ))}
       </nav>
 
-      {tab === "schedule" ? (
-        <SchedulePanel branch={branch} blocks={blocks} bookings={branchBookings} reload={reload} />
+      {tab === "offers" ? (
+        <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} />
+      ) : tab === "doctors" ? (
+        <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} />
+      ) : tab === "schedule" ? (
+        <SchedulePanel
+          branch={branch}
+          doctors={data.doctors.filter((d) => d.active)}
+          blocks={blocks}
+          bookings={branchBookings}
+          reload={reload}
+        />
       ) : tab === "spins" ? (
-        <SpinsPanel spins={spins} reload={reload} />
+        <SpinsPanel
+          spins={spins}
+          reload={reload}
+          wheel={staff.branch ? null : { settings: data.wheel, error: data.wheelError }}
+        />
       ) : (
         <>
           <div className="mx-auto max-w-5xl space-y-3 px-4 pt-5">

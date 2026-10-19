@@ -6,6 +6,8 @@ import { arContent, enContent } from "@/lib/content";
 
 // One page per branch: /khamseen, /shahar, /wisam. Anything else is a 404.
 export const dynamicParams = false;
+// Rebuilt at most every 5 minutes with the latest doctors (lib/doctors-server.ts), besides right after /admin edits.
+export const revalidate = 300;
 
 export function generateStaticParams() {
   return BRANCH_IDS.map((branch) => ({ branch }));

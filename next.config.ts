@@ -6,6 +6,14 @@ import type { NextConfig } from "next";
 const PORTALS = "https://portal.whitemoonclinic.com";
 
 const nextConfig: NextConfig = {
+  // Doctor photos uploaded from /admin are stored in Supabase Storage (bucket "doctors").
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/doctors/**" }],
+  },
+  experimental: {
+    // Photo uploads from /admin are shrunk in the browser first; this leaves room for one that couldn't be.
+    serverActions: { bodySizeLimit: "4mb" },
+  },
   async redirects() {
     return [
       { source: "/login", destination: `${PORTALS}/login`, permanent: false },
@@ -16,6 +24,9 @@ const nextConfig: NextConfig = {
       { source: "/feedback/:code", destination: `${PORTALS}/feedback/:code`, permanent: false },
       { source: "/rate", destination: `${PORTALS}/feedback`, permanent: false },
       { source: "/rate/:code", destination: `${PORTALS}/feedback/:code`, permanent: false },
+      // Job applications: the always-ready link for every opening (managed in the management portal).
+      { source: "/careers", destination: `${PORTALS}/careers`, permanent: false },
+      { source: "/careers/:slug", destination: `${PORTALS}/careers/:slug`, permanent: false },
     ];
   },
 };

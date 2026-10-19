@@ -2,8 +2,9 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import type { WheelSpin } from "@/lib/booking-labels";
-import { localPhone, localPhoneQuery, prizeLabel, riyadhMonth } from "@/lib/wheel";
+import { type WheelSettings, localPhone, localPhoneQuery, prizeName, riyadhMonth } from "@/lib/wheel";
 import { redeemSpin } from "./actions";
+import WheelSettingsCard from "./WheelSettingsCard";
 
 const dateFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", {
   dateStyle: "medium",
@@ -24,7 +25,7 @@ function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<voi
           <p dir="ltr" className="text-start font-mono text-lg font-bold tracking-widest text-gold">
             {spin.code}
           </p>
-          <p className="font-bold">{prizeLabel(spin.prize, "ar")}</p>
+          <p className="font-bold">{prizeName(spin.prize, "ar", { ar: spin.prize_ar, en: spin.prize_en })}</p>
         </div>
         <span
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
@@ -64,8 +65,17 @@ function SpinCard({ spin, reload }: { spin: WheelSpin; reload: () => Promise<voi
   );
 }
 
-// Reception types the code (or the patient's phone) to find a prize, then marks it used at the visit.
-export default function SpinsPanel({ spins, reload }: { spins: WheelSpin[]; reload: () => Promise<void> }) {
+// Reception types the code (or the patient's phone) to find a prize, then marks it used at the visit. Management
+// also gets the wheel's settings (show/hide, prizes) at the top.
+export default function SpinsPanel({
+  spins,
+  reload,
+  wheel,
+}: {
+  spins: WheelSpin[];
+  reload: () => Promise<void>;
+  wheel: { settings: WheelSettings; error: string | null } | null; // null for branch accounts
+}) {
   const [query, setQuery] = useState("");
   const q = query.trim().toUpperCase();
   // Phones are matched in local 05… form, so any part of the number as people type it finds the prize.
@@ -76,6 +86,11 @@ export default function SpinsPanel({ spins, reload }: { spins: WheelSpin[]; relo
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-5">
+      {wheel && (
+        <div className="mb-5">
+          <WheelSettingsCard initial={wheel.settings} error={wheel.error} reload={reload} />
+        </div>
+      )}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}

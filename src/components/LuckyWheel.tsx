@@ -4,12 +4,14 @@ import { FormEvent, useState } from "react";
 import { Gift } from "lucide-react";
 import { savePrize } from "@/lib/account";
 import { useLocale } from "@/lib/locale-context";
-import { PRIZES, type PrizeId, SLICES, prizeLabel } from "@/lib/wheel";
+import { type Prize, slicesFor } from "@/lib/wheel";
 import Eyebrow from "./Eyebrow";
 
 type Phase = "idle" | "spinning" | "done" | "invalid" | "error";
 interface Result {
-  prize: PrizeId;
+  prize: string;
+  prizeAr: string;
+  prizeEn: string;
   code: string;
   validUntil: string;
   alreadySpun: boolean;
@@ -17,12 +19,14 @@ interface Result {
 
 const SIZE = 300;
 const R = SIZE / 2;
-const SLICE_DEG = 360 / SLICES.length;
-const COLORS: Record<PrizeId, { fill: string; text: string }> = {
-  prosthetics15: { fill: "#c9a24b", text: "#0e0b07" },
-  free_consult: { fill: "#211c14", text: "#e8c877" },
-  ortho10: { fill: "#f3ecda", text: "#211c14" },
-};
+// Gold, dark and cream slices, by position; with a slice count that isn't a multiple of three only the first two
+// alternate, so neighbouring slices (including the last and the first) never share a colour.
+const PALETTE = [
+  { fill: "#c9a24b", text: "#0e0b07" },
+  { fill: "#211c14", text: "#e8c877" },
+  { fill: "#f3ecda", text: "#211c14" },
+];
+const sliceColor = (i: number, count: number) => PALETTE[count % 3 === 0 || count % 2 === 1 ? i % 3 : i % 2];
 
 // Point on the rim at `deg` degrees clockwise from 12 o'clock.
 const rim = (deg: number, r = R) => {
@@ -30,8 +34,19 @@ const rim = (deg: number, r = R) => {
   return [R + r * Math.sin(a), R - r * Math.cos(a)] as const;
 };
 
-function Wheel({ rotation, spinning, onStop }: { rotation: number; spinning: boolean; onStop: () => void }) {
+function Wheel({
+  slices,
+  rotation,
+  spinning,
+  onStop,
+}: {
+  slices: Prize[];
+  rotation: number;
+  spinning: boolean;
+  onStop: () => void;
+}) {
   const { locale } = useLocale();
+  const sliceDeg = 360 / slices.length;
   return (
     <div className="relative mx-auto w-full max-w-[320px]">
       {/* Pointer at 12 o'clock */}
@@ -48,19 +63,19 @@ function Wheel({ rotation, spinning, onStop }: { rotation: number; spinning: boo
         onTransitionEnd={onStop}
         aria-hidden
       >
-        {SLICES.map((id, i) => {
-          const start = i * SLICE_DEG;
+        {slices.map((prize, i) => {
+          const start = i * sliceDeg;
           const [x1, y1] = rim(start);
-          const [x2, y2] = rim(start + SLICE_DEG);
-          const mid = start + SLICE_DEG / 2;
+          const [x2, y2] = rim(start + sliceDeg);
+          const mid = start + sliceDeg / 2;
           const [tx, ty] = rim(mid, R * 0.62);
-          const prize = PRIZES.find((p) => p.id === id)!;
           const lines = locale === "ar" ? prize.shortAr : prize.shortEn;
+          const color = sliceColor(i, slices.length);
           return (
             <g key={i}>
               <path
                 d={`M${R},${R} L${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} Z`}
-                fill={COLORS[id].fill}
+                fill={color.fill}
                 stroke="#fbf7ee"
                 strokeWidth={2}
               />
@@ -69,7 +84,7 @@ function Wheel({ rotation, spinning, onStop }: { rotation: number; spinning: boo
                 y={ty}
                 transform={`rotate(${mid} ${tx} ${ty})`}
                 textAnchor="middle"
-                fill={COLORS[id].text}
+                fill={color.text}
                 className="font-display"
                 fontSize={15}
                 fontWeight={700}
@@ -94,10 +109,14 @@ function Wheel({ rotation, spinning, onStop }: { rotation: number; spinning: boo
   );
 }
 
-// Monthly lucky wheel. The server draws the prize and allows one spin per phone number per month.
-export default function LuckyWheel() {
+// Monthly lucky wheel. The server draws the prize and allows one spin per phone number per month. The prizes (and
+// whether the wheel shows at all) are set in /admin.
+export default function LuckyWheel({ prizes }: { prizes: Prize[] }) {
   const { t, locale } = useLocale();
   const w = t.wheel;
+  const slices = slicesFor(prizes);
+  const sliceDeg = 360 / slices.length;
+  const names = prizes.map((p) => (locale === "ar" ? p.ar : p.en));
   const [phase, setPhase] = useState<Phase>("idle");
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
@@ -120,17 +139,22 @@ export default function LuckyWheel() {
       const r: Result = await res.json();
       setResult(r);
       // Kept in "My Account" so the code is always at hand.
-      savePrize({ code: r.code, prize: r.prize, validUntil: r.validUntil });
+      savePrize({ code: r.code, prize: r.prize, prizeAr: r.prizeAr, prizeEn: r.prizeEn, validUntil: r.validUntil });
       // This number already used its spin this month: refuse outright instead of spinning again.
       if (r.alreadySpun) {
         setPhase("done");
         return;
       }
       // Land a random one of this prize's slices under the pointer, a little off-centre so it looks natural.
-      const candidates = SLICES.flatMap((id, i) => (id === r.prize ? [i] : []));
+      const candidates = slices.flatMap((p, i) => (p.id === r.prize ? [i] : []));
+      // A prize renamed or removed since the page loaded isn't on this wheel: just show the result.
+      if (candidates.length === 0) {
+        setPhase("done");
+        return;
+      }
       const slice = candidates[Math.floor(Math.random() * candidates.length)];
-      const jitter = (Math.random() - 0.5) * SLICE_DEG * 0.6;
-      const target = 360 - (slice * SLICE_DEG + SLICE_DEG / 2) + jitter;
+      const jitter = (Math.random() - 0.5) * sliceDeg * 0.6;
+      const target = 360 - (slice * sliceDeg + sliceDeg / 2) + jitter;
       setRotation((prev) => prev - (prev % 360) + 360 * 6 + target);
     } catch {
       setPhase("error");
@@ -152,7 +176,9 @@ export default function LuckyWheel() {
         <div>
           <Eyebrow text={w.eyebrow} />
           <h2 className="mt-2.5 font-display text-[24px] text-ink md:text-[30px]">{w.heading}</h2>
-          <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">{w.intro}</p>
+          <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">
+            {w.intro} {names.join(locale === "ar" ? "، " : ", ")}.
+          </p>
 
           {phase === "done" && result ? (
             <div className="mt-6 rounded-2xl border border-gold-bright/60 bg-surface p-6 shadow-[0_18px_40px_-20px_rgba(156,122,46,0.35)]">
@@ -162,7 +188,7 @@ export default function LuckyWheel() {
               ) : (
                 <p className="mt-3 text-[13px] text-ink-soft">{w.won}</p>
               )}
-              <p className="mt-1 font-display text-[21px] font-bold text-ink">{prizeLabel(result.prize, locale)}</p>
+              <p className="mt-1 font-display text-[21px] font-bold text-ink">{locale === "ar" ? result.prizeAr : result.prizeEn}</p>
               <p className="mt-4 text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
                 {w.code}
               </p>
@@ -217,7 +243,7 @@ export default function LuckyWheel() {
           <p className="mt-3 text-[12px] text-ink-soft">{w.terms}</p>
         </div>
 
-        <Wheel rotation={rotation} spinning={spinning} onStop={() => spinning && setPhase("done")} />
+        <Wheel slices={slices} rotation={rotation} spinning={spinning} onStop={() => spinning && setPhase("done")} />
       </div>
     </section>
   );

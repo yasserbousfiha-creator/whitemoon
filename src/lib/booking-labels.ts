@@ -32,6 +32,7 @@ export interface Booking {
   doctor: string | null;
   doctor_id: string | null;
   attendance?: Attendance | null; // missing until supabase/007_attendance.sql is run
+  offer?: string | null; // the offer's title when booked from one (supabase/011_offers.sql)
 }
 
 export interface WheelSpin {
@@ -40,7 +41,9 @@ export interface WheelSpin {
   month: string;
   name: string;
   phone: string;
-  prize: import("./wheel").PrizeId;
+  prize: string;
+  prize_ar?: string | null; // the name when won; missing until supabase/012_wheel_settings.sql is run
+  prize_en?: string | null;
   code: string;
   redeemed_at: string | null;
 }
