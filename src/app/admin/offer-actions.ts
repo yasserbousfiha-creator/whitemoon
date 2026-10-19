@@ -5,7 +5,7 @@ import { BRANCHES, SERVICES, type BranchId } from "@/lib/booking-labels";
 import { OFFERS_TAG } from "@/lib/offers-server";
 import { createServiceClient } from "@/lib/supabase";
 import type { UpdateResult } from "./actions";
-import { PHOTO_BUCKET, bucketPath, isOwnPhoto, requireManager } from "./manager";
+import { PHOTO_BUCKET, bucketPath, isOwnPhoto, requireTab } from "./manager";
 
 // The site's pages are prerendered with the offers: expire them so the next visit shows the change.
 function publish() {
@@ -52,7 +52,7 @@ function price(value: string) {
 }
 
 export async function saveOffer(input: OfferInput): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("offers");
   if ("error" in who) return { ok: false, error: who.error };
 
   const titleAr = input.titleAr?.trim() ?? "";
@@ -121,7 +121,7 @@ export async function saveOffer(input: OfferInput): Promise<UpdateResult> {
 
 // Shows or hides an offer without opening the editor.
 export async function setOfferActive(id: number, active: boolean): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("offers");
   if ("error" in who) return { ok: false, error: who.error };
   if (!Number.isSafeInteger(id)) return { ok: false, error: "طلب غير صالح." };
   const db = createServiceClient();
@@ -137,7 +137,7 @@ export async function setOfferActive(id: number, active: boolean): Promise<Updat
 
 // Removes the offer and its image. Bookings made from it keep the offer's title.
 export async function deleteOffer(id: number): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("offers");
   if ("error" in who) return { ok: false, error: who.error };
   if (!Number.isSafeInteger(id)) return { ok: false, error: "طلب غير صالح." };
   const db = createServiceClient();
@@ -151,7 +151,7 @@ export async function deleteOffer(id: number): Promise<UpdateResult> {
 
 // Moves an offer one place up or down, by swapping display order with its neighbour.
 export async function moveOffer(id: number, direction: -1 | 1): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("offers");
   if ("error" in who) return { ok: false, error: who.error };
   if (!Number.isSafeInteger(id)) return { ok: false, error: "طلب غير صالح." };
   const db = createServiceClient();

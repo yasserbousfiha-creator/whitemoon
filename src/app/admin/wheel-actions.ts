@@ -5,12 +5,12 @@ import { createServiceClient } from "@/lib/supabase";
 import { MAX_PRIZES, MIN_PRIZES, type WheelSettings, cleanPrizes } from "@/lib/wheel";
 import { WHEEL_TAG } from "@/lib/wheel-server";
 import type { UpdateResult } from "./actions";
-import { requireManager } from "./manager";
+import { requireTab } from "./manager";
 
 // Shows or hides the wheel on the site and saves its prizes. The pages are prerendered with the wheel, so they are
 // expired here and the next visit shows the change.
 export async function saveWheelSettings(input: WheelSettings): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("wheel");
   if ("error" in who) return { ok: false, error: who.error };
 
   if (!Array.isArray(input.prizes) || input.prizes.length < MIN_PRIZES || input.prizes.length > MAX_PRIZES) {

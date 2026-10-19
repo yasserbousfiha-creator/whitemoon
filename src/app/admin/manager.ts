@@ -1,20 +1,36 @@
 import { createStaffClient } from "@/lib/supabase";
+import { type AdminTab, type StaffAccess, canOpen } from "@/lib/staff-access";
 
 // Shared by the doctors and offers actions. Kept out of the "use server" files so it is not callable from the browser.
 
 export const PHOTO_BUCKET = "doctors";
 const PUBLIC_MARKER = `/storage/v1/object/public/${PHOTO_BUCKET}/`;
 
-// Editing doctors and offers is for management accounts (staff.branch null), not a branch's reception.
-export async function requireManager(): Promise<{ userId: string } | { error: string }> {
+/** The signed-in account's staff row (every column, so it works before 013_staff_permissions.sql too). */
+export async function currentStaff(): Promise<{ userId: string; staff: StaffAccess & { name: string } } | { error: string }> {
   const supabase = await createStaffClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims.sub;
   if (!userId) return { error: "انتهت الجلسة، سجّل الدخول من جديد." };
-  const { data: staff } = await supabase.from("staff").select("branch").eq("user_id", userId).maybeSingle();
+  const { data: staff } = await supabase.from("staff").select("*").eq("user_id", userId).maybeSingle();
   if (!staff) return { error: "هذا الحساب غير مسجّل كموظف." };
-  if (staff.branch) return { error: "هذا القسم متاح لحساب الإدارة فقط." };
-  return { userId };
+  return { userId, staff };
+}
+
+/** An account allowed into one of these /admin sections (its permissions, set from "المستخدمون"). */
+export async function requireTab(...tabs: AdminTab[]): Promise<{ userId: string } | { error: string }> {
+  const who = await currentStaff();
+  if ("error" in who) return who;
+  if (!tabs.some((t) => canOpen(who.staff, t))) return { error: "لا تملك صلاحية هذا القسم." };
+  return { userId: who.userId };
+}
+
+/** Adding accounts and setting their permissions: the site admin only. */
+export async function requireSiteAdmin(): Promise<{ userId: string } | { error: string }> {
+  const who = await currentStaff();
+  if ("error" in who) return who;
+  if (!who.staff.is_admin) return { error: "إدارة المستخدمين لمدير الموقع فقط." };
+  return { userId: who.userId };
 }
 
 // The bucket path of a photo uploaded from /admin; null for the photos that ship with the site (/images/…).

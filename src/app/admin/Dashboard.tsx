@@ -19,6 +19,9 @@ import SchedulePanel from "./SchedulePanel";
 import SpinsPanel from "./SpinsPanel";
 import DoctorsPanel from "./DoctorsPanel";
 import OffersPanel from "./OffersPanel";
+import UsersPanel from "./UsersPanel";
+import PasswordDialog from "./PasswordDialog";
+import { type AdminTab, TAB_LABELS } from "@/lib/staff-access";
 
 const STATUS_STYLE: Record<BookingStatus, string> = {
   new: "bg-gold-bright text-night2",
@@ -271,7 +274,8 @@ export default function Dashboard({
   staff,
   initial,
 }: {
-  staff: { name: string; branch: BranchId | null };
+  /** tabs: the sections this account may open (its permissions); isAdmin: manages the accounts. */
+  staff: { name: string; branch: BranchId | null; tabs: AdminTab[]; isAdmin: boolean };
   initial: DashboardData;
 }) {
   // Kept up to date by polling a server action (every 20 s, and on returning to the tab), plus right after each change.
@@ -293,7 +297,11 @@ export default function Dashboard({
     };
   }, [reload]);
 
-  const [tab, setTab] = useState<"bookings" | "spins" | "schedule" | "doctors" | "offers">("bookings");
+  // The sections this account may open ("wheel" lives inside the prizes tab), plus "المستخدمون" for the site admin.
+  type Tab = Exclude<AdminTab, "wheel"> | "users";
+  const tabs: Tab[] = [...staff.tabs.filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel"), ...(staff.isAdmin ? (["users"] as const) : [])];
+  const [tab, setTab] = useState<Tab>(tabs[0] ?? "bookings");
+  const [passwordOpen, setPasswordOpen] = useState(false);
   // Opens on today's confirmed appointments, the list reception works from; "all" brings back every booking.
   const [view, setView] = useState<"today" | "all">("today");
   const [status, setStatus] = useState<BookingStatus | null>(null);
@@ -337,7 +345,7 @@ export default function Dashboard({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {newCount ? (
+            {newCount && tabs.includes("bookings") ? (
               <button
                 type="button"
                 onClick={() => {
@@ -350,6 +358,13 @@ export default function Dashboard({
                 {newCount} جديد
               </button>
             ) : null}
+            <button
+              type="button"
+              onClick={() => setPasswordOpen(true)}
+              className="rounded-full border border-line/40 px-4 py-1.5 text-sm hover:border-gold-bright"
+            >
+              كلمة المرور
+            </button>
             <form action={signOut}>
               <button className="rounded-full border border-line/40 px-4 py-1.5 text-sm hover:border-gold-bright">
                 خروج
@@ -390,20 +405,7 @@ export default function Dashboard({
       )}
 
       <nav className="mx-auto flex max-w-5xl gap-6 border-b border-line/20 px-4 pt-3">
-        {(
-          [
-            ["bookings", "الحجوزات"],
-            ["spins", "جوائز العجلة"],
-            ["schedule", "جدول الأطباء"],
-            // Adding, editing and removing doctors and offers is for management accounts only.
-            ...(staff.branch
-              ? []
-              : ([
-                  ["doctors", "الأطباء"],
-                  ["offers", "العروض"],
-                ] as const)),
-          ] as const
-        ).map(([id, label]) => (
+        {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
           <button
             key={id}
             type="button"
@@ -415,7 +417,12 @@ export default function Dashboard({
         ))}
       </nav>
 
-      {tab === "offers" ? (
+      {passwordOpen && <PasswordDialog onClose={() => setPasswordOpen(false)} />}
+      {tabs.length === 0 ? (
+        <p className="mx-auto max-w-5xl px-4 pt-8 text-center text-sm text-ink-soft">لا توجد أقسام مفعّلة لحسابك — تواصل مع مدير الموقع.</p>
+      ) : tab === "users" ? (
+        <UsersPanel />
+      ) : tab === "offers" ? (
         <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} />
       ) : tab === "doctors" ? (
         <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} />
@@ -431,7 +438,7 @@ export default function Dashboard({
         <SpinsPanel
           spins={spins}
           reload={reload}
-          wheel={staff.branch ? null : { settings: data.wheel, error: data.wheelError }}
+          wheel={staff.tabs.includes("wheel") ? { settings: data.wheel, error: data.wheelError } : null}
         />
       ) : (
         <>

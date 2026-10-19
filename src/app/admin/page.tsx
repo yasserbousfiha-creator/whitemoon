@@ -5,6 +5,7 @@ import type { BranchId } from "@/lib/booking-labels";
 import { createStaffClient, supabaseConfigured } from "@/lib/supabase";
 import { signOut } from "./actions";
 import Dashboard from "./Dashboard";
+import { staffTabs } from "@/lib/staff-access";
 import { loadDashboard } from "./data";
 
 export const metadata: Metadata = { title: "لوحة الحجوزات | وايت مون", robots: { index: false } };
@@ -23,7 +24,7 @@ export default async function AdminPage() {
 
   const { data: staff, error: staffError } = await supabase
     .from("staff")
-    .select("name, branch")
+    .select("*") // every column: is_admin / tabs only exist after 013_staff_permissions.sql
     .eq("user_id", userId)
     .maybeSingle();
   if (!staff) {
@@ -44,6 +45,7 @@ export default async function AdminPage() {
 
   // The dashboard then keeps itself up to date through the refreshDashboard action.
   return (
-    <Dashboard staff={{ name: staff.name, branch: staff.branch as BranchId | null }} initial={await loadDashboard(supabase)} />
+    <Dashboard
+      staff={{ name: staff.name, branch: staff.branch as BranchId | null, tabs: staffTabs(staff), isAdmin: !!staff.is_admin }} initial={await loadDashboard(supabase)} />
   );
 }

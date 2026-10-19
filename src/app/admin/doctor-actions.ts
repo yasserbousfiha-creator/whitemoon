@@ -6,7 +6,7 @@ import { DOCTOR_ID_PATTERN, cleanHours, type WeeklyHours } from "@/lib/doctors";
 import { DOCTORS_TAG } from "@/lib/doctors-server";
 import { createServiceClient } from "@/lib/supabase";
 import type { UpdateResult } from "./actions";
-import { PHOTO_BUCKET, bucketPath, isOwnPhoto, requireManager } from "./manager";
+import { PHOTO_BUCKET, bucketPath, isOwnPhoto, requireTab } from "./manager";
 
 const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
 const MAX_CASES = 40;
@@ -57,7 +57,7 @@ function slugFrom(nameEn: string) {
 }
 
 export async function saveDoctor(input: DoctorInput): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("doctors");
   if ("error" in who) return { ok: false, error: who.error };
 
   const nameAr = input.nameAr?.trim() ?? "";
@@ -143,7 +143,7 @@ export async function saveDoctor(input: DoctorInput): Promise<UpdateResult> {
 
 // Removes the doctor for good. Past bookings keep the doctor's name; hiding (active = false) is the reversible option.
 export async function deleteDoctor(id: string): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("doctors");
   if ("error" in who) return { ok: false, error: who.error };
   if (!DOCTOR_ID_PATTERN.test(id)) return { ok: false, error: "طلب غير صالح." };
   const db = createServiceClient();
@@ -164,7 +164,7 @@ export async function deleteDoctor(id: string): Promise<UpdateResult> {
 
 // Moves a doctor one place up or down within their department, by swapping display order with the neighbour.
 export async function moveDoctor(id: string, direction: -1 | 1): Promise<UpdateResult> {
-  const who = await requireManager();
+  const who = await requireTab("doctors");
   if ("error" in who) return { ok: false, error: who.error };
   if (!DOCTOR_ID_PATTERN.test(id)) return { ok: false, error: "طلب غير صالح." };
   const db = createServiceClient();
@@ -201,7 +201,7 @@ async function removePhotos(db: NonNullable<ReturnType<typeof createServiceClien
 // Stores a photo (already resized in the browser) and returns its public URL: a doctor's photo or case photo for
 // saveDoctor, or an offer's design for saveOffer (form field "folder").
 export async function uploadDoctorPhoto(form: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
-  const who = await requireManager();
+  const who = await requireTab("doctors", "offers");
   if ("error" in who) return { ok: false, error: who.error };
   const file = form.get("photo");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "اختر صورة." };

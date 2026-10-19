@@ -6,11 +6,12 @@ import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib
 import { type BlockTarget, DOCTOR_ID_PATTERN } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
+import { requireTab } from "./manager";
 
 /** Staff sign in with a plain username (e.g. "admin"); Supabase Auth still needs
  * an email, so a username maps to a synthetic, non-routable one. A real email
  * still works as-is. */
-const STAFF_EMAIL_DOMAIN = "staff.whitemoonclinic.local";
+import { STAFF_EMAIL_DOMAIN } from "@/lib/staff-access";
 
 export async function signIn(_prev: string | null, formData: FormData): Promise<string | null> {
   const login = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -41,10 +42,10 @@ export async function updateBooking(
 ): Promise<UpdateResult> {
   if (!Number.isInteger(id)) return { ok: false, error: "طلب غير صالح." };
 
+  const gate = await requireTab("bookings");
+  if ("error" in gate) return { ok: false, error: gate.error };
+  const userId = gate.userId;
   const supabase = await createStaffClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims.sub;
-  if (!userId) return { ok: false, error: "انتهت الجلسة، سجّل الدخول من جديد." };
 
   const { data: visible } = await supabase.from("bookings").select("id").eq("id", id).maybeSingle();
   if (!visible) return { ok: false, error: "لا تملك صلاحية على هذا الحجز." };
@@ -76,13 +77,9 @@ export async function updateBooking(
 export async function redeemSpin(id: number): Promise<UpdateResult> {
   if (!Number.isInteger(id)) return { ok: false, error: "طلب غير صالح." };
 
-  const supabase = await createStaffClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims.sub;
-  if (!userId) return { ok: false, error: "انتهت الجلسة، سجّل الدخول من جديد." };
-
-  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
-  if (!staff) return { ok: false, error: "هذا الحساب غير مسجّل كموظف." };
+  const gate = await requireTab("spins");
+  if ("error" in gate) return { ok: false, error: gate.error };
+  const userId = gate.userId;
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
@@ -117,12 +114,9 @@ export async function setScheduleBlock(
     return { ok: false, error: "طلب غير صالح." };
   }
 
-  const supabase = await createStaffClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims.sub;
-  if (!userId) return { ok: false, error: "انتهت الجلسة، سجّل الدخول من جديد." };
-  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
-  if (!staff) return { ok: false, error: "هذا الحساب غير مسجّل كموظف." };
+  const gate = await requireTab("schedule");
+  if ("error" in gate) return { ok: false, error: gate.error };
+  const userId = gate.userId;
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
