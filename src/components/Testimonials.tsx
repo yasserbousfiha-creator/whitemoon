@@ -8,9 +8,8 @@ import TestimonialCard from "./TestimonialCard";
 export default function Testimonials() {
   const { t, locale } = useLocale();
   const branch = useBranch();
-  // This branch's real Google reviews (the home page: every branch's); a page without any keeps the generic ones.
-  const real = t.testimonials.filter((r) => r.date && inBranch(branch, r.branch));
-  const shown = real.length > 0 ? real : t.testimonials.filter((r) => !r.date);
+  // This branch's Google reviews; the home page shows every branch's.
+  const shown = t.testimonials.filter((r) => inBranch(branch, r.branch));
 
   return (
     <section className="bg-bg">

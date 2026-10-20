@@ -61,9 +61,9 @@ export interface Testimonial {
   role: string;
   quote: string;
   // Real Google Maps reviews: the branch reviewed and the month posted ("YYYY-MM", shown as "6 months ago").
-  // A page shows its branch's real reviews (the home page: all of them); without any, the generic ones.
-  branch?: Branch["id"];
-  date?: string;
+  // A branch page shows its own; the home page shows them all.
+  branch: Branch["id"];
+  date: string;
 }
 
 export interface BookingStrings {
@@ -460,7 +460,7 @@ export const arContent: Content = {
   },
   testimonialsEyebrow: "آراء عملائنا",
   testimonialsHeading: "ثقة نراها في كل زيارة",
-  // Placeholder reviews — replace with real patient testimonials before launch.
+  // Real Google Maps reviews, three per branch.
   testimonials: [
     {
       name: "SH",
@@ -504,9 +504,27 @@ export const arContent: Content = {
       branch: "shahar",
       date: "2026-10",
     },
-    { name: "ريم. أ", role: "تجميل الأسنان", quote: "تجربة مختلفة تمامًا، الفريق محترف والنتيجة فاقت توقعاتي." },
-    { name: "سلطان. م", role: "الليزر وتنظيف البشرة", quote: "دقة عالية بالمواعيد واهتمام بالتفاصيل من أول زيارة." },
-    { name: "نوف. س", role: "الجلدية والتجميل", quote: "بيئة هادئة ونتائج طبيعية بدون أي مبالغة." },
+    {
+      name: "أحمد ورقنجي",
+      role: "طب الأسنان",
+      quote: "خلعت ضرسين عقل عند الدكتور علي خليلي ممتاز ويده خفيه",
+      branch: "khamseen",
+      date: "2026-05",
+    },
+    {
+      name: "D_ 1994",
+      role: "الليزر",
+      quote: "بصراحه انا معتمده الليزر معاهم من زمان ولا اروح لغيرهم و شغل joyce مرا يبرد الخاطر ولا غلطه اعتمدوها انتو كمان 🥺♥️",
+      branch: "khamseen",
+      date: "2026-10",
+    },
+    {
+      name: "الجود محمد",
+      role: "الليزر",
+      quote: "كنت متخوفه من اني اجرب جهاز جنتل وقلت اجرب مره ولا ندمت عليها سوت لي الممرضة جاب ما شاء الله دقيقه جداً كل جلساتي عندها شغلها نضيف ودقيق وغير موظفة الاستقبال خديجه متعاونه ما اقول الا ان العياده رهيبه بناء على تجربتي 😍",
+      branch: "khamseen",
+      date: "2026-10",
+    },
   ],
   contactEyebrow: "تواصل معنا",
   contactHeading: "زورونا في الطائف",
@@ -737,7 +755,7 @@ export const enContent: Content = {
   },
   testimonialsEyebrow: "What Our Patients Say",
   testimonialsHeading: "Trust we see in every visit",
-  // Placeholder reviews — replace with real patient testimonials before launch.
+  // Real Google Maps reviews, three per branch.
   testimonials: [
     {
       name: "SH",
@@ -781,9 +799,27 @@ export const enContent: Content = {
       branch: "shahar",
       date: "2026-10",
     },
-    { name: "Reem A.", role: "Cosmetic Dentistry", quote: "A completely different experience — professional team, results beyond expectations." },
-    { name: "Sultan M.", role: "Laser & Skin Cleansing", quote: "Precise scheduling and real attention to detail from the first visit." },
-    { name: "Nouf S.", role: "Dermatology & Aesthetics", quote: "A calm setting and natural results, no exaggeration." },
+    {
+      name: "Ahmed Waraqanji",
+      role: "Dentistry",
+      quote: "Had two wisdom teeth pulled by Dr. Ali Al-Khalili. Excellent, with a really gentle hand.",
+      branch: "khamseen",
+      date: "2026-05",
+    },
+    {
+      name: "D_ 1994",
+      role: "Laser",
+      quote: "Honestly, I've done my laser with them for ages and wouldn't go anywhere else. Joyce's work is so satisfying, never a mistake. Go with them too 🥺♥️",
+      branch: "khamseen",
+      date: "2026-10",
+    },
+    {
+      name: "Aljood Mohammed",
+      role: "Laser",
+      quote: "I was nervous about trying the GentleMax, so I tried it once, and I don't regret it at all. Nurse Jap did it and she's so precise; all my sessions are with her, and her work is clean and careful. Khadija at reception is very helpful too. All I can say is the clinic is amazing, based on my experience 😍",
+      branch: "khamseen",
+      date: "2026-10",
+    },
   ],
   contactEyebrow: "Get in Touch",
   contactHeading: "Visit us in Taif",

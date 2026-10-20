@@ -19,11 +19,9 @@ export default function TestimonialCard({ testimonial, locale }: { testimonial: 
         {testimonial.name}
       </p>
       <p className="mt-0.5 text-[12px] text-gold">{testimonial.role}</p>
-      {testimonial.date && (
-        <p className="mt-1 text-[11.5px] text-ink-soft">
-          {locale === "ar" ? "تقييم على Google" : "Google review"} · {postedAgo(testimonial.date, locale)}
-        </p>
-      )}
+      <p className="mt-1 text-[11.5px] text-ink-soft">
+        {locale === "ar" ? "تقييم على Google" : "Google review"} · {postedAgo(testimonial.date, locale)}
+      </p>
     </div>
   );
 }
