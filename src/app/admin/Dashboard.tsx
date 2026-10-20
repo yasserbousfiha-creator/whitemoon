@@ -21,6 +21,7 @@ import SpinsPanel from "./SpinsPanel";
 import DoctorsPanel from "./DoctorsPanel";
 import OffersPanel from "./OffersPanel";
 import UsersPanel from "./UsersPanel";
+import StatsPanel from "./StatsPanel";
 import PasswordDialog from "./PasswordDialog";
 import { type AdminTab, type Permissions, TAB_LABELS } from "@/lib/staff-access";
 
@@ -327,12 +328,13 @@ export default function Dashboard({
     };
   }, [reload]);
 
-  // The sections this account may open ("wheel" lives inside the prizes tab), plus "المستخدمون" for the site admin.
-  type Tab = Exclude<AdminTab, "wheel"> | "users";
+  // The sections this account may open ("wheel" lives inside the prizes tab), plus "الإحصائيات" and "المستخدمون" for
+  // the site admin.
+  type Tab = Exclude<AdminTab, "wheel"> | "stats" | "users";
   const can = staff.permissions;
   const tabs: Tab[] = [
     ...(Object.keys(can) as AdminTab[]).filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel" && can[t] !== "none"),
-    ...(staff.isAdmin ? (["users"] as const) : []),
+    ...(staff.isAdmin ? (["stats", "users"] as const) : []),
   ];
   /** View only in this section: lists and details without any button that changes something. */
   const viewOnly = (t: AdminTab) => can[t] === "view";
@@ -418,7 +420,7 @@ export default function Dashboard({
       <div className="mx-auto flex max-w-7xl flex-col md:flex-row md:items-start md:gap-2 md:px-4">
         <aside className="md:sticky md:top-[76px] md:w-52 md:shrink-0 md:pt-5">
           <nav className="flex gap-2 overflow-x-auto border-b border-line/20 px-4 py-3 md:flex-col md:overflow-visible md:rounded-2xl md:border md:border-line/25 md:bg-surface md:p-2">
-            {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
+            {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "stats" ? "الإحصائيات" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
               <button
                 key={id}
                 type="button"
@@ -471,6 +473,8 @@ export default function Dashboard({
         <p className="mx-auto max-w-5xl px-4 pt-8 text-center text-sm text-ink-soft">لا توجد أقسام مفعّلة لحسابك — تواصل مع مدير الموقع.</p>
       ) : tab === "users" ? (
         <UsersPanel />
+      ) : tab === "stats" ? (
+        <StatsPanel />
       ) : tab === "offers" ? (
         <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} readOnly={viewOnly("offers")} />
       ) : tab === "doctors" ? (

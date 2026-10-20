@@ -57,6 +57,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => scrollToSection("booking")}
+              data-track="book_click"
               className="rounded-full bg-gold-bright px-5 py-2 text-[14px] font-semibold text-night2 transition-transform hover:scale-[1.03]"
             >
               {t.ctaBookNow}
@@ -123,6 +124,7 @@ export default function Header() {
                 setMenuOpen(false);
                 scrollToSection("booking");
               }}
+              data-track="book_click"
               className="mt-6 rounded-full bg-gold-bright px-5 py-3 text-[14px] font-semibold text-night2"
             >
               {t.ctaBookNow}

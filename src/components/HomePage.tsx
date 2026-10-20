@@ -24,6 +24,7 @@ import { getOffers } from "@/lib/offers-server";
 import { getWheelSettings } from "@/lib/wheel-server";
 import OffersSection from "@/components/OffersSection";
 import OfferPopup from "@/components/OfferPopup";
+import SiteTracker from "@/components/SiteTracker";
 
 // The whole site. A branch page (/khamseen…) shows only that branch's doctors, devices and location; the home
 // page shows everything behind the branch picker. The doctors and offers come from the database (edited in /admin).
@@ -33,6 +34,7 @@ export default async function HomePage({ branch, picker = false }: { branch: Bra
     <BranchProvider value={branch}>
       <DoctorsProvider value={doctors}>
       <OffersProvider value={offers}>
+        <SiteTracker />
         <Header />
 
         <main>
