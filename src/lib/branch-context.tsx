@@ -12,4 +12,4 @@ export function useBranch() {
   return useContext(BranchContext);
 }
 
-export { inBranch, offeredIn } from "./branches";
+export { inBranch, itemsIn, offeredIn } from "./branches";

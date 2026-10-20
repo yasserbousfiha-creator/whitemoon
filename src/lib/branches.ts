@@ -16,3 +16,9 @@ export function inBranch(current: Branch["id"] | null, itemBranch: Branch["id"] 
 export function offeredIn(current: Branch["id"] | null, service: Pick<ServiceContent, "branches">) {
   return current === null || !service.branches || service.branches.includes(current);
 }
+
+// A department's list lines on a branch's page: its own extra lines added (the home page shows every branch's).
+export function itemsIn(current: Branch["id"] | null, service: Pick<ServiceContent, "items" | "branchItems">) {
+  const extra = current === null ? Object.values(service.branchItems ?? {}).flat() : (service.branchItems?.[current] ?? []);
+  return [...service.items, ...extra];
+}

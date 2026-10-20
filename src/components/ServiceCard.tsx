@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { CalendarCheck } from "lucide-react";
-import { inBranch, useBranch } from "@/lib/branch-context";
+import { inBranch, itemsIn, useBranch } from "@/lib/branch-context";
 import { prefillBooking } from "@/lib/booking-prefill";
 import { ServiceContent } from "@/lib/content";
 import { useTeam } from "@/lib/doctors-context";
@@ -114,7 +114,7 @@ export default function ServiceCard({ service, row }: { service: ServiceContent;
       </div>
       <p className="mt-4 font-display text-[19px] font-bold text-ink">{service.title}</p>
       <ul className="mt-3.5 space-y-2">
-        {service.items.map((item) => (
+        {itemsIn(branch, service).map((item) => (
           <li key={item} className="flex items-start gap-2 text-[14px] text-ink-soft">
             <span className="mt-2 h-[5px] w-[5px] shrink-0 rounded-full bg-gold-bright" />
             <span>{item}</span>

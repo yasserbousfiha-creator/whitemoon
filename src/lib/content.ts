@@ -37,6 +37,8 @@ export interface ServiceContent {
   items: string[];
   // Departments only some branches have (gynecology…); left out = every branch.
   branches?: Branch["id"][];
+  // Extra list lines for one branch (pediatric dentistry at Shahar), after `items`.
+  branchItems?: Partial<Record<Branch["id"], string[]>>;
   // The small visual under the list; departments without one skip it.
   extraLabel?: string;
   extraType?: ServiceExtraType;
@@ -306,6 +308,7 @@ export const arContent: Content = {
       icon: "dentistry",
       title: "طب الأسنان",
       items: ["تنظيف وتبييض الأسنان", "تجميل الأسنان والفينير", "زراعة الأسنان", "تقويم الأسنان"],
+      branchItems: { shahar: ["طب أسنان الأطفال"] },
       extraLabel: "دليل درجات البياض",
       extraType: "shadeGuide",
       note: "دقة تشبه الحِرفة، لابتسامة تبدو أنها لم تُعالَج قط.",
@@ -540,6 +543,7 @@ export const enContent: Content = {
       icon: "dentistry",
       title: "Dentistry",
       items: ["Cleaning & whitening", "Cosmetic veneers", "Dental implants", "Orthodontics"],
+      branchItems: { shahar: ["Pediatric dentistry"] },
       extraLabel: "Shade Guide Reference",
       extraType: "shadeGuide",
       note: "Craftsman precision, for a smile that never looks treated.",
