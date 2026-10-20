@@ -277,8 +277,9 @@ export const branchContacts: Partial<Record<Branch["id"], Partial<ContactDetails
     tiktokUrl: "https://www.tiktok.com/@whitemooncare",
     snapchatUrl: "https://snapchat.com/t/d7WTmKwq",
   },
-  // No call number of its own yet: calls go to the main number.
   wisam: {
+    phone: "+966127422225",
+    phoneDisplay: "+966 12 742 2225",
     whatsappUrl: "https://wa.me/966508887608",
     instagramUrl: "https://www.instagram.com/whitemoon.sa",
     tiktokUrl: "https://www.tiktok.com/@whitemoon..sa",
