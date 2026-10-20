@@ -1,0 +1,37 @@
+-- Run once in Supabase SQL Editor (after 011_offers.sql). Running it again adds the offers again.
+-- Khamseen's Pink October offers (designs in public/images/offers/), shown until 31 October. Prices are in the
+-- designs; the descriptions list them as text. Edit or remove them from /admin → "العروض" afterwards.
+
+insert into public.offers (title_ar, title_en, description_ar, description_en, image, branches, service, ends_on, sort_order) values
+  ('جلسة لك وجلسة هدية من وايت مون', 'A session for you, and one on us',
+   E'الدورتي 1499 ر.س + إبرة تفتيح الهالات مجاناً\nإبرة كيم كارداشيان 1999 ر.س + إبرة تفتيح الهالات مجاناً\n2 مل فيلر 2150 ر.س + 1 مل مجاناً\nفيليشا 2499 ر.س + إبرة شد ونضارة مجاناً',
+   E'Dourthy SAR 1,499 + a free under-eye brightening shot\nKim Kardashian shot SAR 1,999 + a free under-eye brightening shot\n2 ml filler SAR 2,150 + 1 ml free\nPhilisha SAR 2,499 + a free lifting & glow shot',
+   '/images/offers/khamseen-pink-october-01.jpg', '{khamseen}', 'derma', '2026-10-31', 10),
+  ('عروض الجلدية والتجميل', 'Dermatology & aesthetics offers',
+   E'إبرة إذابة دهون اللغلوغ 199 ر.س\n1 مل فيلر 899 ر.س\n3 جلسات تفتيح هالات 1599 ر.س\nإبرة الكالسيوم 2199 ر.س\nمحفزات الكولاجين 2999 ر.س',
+   E'Double-chin fat-dissolving shot SAR 199\n1 ml filler SAR 899\n3 under-eye brightening sessions SAR 1,599\nCalcium shot SAR 2,199\nCollagen stimulators SAR 2,999',
+   '/images/offers/khamseen-pink-october-02.jpg', '{khamseen}', 'derma', '2026-10-31', 20),
+  ('اطمني على أسنانك وأزهري بابتسامتك', 'Check your teeth, brighten your smile',
+   E'كشف مع أشعة بانوراما 60 ر.س\nكشف مع أشعة ثلاثية الأبعاد ومسح ضوئي وخطة علاجية ديجيتال 600 ر.س\nتقويم الإنفزلاين يبدأ من 6000 ر.س لباقة 14 قالب، وكل قالب إضافي بـ 200 ر.س فقط',
+   E'Check-up with a panoramic X-ray SAR 60\nCheck-up with a 3D X-ray, intraoral scan and digital treatment plan SAR 600\nInvisalign from SAR 6,000 for 14 aligners, each extra aligner only SAR 200',
+   '/images/offers/khamseen-pink-october-03.jpg', '{khamseen}', 'dentistry', '2026-10-31', 30),
+  ('عروض التقويم', 'Orthodontics offers',
+   E'التقويم المعدني الألماني الفضي يبدأ من 4600 ر.س: دفعة أولى 600 ر.س وقسط شهري 300 ر.س\nتقويم Iconix المعدني التجميلي المطلي بالذهب الأبيض 6000 ر.س فقط: دفعة أولى 1000 ر.س وقسط شهري 200 ر.س',
+   E'German silver metal braces from SAR 4,600: SAR 600 down, SAR 300 a month\nIconix cosmetic metal braces plated in white gold, only SAR 6,000: SAR 1,000 down, SAR 200 a month',
+   '/images/offers/khamseen-pink-october-04.jpg', '{khamseen}', 'dentistry', '2026-10-31', 40),
+  ('عروض الليزر', 'Laser offers',
+   E'فل بدي بدون ظهر وبطن 220 ر.س\nفل بدي مع ظهر وبطن 299 ر.س\nكشف مجاني + رتوش مجاناً (يُسمح بتكرار الجلسة)',
+   E'Full body without back & stomach SAR 220\nFull body with back & stomach SAR 299\nFree consultation + free touch-ups (repeat session allowed)',
+   '/images/offers/khamseen-pink-october-05.jpg', '{khamseen}', 'laser', '2026-10-31', 50),
+  ('باكجات تنظيف البشرة', 'Skin cleansing packages',
+   E'تشقير وجه + حواجب + تنظيف كلاسيك 169 ر.س\nتنظيف أكسجينو + جلسة ليزر كربوني 329 ر.س\nهيدرافيشيل + ميزو + ديرما بن 349 ر.س',
+   E'Face & brow bleaching + classic cleansing SAR 169\nOxygeneo cleansing + carbon laser session SAR 329\nHydraFacial + meso + Dermapen SAR 349',
+   '/images/offers/khamseen-pink-october-06.jpg', '{khamseen}', 'laser', '2026-10-31', 60),
+  ('عروض الأسنان', 'Dentistry offers',
+   E'تنظيف الأسنان يبدأ من 99 ر.س\nالحشوات التجميلية تبدأ من 199 ر.س\nسن زيركون 1099 ر.س\nسن إيماكس 1199 ر.س\nزراعة سن شامل التركيب 2500 ر.س\nخصم 15% على علاج العصب\nخصم 20% على الخلع الجراحي',
+   E'Teeth cleaning from SAR 99\nCosmetic fillings from SAR 199\nZirconia crown SAR 1,099\nE.max crown SAR 1,199\nImplant including the crown SAR 2,500\n15% off root canal treatment\n20% off surgical extraction',
+   '/images/offers/khamseen-pink-october-07.jpg', '{khamseen}', 'dentistry', '2026-10-31', 70),
+  ('إبرة الجوري وبلازما MCT', 'Jouri shot & MCT plasma',
+   E'إبرة الجوري 1699 ر.س\nبلازما MCT 1799 ر.س',
+   E'Jouri shot SAR 1,699\nMCT plasma SAR 1,799',
+   '/images/offers/khamseen-pink-october-08.jpg', '{khamseen}', 'derma', '2026-10-31', 80);
