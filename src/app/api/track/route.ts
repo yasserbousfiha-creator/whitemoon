@@ -1,4 +1,5 @@
 import { isBranchId } from "@/lib/branches";
+import { saveEvent } from "@/lib/site-stats-store";
 import { createServiceClient } from "@/lib/supabase";
 import { TRACK_TYPES, type TrackType } from "@/lib/track";
 
@@ -7,8 +8,8 @@ export const runtime = "nodejs";
 const VISITOR = /^[A-Za-z0-9-]{8,64}$/;
 const BOT = /bot|crawl|spider|slurp|headless|lighthouse|facebookexternalhit/i;
 
-// One anonymous site event (lib/track.ts) for /admin → "الإحصائيات". Never fails the page: bad input or a missing
-// table (supabase/017_site_stats.sql not run yet) just records nothing.
+// One anonymous site event (lib/track.ts) for /admin → "الإحصائيات", kept by lib/site-stats-store.ts. Never fails
+// the page: bad input or a storage error just records nothing.
 export async function POST(request: Request) {
   if (BOT.test(request.headers.get("user-agent") ?? "")) return new Response(null, { status: 204 });
   let body: { type?: unknown; branch?: unknown; visitor?: unknown };
@@ -23,9 +24,6 @@ export async function POST(request: Request) {
   }
   const db = createServiceClient();
   if (!db) return new Response(null, { status: 204 });
-  const { error } = await db
-    .from("site_events")
-    .insert({ type, visitor, branch: typeof branch === "string" && isBranchId(branch) ? branch : null });
-  if (error) console.error("Site event insert failed:", error.code ?? error.message);
+  await saveEvent(db, type as TrackType, typeof branch === "string" && isBranchId(branch) ? branch : null, visitor);
   return new Response(null, { status: 204 });
 }

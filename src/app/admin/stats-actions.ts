@@ -1,10 +1,12 @@
 "use server";
 
-import type { BranchId } from "@/lib/booking-labels";
+import { BRANCHES, type BranchId } from "@/lib/booking-labels";
+import { readEvents, riyadhDay } from "@/lib/site-stats-store";
 import { createServiceClient } from "@/lib/supabase";
 import { requireSiteAdmin } from "./manager";
 
-// /admin → "الإحصائيات" (site admin only): what supabase/017_site_stats.sql's site_stats() counts since a moment.
+// /admin → "الإحصائيات" (site admin only): the anonymous site events (lib/site-stats-store.ts) and the bookings sent,
+// counted for a period.
 
 export type StatsRange = "today" | "7d" | "30d" | "all";
 
@@ -16,14 +18,11 @@ export interface SiteStats {
   bookings: { branch: BranchId; total: number }[]; // booking forms actually sent
 }
 
-// Riyadh midnight today, or N days back from it; "all" = the beginning.
-function since(range: StatsRange) {
-  if (range === "all") return "2000-01-01T00:00:00Z";
-  const riyadhToday = new Date(Date.now() + 3 * 3600_000).toISOString().slice(0, 10);
-  const days = range === "today" ? 0 : range === "7d" ? 6 : 29;
-  const start = new Date(`${riyadhToday}T00:00:00+03:00`);
-  start.setUTCDate(start.getUTCDate() - days);
-  return start.toISOString();
+// The Riyadh days in the period, newest first; null = every day stored.
+function daysOf(range: StatsRange) {
+  if (range === "all") return null;
+  const count = range === "today" ? 1 : range === "7d" ? 7 : 30;
+  return Array.from({ length: count }, (_, i) => riyadhDay(Date.now() - i * 86_400_000));
 }
 
 export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats: SiteStats } | { ok: false; error: string }> {
@@ -31,13 +30,34 @@ export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats
   if ("error" in who) return { ok: false, error: "الإحصائيات لمدير الموقع فقط." };
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
-  const { data, error } = await db.rpc("site_stats", { since: since(range) });
-  if (error) {
-    console.error("Site stats failed:", error);
-    if (error.code === "PGRST202" || error.code === "42883" || error.code === "42P01") {
-      return { ok: false, error: "الإحصائيات تحتاج تشغيل ملف 017_site_stats.sql في Supabase." };
-    }
-    return { ok: false, error: `تعذّر التحميل (${error.code ?? error.message}).` };
+
+  const days = daysOf(range);
+  const since = days ? `${days[days.length - 1]}T00:00:00+03:00` : "2000-01-01T00:00:00Z";
+  const [events, ...bookingCounts] = await Promise.all([
+    readEvents(db, days),
+    ...(Object.keys(BRANCHES) as BranchId[]).map(async (branch) => {
+      const { count } = await db.from("bookings").select("id", { count: "exact", head: true }).eq("branch", branch).gte("created_at", since);
+      return { branch, total: count ?? 0 };
+    }),
+  ]);
+
+  const visits = events.filter((e) => e.type === "visit");
+  const groups = new Map<string, { type: SiteStats["events"][number]["type"]; branch: BranchId | null; total: number; people: Set<string> }>();
+  for (const e of events) {
+    if (e.type === "visit") continue;
+    const key = `${e.type}.${e.branch}`;
+    const g = groups.get(key) ?? { type: e.type as SiteStats["events"][number]["type"], branch: e.branch as BranchId | null, total: 0, people: new Set() };
+    g.total++;
+    g.people.add(e.visitor);
+    groups.set(key, g);
   }
-  return { ok: true, stats: data as SiteStats };
+  return {
+    ok: true,
+    stats: {
+      visitors: new Set(visits.map((e) => e.visitor)).size,
+      visits: visits.length,
+      events: [...groups.values()].map((g) => ({ type: g.type, branch: g.branch, total: g.total, people: g.people.size })),
+      bookings: bookingCounts,
+    },
+  };
 }
