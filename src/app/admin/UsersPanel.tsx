@@ -7,10 +7,12 @@ import { type StaffUser, createStaffUser, listStaffUsers, resetStaffPassword, up
 
 const field = "mt-1 w-full rounded-lg border border-line/40 bg-bg px-3 py-2 text-sm outline-none focus:border-gold-bright";
 
-/** The two call-center accounts (user's choice): every branch; bookings and the doctors' schedule. */
-const CALL_CENTER = [
-  { username: "callcenter1", name: "الكول سنتر 1" },
-  { username: "callcenter2", name: "الكول سنتر 2" },
+/** The call-center accounts (user's choice): bookings and the doctors' schedule; 1 and 2 see every branch, 3 and 4 one each. */
+const CALL_CENTER: { username: string; name: string; branch: BranchId | null }[] = [
+  { username: "callcenter1", name: "الكول سنتر 1", branch: null },
+  { username: "callcenter2", name: "الكول سنتر 2", branch: null },
+  { username: "callcenter3", name: "الكول سنتر 3 (شهار)", branch: "shahar" },
+  { username: "callcenter4", name: "الكول سنتر 4 (الوسام)", branch: "wisam" },
 ];
 // …and sees the doctors and the live offers to answer patients, without changing them.
 const CALL_CENTER_PERMISSIONS: Permissions = { ...defaultPermissions("khamseen"), spins: "none", bookings: "edit", schedule: "edit", doctors: "view", offers: "view" };
@@ -224,7 +226,14 @@ export default function UsersPanel() {
       {missingCc.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gold-bright/50 bg-surface2 p-4 text-sm">
           <p>
-            حسابا الكول سنتر غير موجودين بعد: <b dir="ltr">{missingCc.map((c) => c.username).join(", ")}</b> — كل الفروع، الحجوزات وجدول الأطباء، وكلمة المرور{" "}
+            حسابات الكول سنتر غير موجودة بعد:{" "}
+            {missingCc.map((c, i) => (
+              <span key={c.username}>
+                {i > 0 && "، "}
+                <b dir="ltr">{c.username}</b> ({c.branch ? BRANCHES[c.branch] : "كل الفروع"})
+              </span>
+            ))}{" "}
+            — الحجوزات وجدول الأطباء، وكلمة المرور{" "}
             <b dir="ltr">{CALL_CENTER_PASSWORD}</b>.
           </p>
           <button
@@ -234,7 +243,7 @@ export default function UsersPanel() {
               start(async () => {
                 setCcMsg(null);
                 for (const c of missingCc) {
-                  const r = await createStaffUser({ ...c, password: CALL_CENTER_PASSWORD, branch: null, permissions: CALL_CENTER_PERMISSIONS });
+                  const r = await createStaffUser({ ...c, password: CALL_CENTER_PASSWORD, permissions: CALL_CENTER_PERMISSIONS });
                   if (!r.ok) return setCcMsg(r.error);
                 }
                 reload();
@@ -242,7 +251,7 @@ export default function UsersPanel() {
             }
             className="rounded-full bg-gold-bright px-5 py-2 font-bold text-night2 disabled:opacity-50"
           >
-            {pending ? "جارٍ الإنشاء…" : "إنشاء الحسابين"}
+            {pending ? "جارٍ الإنشاء…" : missingCc.length === 1 ? "إنشاء الحساب" : `إنشاء الحسابات (${missingCc.length})`}
           </button>
           {ccMsg && <p className="w-full rounded-xl bg-red-50 p-2.5 text-red-700">{ccMsg}</p>}
         </div>
