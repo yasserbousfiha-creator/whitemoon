@@ -266,9 +266,9 @@ const snapchatUrl = "https://www.snapchat.com/add/whitemoonclinic";
 
 type ContactDetails = Pick<Content, "phone" | "phoneDisplay" | "whatsappUrl" | "instagramUrl" | "tiktokUrl" | "snapchatUrl">;
 
-// A branch with its own numbers and accounts; the other branches (and the page before a branch is picked) use the
-// ones above. useLocale() swaps them in while that branch is shown.
-export const branchContacts: Partial<Record<Branch["id"], ContactDetails>> = {
+// A branch with its own numbers and accounts; what it leaves out, the other branches and the page before a branch is
+// picked use the ones above. useLocale() swaps them in while that branch is shown.
+export const branchContacts: Partial<Record<Branch["id"], Partial<ContactDetails>>> = {
   shahar: {
     phone: "+966565172793",
     phoneDisplay: "+966 56 517 2793",
@@ -276,6 +276,13 @@ export const branchContacts: Partial<Record<Branch["id"], ContactDetails>> = {
     instagramUrl: "https://www.instagram.com/whitemooncare",
     tiktokUrl: "https://www.tiktok.com/@whitemooncare",
     snapchatUrl: "https://snapchat.com/t/d7WTmKwq",
+  },
+  // No call number of its own yet: calls go to the main number.
+  wisam: {
+    whatsappUrl: "https://wa.me/966508887608",
+    instagramUrl: "https://www.instagram.com/whitemoon.sa",
+    tiktokUrl: "https://www.tiktok.com/@whitemoon..sa",
+    snapchatUrl: "https://snapchat.com/t/SwiVk8va",
   },
 };
 
