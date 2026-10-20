@@ -14,7 +14,7 @@ import {
   type ServiceId,
 } from "@/lib/booking-labels";
 import { formatDay, formatTime } from "@/lib/slots";
-import { refreshDashboard, signOut, updateBooking } from "./actions";
+import { deleteBooking, refreshDashboard, signOut, updateBooking } from "./actions";
 import type { DashboardData } from "./data";
 import SchedulePanel from "./SchedulePanel";
 import SpinsPanel from "./SpinsPanel";
@@ -81,7 +81,7 @@ type Patch = { status?: BookingStatus; notes?: string; attendance?: Attendance |
 
 // One appointment inside a patient's card: its details, status, attendance and note.
 // readOnly (view-only permission): the details, status and note as text — no buttons.
-function BookingItem({ booking, today, reload, readOnly }: { booking: Booking; today: string; reload: () => Promise<void>; readOnly: boolean }) {
+function BookingItem({ booking, today, reload, readOnly, canDelete }: { booking: Booking; today: string; reload: () => Promise<void>; readOnly: boolean; canDelete: boolean }) {
   const [current, applyOptimistic] = useOptimistic(
     { status: booking.status, notes: booking.notes, attendance: booking.attendance ?? null },
     (state, patch: Patch) => ({ ...state, ...patch }),
@@ -98,6 +98,16 @@ function BookingItem({ booking, today, reload, readOnly }: { booking: Booking; t
       // Pull fresh data before the transition ends, so the optimistic value hands over without flicking back.
       if (result.ok) await reload();
       setMessage(result.ok ? { ok: true, text: "تم الحفظ ✓" } : { ok: false, text: result.error });
+    });
+  }
+
+  function remove() {
+    if (!window.confirm(`حذف الحجز #${booking.id} نهائيًا؟ لا يمكن التراجع عن الحذف.`)) return;
+    setMessage(null);
+    startTransition(async () => {
+      const result = await deleteBooking(booking.id);
+      if (result.ok) await reload();
+      else setMessage({ ok: false, text: result.error });
     });
   }
 
@@ -204,10 +214,22 @@ function BookingItem({ booking, today, reload, readOnly }: { booking: Booking; t
       </>
       )}
 
-      <p className="mt-1.5 text-[11px] text-ink-soft">
-        أُرسل {createdFormat.format(new Date(b.created_at))} · {b.source === "app" ? "من التطبيق" : "من الموقع"} · #
-        {b.id}
-      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-ink-soft">
+          أُرسل {createdFormat.format(new Date(b.created_at))} · {b.source === "app" ? "من التطبيق" : "من الموقع"} · #
+          {b.id}
+        </p>
+        {canDelete && (
+          <button
+            type="button"
+            disabled={pending}
+            onClick={remove}
+            className="shrink-0 rounded-full border border-red-300 px-3 py-0.5 text-[11px] font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+          >
+            حذف نهائي
+          </button>
+        )}
+      </div>
       <p
         aria-live="polite"
         className={`min-h-4 text-xs ${message?.ok === false ? "text-red-600" : "text-emerald-700"}`}
@@ -219,7 +241,7 @@ function BookingItem({ booking, today, reload, readOnly }: { booking: Booking; t
 }
 
 // A patient with all their shown bookings, so someone who booked several times appears once.
-function PersonCard({ bookings, today, reload, readOnly }: { bookings: Booking[]; today: string; reload: () => Promise<void>; readOnly: boolean }) {
+function PersonCard({ bookings, today, reload, readOnly, canDelete }: { bookings: Booking[]; today: string; reload: () => Promise<void>; readOnly: boolean; canDelete: boolean }) {
   const first = bookings[0];
   const emails = [...new Set(bookings.map((b) => b.email).filter(Boolean))];
   return (
@@ -263,7 +285,7 @@ function PersonCard({ bookings, today, reload, readOnly }: { bookings: Booking[]
 
       <div className="mt-3 space-y-2">
         {bookings.map((b) => (
-          <BookingItem key={b.id} booking={b} today={today} reload={reload} readOnly={readOnly} />
+          <BookingItem key={b.id} booking={b} today={today} reload={reload} readOnly={readOnly} canDelete={canDelete} />
         ))}
       </div>
     </article>
@@ -522,7 +544,7 @@ export default function Dashboard({
               <p className="text-ink-soft">{view === "today" ? "لا توجد مواعيد مؤكدة اليوم." : "لا توجد حجوزات."}</p>
             )}
             {[...groups].map(([key, list]) => (
-              <PersonCard key={key} bookings={list} today={today} reload={reload} readOnly={viewOnly("bookings")} />
+              <PersonCard key={key} bookings={list} today={today} reload={reload} readOnly={viewOnly("bookings")} canDelete={staff.isAdmin} />
             ))}
           </section>
         </>

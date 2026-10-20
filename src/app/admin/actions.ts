@@ -6,7 +6,7 @@ import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib
 import { type BlockTarget, DOCTOR_ID_PATTERN } from "@/lib/doctors";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
-import { requireTab } from "./manager";
+import { currentStaff, requireTab } from "./manager";
 
 /** Staff sign in with a plain username (e.g. "admin"); Supabase Auth still needs
  * an email, so a username maps to a synthetic, non-routable one. A real email
@@ -67,6 +67,23 @@ export async function updateBooking(
       return { ok: false, error: "تسجيل الحضور يحتاج تشغيل ملف 007_attendance.sql في Supabase." };
     }
     return { ok: false, error: `تعذّر الحفظ (${error.code ?? error.message}).` };
+  }
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+// Removes a booking for good (old or test bookings). The site admin only: there is no undo.
+export async function deleteBooking(id: number): Promise<UpdateResult> {
+  if (!Number.isInteger(id)) return { ok: false, error: "طلب غير صالح." };
+  const who = await currentStaff();
+  if ("error" in who) return { ok: false, error: who.error };
+  if (!who.staff.is_admin) return { ok: false, error: "حذف الحجوزات لمدير الموقع فقط." };
+  const db = createServiceClient();
+  if (!db) return { ok: false, error: "الخادم غير مهيأ." };
+  const { error } = await db.from("bookings").delete().eq("id", id);
+  if (error) {
+    console.error("Booking delete failed:", error);
+    return { ok: false, error: `تعذّر الحذف (${error.code ?? error.message}).` };
   }
   revalidatePath("/admin");
   return { ok: true };
