@@ -60,6 +60,10 @@ export interface Testimonial {
   name: string;
   role: string;
   quote: string;
+  // Real Google Maps reviews: the branch reviewed and the month posted ("YYYY-MM", shown as "6 months ago").
+  // A page shows its branch's real reviews (the home page: all of them); without any, the generic ones.
+  branch?: Branch["id"];
+  date?: string;
 }
 
 export interface BookingStrings {
@@ -458,6 +462,27 @@ export const arContent: Content = {
   testimonialsHeading: "ثقة نراها في كل زيارة",
   // Placeholder reviews — replace with real patient testimonials before launch.
   testimonials: [
+    {
+      name: "SH",
+      role: "تنظيف البشرة",
+      quote: "سويت تنظيف بشره هيدراتتش عند الاخصائيه العسل سمر الله يعطيها العافيه شي خيالي والله وشغل نظييييف وجهي صار منور ومترطب بشكل 💯 اعيد التجربه باذن الله .",
+      branch: "wisam",
+      date: "2026-04",
+    },
+    {
+      name: "سامي السفياني",
+      role: "تنظيف البشرة",
+      quote: "اليوم زرت العيادة مشاءالله نضيفة و جديدة تفتح النفس كل الموصفات عسل من يوم دخلت يبتسمون ف وجهي مشاءالله و كمان شكر خاص لحقين التسويق مررررررررره عسل و كمان الحلوة الي سوتلي تنضيف بشرة منى مدري إذا الاسم صحيح بس المهم هيا شغلها مرررره بيرفكت و مررره يدها خفيفة ❤️❤️❤️❤️",
+      branch: "wisam",
+      date: "2026-05",
+    },
+    {
+      name: "Reuof Alosaimi",
+      role: "الجلدية والتجميل",
+      quote: "تجربتي مع عيادة وايت مون – الوسام كانت جدًا جميلة المكان نظيف ومرتب. وسعدت كثيرًا بزيارتي للدكتورة فاطمة الزهراء، ما شاء الله عليها عسل وطيبة جدًا، ذوق وأخلاق وضمير في عملها، وتعاملها يخلّي المريض مرتاح ومطمئن🤍 الله يسعدها ويوفقها في حياتها المهنية والعملية والشخصية، ويكتب لها الخير والنجاح دائمًا. تستحق كل المدح، وتجربة جميلة جدًا وأنصح فيها وبالعيادة بكل أمانة",
+      branch: "wisam",
+      date: "2026-08",
+    },
     { name: "ريم. أ", role: "تجميل الأسنان", quote: "تجربة مختلفة تمامًا، الفريق محترف والنتيجة فاقت توقعاتي." },
     { name: "سلطان. م", role: "الليزر وتنظيف البشرة", quote: "دقة عالية بالمواعيد واهتمام بالتفاصيل من أول زيارة." },
     { name: "نوف. س", role: "الجلدية والتجميل", quote: "بيئة هادئة ونتائج طبيعية بدون أي مبالغة." },
@@ -693,6 +718,27 @@ export const enContent: Content = {
   testimonialsHeading: "Trust we see in every visit",
   // Placeholder reviews — replace with real patient testimonials before launch.
   testimonials: [
+    {
+      name: "SH",
+      role: "Skin Cleansing",
+      quote: "I had a HydraFacial with Samar, a lovely specialist, bless her. Truly amazing and spotless work: my face is glowing and hydrated 💯. I'll be back, God willing.",
+      branch: "wisam",
+      date: "2026-04",
+    },
+    {
+      name: "Sami Al-Sufyani",
+      role: "Skin Cleansing",
+      quote: "Visited the clinic today: spotless and brand new, a real pleasure. The whole staff are lovely and greeted me with smiles from the moment I walked in. Special thanks to the marketing team, so lovely, and to the sweet specialist who did my facial (Mona, I think). Her work is just perfect and she has such a gentle hand ❤️❤️❤️❤️",
+      branch: "wisam",
+      date: "2026-05",
+    },
+    {
+      name: "Reuof Alosaimi",
+      role: "Dermatology & Aesthetics",
+      quote: "My experience at White Moon – Al-Wisam was lovely; the place is clean and tidy. I was so happy with my visit to Dr. Fatima Al-Zahraa: kind and sweet, with great manners and real conscience in her work, and she puts patients at ease 🤍 May God bless her and grant her success always. She deserves all the praise. A wonderful experience, and I honestly recommend her and the clinic.",
+      branch: "wisam",
+      date: "2026-08",
+    },
     { name: "Reem A.", role: "Cosmetic Dentistry", quote: "A completely different experience — professional team, results beyond expectations." },
     { name: "Sultan M.", role: "Laser & Skin Cleansing", quote: "Precise scheduling and real attention to detail from the first visit." },
     { name: "Nouf S.", role: "Dermatology & Aesthetics", quote: "A calm setting and natural results, no exaggeration." },
