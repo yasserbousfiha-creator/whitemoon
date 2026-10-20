@@ -27,7 +27,7 @@ export const getOffers = unstable_cache(
     }
     return data.map(offerFromRow);
   },
-  ["offers", "v1"],
+  ["offers", "v2"],
   { tags: [OFFERS_TAG], revalidate: 300 },
 );
 
