@@ -71,7 +71,7 @@ export default function OfferPopup() {
       className="branch-picker fixed inset-0 z-[100] flex overflow-y-auto bg-night2/55 p-4 backdrop-blur-sm"
     >
       {/* m-auto centers it; the width comes from the screen, not from the row of slides inside. */}
-      <div className={`branch-picker-card relative m-auto w-full max-w-[400px] ${wide ? "md:max-w-[780px]" : ""}`}>
+      <div className={`branch-picker-card relative m-auto w-full max-w-[440px] ${wide ? "md:max-w-[860px]" : ""}`}>
         <div className="mb-2 flex items-center justify-between">
           <span className="rounded-full bg-gold-bright px-3 py-1 text-[12px] font-bold text-night2">
             {t.offers.popupLabel}
