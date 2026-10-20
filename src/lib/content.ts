@@ -260,12 +260,25 @@ const instagramUrl = "https://www.instagram.com/whitemoonclinic";
 const tiktokUrl = "https://vt.tiktok.com/ZSdGb4HMJ/";
 const snapchatUrl = "https://www.snapchat.com/add/whitemoonclinic";
 
-// Khamseen is the pin from whitemoonclinics.com; Wisam is its Google Maps place. Shahar has no published pin yet,
-// so it opens a Google Maps search for the clinic in that district.
-const mapSearch = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+type ContactDetails = Pick<Content, "phone" | "phoneDisplay" | "whatsappUrl" | "instagramUrl" | "tiktokUrl" | "snapchatUrl">;
+
+// A branch with its own numbers and accounts; the other branches (and the page before a branch is picked) use the
+// ones above. useLocale() swaps them in while that branch is shown.
+export const branchContacts: Partial<Record<Branch["id"], ContactDetails>> = {
+  shahar: {
+    phone: "+966565172793",
+    phoneDisplay: "+966 56 517 2793",
+    whatsappUrl: "https://wa.me/966501545629",
+    instagramUrl: "https://www.instagram.com/whitemooncare",
+    tiktokUrl: "https://www.tiktok.com/@whitemooncare",
+    snapchatUrl: "https://snapchat.com/t/d7WTmKwq",
+  },
+};
+
+// Khamseen is the pin from whitemoonclinics.com; Wisam is its Google Maps place; Shahar's link is from the clinic.
 const mapUrls = {
   khamseen: "https://maps.app.goo.gl/EbqYmfLYz6tniTkw7",
-  shahar: mapSearch("مجمع وايت مون الطبي شهار الطائف"),
+  shahar: "https://share.google/ED9FGuug4u5VuO320",
   wisam: "https://maps.google.com/?cid=13044452598520757617",
 };
 
