@@ -33,12 +33,14 @@ export default function OffersSection() {
     return () => window.removeEventListener("resize", measure);
   }, [measure, offers.length]);
 
-  // One screenful of cards per press, the next offers lying to the left in Arabic.
+  // One offer per press (user's choice), the next offers lying to the left in Arabic.
   const page = (forward: boolean) => {
     const el = row.current;
-    if (!el) return;
+    const card = el?.firstElementChild;
+    if (!el || !card) return;
+    const step = card.getBoundingClientRect().width + parseFloat(getComputedStyle(el).columnGap || "0");
     const dir = (forward ? 1 : -1) * (isArabic ? -1 : 1);
-    el.scrollBy({ left: dir * el.clientWidth * 0.9, behavior: "smooth" });
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
   if (offers.length === 0) return null;
