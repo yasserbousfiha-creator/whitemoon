@@ -54,6 +54,10 @@ export default function StatsPanel() {
   const booked = (branch?: BranchId) =>
     (stats?.bookings ?? []).filter((b) => branch === undefined || b.branch === branch).reduce((a, b) => a + Number(b.total), 0);
   const branches = Object.keys(BRANCHES) as BranchId[];
+  // "Bookings by doctor": one branch at a time.
+  const [doctorBranch, setDoctorBranch] = useState<BranchId>("khamseen");
+  const doctorRows = (stats?.byDoctor ?? []).filter((d) => d.branch === doctorBranch);
+  const topDoctor = Math.max(1, ...doctorRows.map((d) => d.total));
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 px-4 pt-5">
@@ -120,6 +124,50 @@ export default function StatsPanel() {
           <p className="text-[11px] text-ink-soft">
             الأرقام بعدد الأشخاص المختلفين (الشخص يُحسب مرة واحدة حتى لو ضغط أكثر من مرة). العدّ بدأ من يوم تفعيل الميزة، ولا يُحفظ أي بيانات شخصية.
           </p>
+
+          <div className="space-y-3 rounded-2xl border border-line/25 bg-surface p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-bold">الحجوزات حسب الطبيب</h2>
+              <div className="flex flex-wrap gap-1.5">
+                {branches.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setDoctorBranch(b)}
+                    className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                      doctorBranch === b ? "border-gold-bright bg-gold-bright text-night2" : "border-line/30 text-ink-soft hover:border-gold-bright"
+                    }`}
+                  >
+                    {BRANCHES[b]} ({n(booked(b))})
+                  </button>
+                ))}
+              </div>
+            </div>
+            {doctorRows.length === 0 ? (
+              <p className="py-4 text-center text-sm text-ink-soft">لا توجد حجوزات لهذا الفرع في هذه الفترة.</p>
+            ) : (
+              <ol className="space-y-2">
+                {doctorRows.map((d, i) => (
+                  <li key={d.doctor ?? "none"} className="flex items-center gap-3 text-sm">
+                    <span className="w-5 shrink-0 text-center text-xs font-bold text-ink-soft">{d.doctor ? i + 1 : "–"}</span>
+                    <span className={`w-44 shrink-0 truncate font-bold ${d.doctor ? "" : "font-normal text-ink-soft"}`}>
+                      {d.doctor ?? "بدون اختيار طبيب"}
+                    </span>
+                    <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface2">
+                      <span
+                        className={`block h-full rounded-full ${d.doctor ? "bg-gold-bright" : "bg-line/40"}`}
+                        style={{ width: `${(d.total / topDoctor) * 100}%` }}
+                      />
+                    </span>
+                    <span className="w-10 shrink-0 text-end font-bold">{n(d.total)}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <p className="text-[11px] text-ink-soft">
+              «بدون اختيار طبيب»: حجوزات اختار فيها المراجع القسم فقط دون طبيب معيّن.
+            </p>
+          </div>
         </div>
       )}
     </div>
