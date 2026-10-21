@@ -5,7 +5,7 @@
 // (user's choice 2026-10-19: e.g. the call center sees the live offers to answer patients, but never adds, edits or
 // hides one). A section not listed is hidden. null = the defaults for the account's branch.
 
-export const ADMIN_TABS = ["bookings", "spins", "schedule", "doctors", "offers", "wheel"] as const;
+export const ADMIN_TABS = ["bookings", "spins", "schedule", "doctors", "offers", "wheel", "stats"] as const;
 export type AdminTab = (typeof ADMIN_TABS)[number];
 export type Access = "none" | "view" | "edit";
 export type Permissions = Record<AdminTab, Access>;
@@ -17,6 +17,7 @@ export const TAB_LABELS: Record<AdminTab, string> = {
   doctors: "الأطباء",
   offers: "العروض",
   wheel: "إعدادات العجلة",
+  stats: "الإحصائيات",
 };
 
 /** What "edit" allows in each section (shown in the permissions editor). */
@@ -27,6 +28,7 @@ export const EDIT_MEANS: Record<AdminTab, string> = {
   doctors: "إضافة وتعديل وحذف وترتيب الأطباء",
   offers: "إضافة وتعديل وإخفاء وحذف العروض",
   wheel: "تعديل الجوائز وتشغيل العجلة",
+  stats: "لا شيء — القسم للعرض فقط",
 };
 
 export interface StaffAccess {
@@ -35,14 +37,15 @@ export interface StaffAccess {
   tabs?: string[] | null;
 }
 
-/** Without a saved choice: a management account (all branches) edits everything; a branch's reception does the daily work. */
+/** Without a saved choice: a management account (all branches) edits everything; a branch's reception does the daily
+ * work. The statistics are given by hand only (from "المستخدمون"), so no account gains them unasked. */
 export function defaultPermissions(branch: string | null): Permissions {
   const all = (a: Access) => Object.fromEntries(ADMIN_TABS.map((t) => [t, a])) as Permissions;
-  return branch ? { ...all("none"), bookings: "edit", spins: "edit", schedule: "edit" } : all("edit");
+  return branch ? { ...all("none"), bookings: "edit", spins: "edit", schedule: "edit" } : { ...all("edit"), stats: "none" };
 }
 
 export function permissionsOf(s: StaffAccess): Permissions {
-  if (s.is_admin) return defaultPermissions(null);
+  if (s.is_admin) return { ...defaultPermissions(null), stats: "edit" };
   if (!Array.isArray(s.tabs)) return defaultPermissions(s.branch);
   return Object.fromEntries(
     ADMIN_TABS.map((t) => [t, s.tabs!.includes(t) ? "edit" : s.tabs!.includes(`${t}:view`) ? "view" : "none"]),

@@ -3,10 +3,11 @@
 import { BRANCHES, type BranchId } from "@/lib/booking-labels";
 import { readEvents, riyadhDay } from "@/lib/site-stats-store";
 import { createServiceClient } from "@/lib/supabase";
-import { requireSiteAdmin } from "./manager";
+import { canOpen } from "@/lib/staff-access";
+import { currentStaff } from "./manager";
 
-// /admin → "الإحصائيات" (site admin only): the anonymous site events (lib/site-stats-store.ts) and the bookings sent,
-// counted for a period.
+// /admin → "الإحصائيات" (accounts given the section in "المستخدمون"): the anonymous site events
+// (lib/site-stats-store.ts) and the bookings sent, counted for a period. A branch account sees its branch only.
 
 export type StatsRange = "today" | "7d" | "30d" | "all";
 
@@ -40,8 +41,11 @@ function daysOf(range: StatsRange) {
 }
 
 export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats: SiteStats } | { ok: false; error: string }> {
-  const who = await requireSiteAdmin();
-  if ("error" in who) return { ok: false, error: "الإحصائيات لمدير الموقع فقط." };
+  const who = await currentStaff();
+  if ("error" in who) return { ok: false, error: who.error };
+  if (!canOpen(who.staff, "stats")) return { ok: false, error: "ليس لديك صلاحية على الإحصائيات." };
+  const own = (who.staff.branch as BranchId | null) ?? null;
+  const mine = (branch: BranchId | null) => !own || branch === own;
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
 
@@ -55,14 +59,14 @@ export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats
   // A booking names its doctor by id (older ones only by the name shown then); counted under today's Arabic name.
   const nameOf = new Map((doctors ?? []).map((d) => [d.id as string, d.name_ar as string]));
   const perDoctor = new Map<string, { branch: BranchId; doctor: string | null; total: number }>();
-  for (const b of booked) {
+  for (const b of booked.filter((b) => mine(b.branch))) {
     const doctor = (b.doctor_id && nameOf.get(b.doctor_id)) || b.doctor?.trim() || null;
     const key = `${b.branch}|${doctor}`;
     const g = perDoctor.get(key) ?? { branch: b.branch, doctor, total: 0 };
     g.total++;
     perDoctor.set(key, g);
   }
-  const bookingCounts = (Object.keys(BRANCHES) as BranchId[]).map((branch) => ({
+  const bookingCounts = (Object.keys(BRANCHES) as BranchId[]).filter(mine).map((branch) => ({
     branch,
     total: booked.filter((b) => b.branch === branch).length,
   }));
@@ -82,7 +86,7 @@ export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats
     stats: {
       visitors: new Set(visits.map((e) => e.visitor)).size,
       visits: visits.length,
-      events: [...groups.values()].map((g) => ({ type: g.type, branch: g.branch, total: g.total, people: g.people.size })),
+      events: [...groups.values()].filter((g) => mine(g.branch)).map((g) => ({ type: g.type, branch: g.branch, total: g.total, people: g.people.size })),
       bookings: bookingCounts,
       byDoctor: [...perDoctor.values()].sort((a, b) => b.total - a.total),
     },

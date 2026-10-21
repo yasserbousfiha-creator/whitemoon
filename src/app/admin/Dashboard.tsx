@@ -328,13 +328,12 @@ export default function Dashboard({
     };
   }, [reload]);
 
-  // The sections this account may open ("wheel" lives inside the prizes tab), plus "الإحصائيات" and "المستخدمون" for
-  // the site admin.
-  type Tab = Exclude<AdminTab, "wheel"> | "stats" | "users";
+  // The sections this account may open ("wheel" lives inside the prizes tab), plus "المستخدمون" for the site admin.
+  type Tab = Exclude<AdminTab, "wheel"> | "users";
   const can = staff.permissions;
   const tabs: Tab[] = [
     ...(Object.keys(can) as AdminTab[]).filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel" && can[t] !== "none"),
-    ...(staff.isAdmin ? (["stats", "users"] as const) : []),
+    ...(staff.isAdmin ? (["users"] as const) : []),
   ];
   /** View only in this section: lists and details without any button that changes something. */
   const viewOnly = (t: AdminTab) => can[t] === "view";
@@ -474,7 +473,7 @@ export default function Dashboard({
       ) : tab === "users" ? (
         <UsersPanel />
       ) : tab === "stats" ? (
-        <StatsPanel />
+        <StatsPanel branch={staff.branch} />
       ) : tab === "offers" ? (
         <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} readOnly={viewOnly("offers")} />
       ) : tab === "doctors" ? (

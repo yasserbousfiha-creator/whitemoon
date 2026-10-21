@@ -23,8 +23,9 @@ function Tile({ label, value, hint }: { label: string; value: number; hint?: str
   );
 }
 
-/** Visitors, branch pages opened, booking-button and WhatsApp clicks and bookings sent, for a period. */
-export default function StatsPanel() {
+/** Visitors, branch pages opened, booking-button and WhatsApp clicks and bookings sent, for a period. A branch
+ * account (`branch`) sees its own branch's rows only. */
+export default function StatsPanel({ branch }: { branch: BranchId | null }) {
   const [range, setRange] = useState<StatsRange>("7d");
   const [stats, setStats] = useState<SiteStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,9 +54,9 @@ export default function StatsPanel() {
       .reduce((a, e) => a + Number(e[key]), 0);
   const booked = (branch?: BranchId) =>
     (stats?.bookings ?? []).filter((b) => branch === undefined || b.branch === branch).reduce((a, b) => a + Number(b.total), 0);
-  const branches = Object.keys(BRANCHES) as BranchId[];
+  const branches = branch ? [branch] : (Object.keys(BRANCHES) as BranchId[]);
   // "Bookings by doctor": one branch at a time.
-  const [doctorBranch, setDoctorBranch] = useState<BranchId>("khamseen");
+  const [doctorBranch, setDoctorBranch] = useState<BranchId>(branch ?? "khamseen");
   const doctorRows = (stats?.byDoctor ?? []).filter((d) => d.branch === doctorBranch);
   const topDoctor = Math.max(1, ...doctorRows.map((d) => d.total));
 
@@ -111,13 +112,15 @@ export default function StatsPanel() {
                     <td className="p-3">{n(booked(b))}</td>
                   </tr>
                 ))}
-                <tr className="text-center text-ink-soft">
-                  <td className="p-3 text-start">الصفحة الرئيسية (قبل اختيار فرع)</td>
-                  <td className="p-3">—</td>
-                  <td className="p-3">{n(sum("book_click", null, "people"))}</td>
-                  <td className="p-3">{n(sum("whatsapp", null, "people"))}</td>
-                  <td className="p-3">—</td>
-                </tr>
+                {!branch && (
+                  <tr className="text-center text-ink-soft">
+                    <td className="p-3 text-start">الصفحة الرئيسية (قبل اختيار فرع)</td>
+                    <td className="p-3">—</td>
+                    <td className="p-3">{n(sum("book_click", null, "people"))}</td>
+                    <td className="p-3">{n(sum("whatsapp", null, "people"))}</td>
+                    <td className="p-3">—</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
