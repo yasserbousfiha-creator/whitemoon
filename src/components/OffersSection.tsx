@@ -24,7 +24,8 @@ export default function OffersSection() {
     const el = row.current;
     if (!el) return;
     const done = Math.abs(el.scrollLeft);
-    setEdges({ back: done > 2, forward: done < el.scrollWidth - el.clientWidth - 2 });
+    // A little slack: snapping to the first card leaves the row a few pixels in (its side padding).
+    setEdges({ back: done > 40, forward: done < el.scrollWidth - el.clientWidth - 40 });
   }, []);
   useEffect(() => {
     measure();
