@@ -42,8 +42,9 @@ export default function OffersSection() {
   };
 
   if (offers.length === 0) return null;
+  // In their own lane beside the row (md:px-14 below), not over a card.
   const arrow =
-    "absolute top-[38%] z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-line/30 bg-surface text-ink shadow-lg transition hover:border-gold-bright disabled:pointer-events-none disabled:opacity-0 md:grid";
+    "absolute top-[38%] z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-line/30 bg-surface text-ink shadow-lg transition hover:border-gold-bright disabled:pointer-events-none disabled:opacity-30 md:grid";
 
   return (
     <section id="offers" className="scroll-anchor bg-bg">
@@ -54,13 +55,13 @@ export default function OffersSection() {
           <p className="mt-3 text-[14.5px] leading-relaxed text-ink-soft">{t.offers.intro}</p>
         </div>
 
-        <div className="relative mt-8">
+        <div className="relative mt-8 md:px-14">
           <button
             type="button"
             onClick={() => page(false)}
             disabled={!edges.back}
             aria-label={isArabic ? "العروض السابقة" : "Previous offers"}
-            className={`${arrow} ${isArabic ? "-right-5" : "-left-5"}`}
+            className={`${arrow} ${isArabic ? "right-0" : "left-0"}`}
           >
             {isArabic ? <ChevronRight size={22} /> : <ChevronLeft size={22} />}
           </button>
@@ -69,13 +70,14 @@ export default function OffersSection() {
             onClick={() => page(true)}
             disabled={!edges.forward}
             aria-label={isArabic ? "العروض التالية" : "Next offers"}
-            className={`${arrow} ${isArabic ? "-left-5" : "-right-5"}`}
+            className={`${arrow} ${isArabic ? "left-0" : "right-0"}`}
           >
             {isArabic ? <ChevronLeft size={22} /> : <ChevronRight size={22} />}
           </button>
 
-          {/* Bleeds to the screen edge on phones so the next card peeks in, hinting that the row scrolls. Mouse drag:
-              snapping is paused while dragging, and the click that ends a drag doesn't press a card's button. */}
+          {/* Bleeds to the screen edge on phones so the next card peeks in, hinting that the row scrolls; on computers
+              it shows whole cards only, the arrows doing the hinting. Mouse drag: snapping is paused while dragging,
+              and the click that ends a drag doesn't press a card's button. */}
           <div
             ref={row}
             onScroll={measure}
@@ -107,7 +109,7 @@ export default function OffersSection() {
               }
             }}
             onDragStart={(e) => e.preventDefault()}
-            className={`-mx-6 flex items-stretch gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:gap-5 ${
+            className={`-mx-6 flex items-stretch gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:mx-0 md:gap-5 md:px-0 ${
               dragging ? "cursor-grabbing select-none" : "snap-x snap-mandatory md:cursor-grab"
             }`}
           >
