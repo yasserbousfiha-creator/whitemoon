@@ -47,10 +47,15 @@ export default function OfferCard({ offer: o, onBook, popup = false }: { offer: 
         />
       )}
       <div className={`flex flex-1 flex-col gap-2 p-4 ${popup ? "md:justify-center md:p-6" : ""}`}>
-        <h3 className="font-display text-[18px] leading-snug text-ink">{offerTitle(o, isArabic)}</h3>
-        {/* In the popup the design carries the details (and gets the room); the offers section lists them too. */}
+        <h3 className={`font-display leading-snug text-ink ${popup ? "text-[18px]" : "text-[16px]"}`}>{offerTitle(o, isArabic)}</h3>
+        {/* The design carries the details: the popup leaves the list out (the design gets the room), the offers
+            section shows its first lines under the smaller cards. */}
         {description && !(popup && o.image) && (
-          <p className="whitespace-pre-line text-[14px] leading-relaxed text-ink-soft">{description}</p>
+          <p
+            className={`whitespace-pre-line leading-relaxed text-ink-soft ${popup ? "text-[14px]" : "text-[13px]"} ${o.image && !popup ? "line-clamp-3" : ""}`}
+          >
+            {description}
+          </p>
         )}
         {(o.priceAfter !== null || o.priceBefore !== null) && (
           <p className="flex items-baseline gap-2">

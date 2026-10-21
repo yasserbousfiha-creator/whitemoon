@@ -24,7 +24,11 @@ export default function OffersSection() {
         {/* Bleeds to the screen edge on phones so the next card peeks in, hinting that the row scrolls. */}
         <div className="-mx-6 mt-8 flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:gap-5">
           {offers.map((o) => (
-            <div key={o.id} className="w-[78%] shrink-0 snap-start sm:w-[45%] md:w-[calc((100%-2.5rem)/3)]">
+            // Phone: one card and a peek of the next; then 3, 4 and 5 across, so the tall designs stay a moderate size.
+            <div
+              key={o.id}
+              className="w-[60%] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] md:w-[calc((100%-3.75rem)/4)] lg:w-[calc((100%-5rem)/5)]"
+            >
               <OfferCard offer={o} />
             </div>
           ))}
