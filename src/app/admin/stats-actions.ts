@@ -21,12 +21,19 @@ export interface SiteStats {
   byDoctor: { branch: BranchId; doctor: string | null; total: number }[];
 }
 
-// The bookings sent since a moment (branch and doctor only), a page at a time past the API's 1000-row cap.
+// The bookings sent since a moment (branch and doctor only), a page at a time past the API's 1000-row cap; in a fixed
+// order, so pages neither overlap nor skip rows. Throws rather than return a partial count.
 async function bookingsSince(db: NonNullable<ReturnType<typeof createServiceClient>>, since: string) {
   const rows: { branch: BranchId; doctor: string | null; doctor_id: string | null }[] = [];
   for (let from = 0; from < 50_000; from += 1000) {
-    const { data, error } = await db.from("bookings").select("branch, doctor, doctor_id").gte("created_at", since).range(from, from + 999);
-    if (error || !data?.length) break;
+    const { data, error } = await db
+      .from("bookings")
+      .select("branch, doctor, doctor_id")
+      .gte("created_at", since)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw error;
+    if (!data.length) break;
     rows.push(...(data as typeof rows));
     if (data.length < 1000) break;
   }
@@ -51,11 +58,15 @@ export async function getSiteStats(range: StatsRange): Promise<{ ok: true; stats
 
   const days = daysOf(range);
   const since = days ? `${days[days.length - 1]}T00:00:00+03:00` : "2000-01-01T00:00:00Z";
-  const [events, booked, { data: doctors }] = await Promise.all([
-    readEvents(db, days),
-    bookingsSince(db, since),
-    db.from("doctors").select("id, name_ar"),
-  ]);
+  let loaded;
+  try {
+    loaded = await Promise.all([readEvents(db, days), bookingsSince(db, since), db.from("doctors").select("id, name_ar")]);
+  } catch (err) {
+    console.error("Stats lookup failed:", err);
+    return { ok: false, error: "تعذّر تحميل الإحصائيات، حاول مرة أخرى." };
+  }
+  const [events, booked, { data: doctors, error: doctorsError }] = loaded;
+  if (doctorsError) console.error("Doctors lookup failed:", doctorsError);
   // A booking names its doctor by id (older ones only by the name shown then); counted under today's Arabic name.
   const nameOf = new Map((doctors ?? []).map((d) => [d.id as string, d.name_ar as string]));
   const perDoctor = new Map<string, { branch: BranchId; doctor: string | null; total: number }>();

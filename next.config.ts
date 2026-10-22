@@ -14,6 +14,22 @@ const nextConfig: NextConfig = {
     // Photo uploads from /admin are shrunk in the browser first; this leaves room for one that couldn't be.
     serverActions: { bodySizeLimit: "4mb" },
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // No other site may show these pages in a frame (clicks on /admin could be hijacked from under it).
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/login", destination: `${PORTALS}/login`, permanent: false },

@@ -126,6 +126,7 @@ export interface WheelStrings {
   showCode: string;
   book: string;
   invalid: string;
+  spunOther: string;
   error: string;
   terms: string;
 }
@@ -463,6 +464,7 @@ export const arContent: Content = {
     showCode: "اعرض هذا الرمز على الاستقبال عند زيارتك.",
     book: "احجز موعدك الآن",
     invalid: "أدخل اسمك ورقم جوال صحيح.",
+    spunOther: "هذا الرقم استخدم محاولته لهذا الشهر. اكتب الاسم نفسه الذي أدرت به العجلة لتظهر جائزتك، أو تجدها في «حسابي».",
     error: "تعذّر تدوير العجلة، حاول مرة أخرى.",
     terms: "محاولة واحدة لكل رقم جوال في الشهر. الجائزة شخصية وغير قابلة للتحويل أو الاستبدال نقداً.",
   },
@@ -758,6 +760,7 @@ export const enContent: Content = {
     showCode: "Show this code at reception when you visit.",
     book: "Book your appointment",
     invalid: "Enter your name and a valid mobile number.",
+    spunOther: "This number has already used its spin this month. Enter the same name you spun with to see your prize, or find it in \"My Account\".",
     error: "Couldn't spin the wheel. Please try again.",
     terms: "One spin per mobile number per month. Prizes are personal and can't be transferred or exchanged for cash.",
   },

@@ -5,14 +5,21 @@ import { getAllDoctors } from "@/lib/doctors-server";
 import type { Offer } from "@/lib/offers";
 import { getAllOffers } from "@/lib/offers-server";
 import { riyadhToday } from "@/lib/slots";
+import { type StaffAccess, canOpen } from "@/lib/staff-access";
 import { createServiceClient } from "@/lib/supabase";
 import { type WheelSettings, riyadhMonth } from "@/lib/wheel";
 import { getWheelSettingsForAdmin } from "@/lib/wheel-server";
 
 export type ScheduleBlockRow = { doctor: BlockTarget; date: string; start: string | null };
+/** A booked slot as the doctors' schedule shows it (grey, with the patient's name). */
+export type ScheduleBooking = Pick<
+  Booking,
+  "id" | "name" | "branch" | "doctor_id" | "appointment_date" | "appointment_time" | "status"
+>;
 
 export interface DashboardData {
   bookings: Booking[];
+  scheduleBookings: ScheduleBooking[]; // every upcoming booked slot, however long ago it was booked
   spins: WheelSpin[];
   blocks: ScheduleBlockRow[];
   doctors: Doctor[]; // including hidden ones
@@ -26,21 +33,34 @@ export interface DashboardData {
   loadedAt: string; // ISO; shown as "last updated"
 }
 
-// Everything the dashboard shows. Call only after confirming the signed-in user is staff: bookings are read as the
-// staff member (row level security limits a branch account to its branch); prizes and schedule blocks, which every
-// staff account may see, are read with the server key.
-export async function loadDashboard(staffClient: SupabaseClient): Promise<DashboardData> {
+// Everything the dashboard shows. Call only after confirming the signed-in user is staff, with that staff row: patient
+// details (bookings, prizes) are loaded only for an account that may open those sections, since whatever is returned
+// here reaches the browser whether or not the tab is shown. Bookings are read as the staff member (row level security
+// limits a branch account to its branch); prizes and schedule blocks are read with the server key.
+export async function loadDashboard(staffClient: SupabaseClient, staff: StaffAccess): Promise<DashboardData> {
   const db = createServiceClient();
   const lastMonth = riyadhMonth(new Date(Date.now() - 31 * 24 * 60 * 60 * 1000));
+  const showBookings = canOpen(staff, "bookings");
+  const showSpins = canOpen(staff, "spins");
 
   const columns =
     "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id";
   const readBookings = (cols: string) =>
     staffClient.from("bookings").select(cols).order("created_at", { ascending: false }).limit(500).returns<Booking[]>();
 
-  const [withExtras, spins, blocks, doctors, offers, wheel] = await Promise.all([
-    readBookings(columns + ", attendance, offer"),
-    db
+  const [withExtras, upcoming, spins, blocks, doctors, offers, wheel] = await Promise.all([
+    showBookings ? readBookings(columns + ", attendance, offer") : null,
+    // Apart from the latest 500 above, so a slot booked long ago still shows as taken.
+    canOpen(staff, "schedule")
+      ? staffClient
+          .from("bookings")
+          .select("id, name, branch, doctor_id, appointment_date, appointment_time, status")
+          .gte("appointment_date", riyadhToday())
+          .neq("status", "cancelled")
+          .not("doctor_id", "is", null)
+          .returns<ScheduleBooking[]>()
+      : null,
+    db && showSpins
       ? db
           .from("wheel_spins")
           .select("*")
@@ -57,15 +77,18 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
 
   // 42703: a later column isn't there yet (007_attendance.sql / 011_offers.sql not run); show bookings without it.
   let bookings = withExtras;
-  if (bookings.error?.code === "42703") bookings = await readBookings(columns + ", attendance");
-  if (bookings.error?.code === "42703") bookings = await readBookings(columns);
+  if (bookings?.error?.code === "42703") bookings = await readBookings(columns + ", attendance");
+  if (bookings?.error?.code === "42703") bookings = await readBookings(columns);
 
-  if (bookings.error) console.error("Bookings lookup failed:", bookings.error);
+  if (bookings?.error) console.error("Bookings lookup failed:", bookings.error);
+  if (upcoming?.error) console.error("Upcoming bookings lookup failed:", upcoming.error);
   if (spins?.error) console.error("Wheel spins lookup failed:", spins.error);
   if (blocks?.error) console.error("Schedule blocks lookup failed:", blocks.error);
+  const bookingsFailed = bookings?.error ?? upcoming?.error;
 
   return {
-    bookings: bookings.data ?? [],
+    bookings: bookings?.data ?? [],
+    scheduleBookings: upcoming?.data ?? [],
     spins: spins?.data ?? [],
     blocks: (blocks?.data ?? []).map((b) => ({
       doctor: b.doctor as BlockTarget,
@@ -73,8 +96,8 @@ export async function loadDashboard(staffClient: SupabaseClient): Promise<Dashbo
       start: (b.start_time as string | null)?.slice(0, 5) ?? null,
     })),
     doctors: doctors.doctors,
-    bookingsError: bookings.error ? (bookings.error.code ?? bookings.error.message) : null,
-    spinsError: !db ? "config" : spins?.error ? (spins.error.code ?? spins.error.message) : null,
+    bookingsError: bookingsFailed ? (bookingsFailed.code ?? bookingsFailed.message) : null,
+    spinsError: !showSpins ? null : !db ? "config" : spins?.error ? (spins.error.code ?? spins.error.message) : null,
     doctorsError: doctors.error,
     offers: offers.offers,
     offersError: offers.error,

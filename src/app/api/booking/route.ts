@@ -5,7 +5,8 @@ import { getDoctors } from "@/lib/doctors-server";
 import { isLive, offerIn } from "@/lib/offers";
 import { getOffers } from "@/lib/offers-server";
 import { formatDay, formatTime, isBookable } from "@/lib/slots";
-import { toAsciiDigits } from "@/lib/wheel";
+import { normalizePhone, toAsciiDigits } from "@/lib/wheel";
+import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -99,12 +100,15 @@ export async function POST(request: Request) {
   if (typeof body.website === "string" && body.website !== "") {
     return Response.json({ ok: true });
   }
+  // Generous for a family or a clinic sharing one connection; stops a script filling every slot.
+  if (!(await withinLimit(`booking:ip:${clientIp(request.headers)}`, 15, 3600))) return tooMany();
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const phone = typeof body.phone === "string" ? toAsciiDigits(body.phone).trim() : "";
   const email = typeof body.email === "string" ? body.email.trim() : "";
-  const service = body.service as ServiceId;
-  const branch = body.branch as BranchId;
+  // Own keys only: `"toString" in SERVICES` is true too.
+  const service = typeof body.service === "string" && Object.hasOwn(SERVICES, body.service) ? (body.service as ServiceId) : null;
+  const branch = typeof body.branch === "string" && Object.hasOwn(BRANCHES, body.branch) ? (body.branch as BranchId) : null;
   const date = typeof body.date === "string" ? body.date : null;
   const time = typeof body.time === "string" ? body.time : null;
   let doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
@@ -116,24 +120,30 @@ export async function POST(request: Request) {
   });
   let picked = doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor);
   // A doctor who does not work in the chosen branch/department is dropped rather than booked there.
-  if (picked && (picked.branch !== body.branch || picked.service !== body.service)) {
-    picked = null;
-    doctor = null;
-  }
+  if (picked && (picked.branch !== body.branch || picked.service !== body.service)) picked = null;
+  // A name that matches no bookable doctor (hidden since the form loaded…) is not kept: it would be booked without
+  // that doctor's shifts or slot.
+  if (!picked) doctor = null;
   const doctorId = picked?.id ?? null;
 
   const valid =
     name.length >= 2 &&
     name.length <= 100 &&
-    /^[+\d][\d\s-]{6,19}$/.test(phone) &&
+    /^[+\d][\d -]{6,19}$/.test(phone) &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
     email.length <= 200 &&
-    service in SERVICES &&
-    branch in BRANCHES &&
-    // A slot is optional (older app versions), but when sent it must be a real open slot.
-    // With a doctor, it must also fall within their shifts.
-    (date === null && time === null ? true : date !== null && time !== null && isBookable(date, time, new Date(), picked));
+    service !== null &&
+    branch !== null &&
+    // A slot is optional (older app versions), but when sent it must come as a date and a time.
+    (date === null) === (time === null) &&
+    (date === null || (/^\d{4}-\d{2}-\d{2}$/.test(date) && /^\d{2}:\d{2}$/.test(time!)));
   if (!valid) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
+  if (!(await withinLimit(`booking:phone:${normalizePhone(phone)}`, 5, 86_400))) return tooMany();
+  // A real open slot (within the doctor's shifts, when there is one). One that passed while the form was open is
+  // "taken", so the form asks for another time.
+  if (date && time && !isBookable(date, time, new Date(), picked)) {
+    return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+  }
 
   const booking: NewBooking = {
     name,
@@ -163,15 +173,23 @@ export async function POST(request: Request) {
   let saved: { id: number; public_token: string } | null = null;
   const db = createServiceClient();
   if (db) {
-    // The admin may have closed this day or slot for the doctor since the form loaded.
-    if (picked && date && time) {
-      const { data: blocks } = await db
+    // The admin may have closed this day or slot for the doctor, the branch or everyone (also when no doctor was
+    // picked) since the form loaded.
+    if (date && time) {
+      const { data: blocks, error } = await db
         .from("doctor_blocks")
         .select("doctor, date, start_time")
-        .in("doctor", [picked.id, "all", `all-${picked.branch}`])
+        .in("doctor", [...(picked ? [picked.id] : []), "all", `all-${branch}`])
         .eq("date", date);
-      const closed = (blocks ?? []).map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null }));
-      if (isBlocked(closed, picked, date, time)) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+      if (error) {
+        console.error("Block lookup failed:", error);
+        return Response.json({ ok: false, error: "server" }, { status: 500 });
+      }
+      const closed = blocks.map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null }));
+      const blocked = picked
+        ? isBlocked(closed, picked, date, time)
+        : closed.some((b) => b.start === null || b.start === time);
+      if (blocked) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
     }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
     // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.

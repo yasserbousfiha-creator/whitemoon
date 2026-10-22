@@ -1,10 +1,11 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import type { Booking, BranchId } from "@/lib/booking-labels";
+import type { BranchId } from "@/lib/booking-labels";
 import { type BlockTarget, type Doctor, type ScheduleBlock, doctorSlots, groupByShift, isBlocked } from "@/lib/doctors";
 import { DAYS_AHEAD, addDays, formatDay, formatTime, riyadhToday } from "@/lib/slots";
 import { setScheduleBlock } from "./actions";
+import type { ScheduleBooking } from "./data";
 
 // One doctor (by id), or the whole branch (closing a day for every doctor there).
 type Target = string;
@@ -27,7 +28,7 @@ export default function SchedulePanel({
   branch: BranchId;
   doctors: Doctor[]; // visible ones
   blocks: BlockKey[];
-  bookings: Booking[];
+  bookings: ScheduleBooking[];
   reload: () => Promise<void>;
   /** View only: the schedule and what's closed, without opening or closing anything. */
   readOnly?: boolean;

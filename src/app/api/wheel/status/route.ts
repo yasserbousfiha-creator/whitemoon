@@ -1,3 +1,4 @@
+import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
 import { monthEnd, prizeName } from "@/lib/wheel";
 
@@ -15,7 +16,9 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "invalid" }, { status: 400 });
   }
   const codes = Array.isArray(body.codes) ? body.codes.filter((c): c is string => typeof c === "string" && CODE.test(c)) : [];
-  if (codes.length === 0 || codes.length > 50) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
+  // A patient holds one code a month; more than that, or many requests, is someone guessing codes.
+  if (codes.length === 0 || codes.length > 20) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
+  if (!(await withinLimit(`wheel-status:ip:${clientIp(request.headers)}`, 60, 600))) return tooMany();
 
   const db = createServiceClient();
   if (!db) return Response.json({ ok: false, error: "server" }, { status: 500 });

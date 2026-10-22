@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "./staff-access";
 
 // Server-only Supabase clients. Env vars (set in Vercel):
 //   NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY — public, used with the staff member's session
@@ -19,7 +20,7 @@ export async function createStaffClient() {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => {
         try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, { ...options, ...SESSION_COOKIE }));
         } catch {
           // Called from a Server Component, where cookies are read-only; the proxy refreshes the session instead.
         }

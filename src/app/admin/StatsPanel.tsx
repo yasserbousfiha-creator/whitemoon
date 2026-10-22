@@ -35,14 +35,20 @@ export default function StatsPanel({ branch }: { branch: BranchId | null }) {
 
   useEffect(() => {
     let live = true;
-    getSiteStats(range).then((r) => {
-      if (!live) return;
-      setLoaded(range);
-      if (r.ok) {
-        setStats(r.stats);
-        setError(null);
-      } else setError(r.error);
-    });
+    getSiteStats(range)
+      .then((r) => {
+        if (!live) return;
+        setLoaded(range);
+        if (r.ok) {
+          setStats(r.stats);
+          setError(null);
+        } else setError(r.error);
+      })
+      .catch(() => {
+        if (!live) return;
+        setLoaded(range);
+        setError("تعذّر تحميل الإحصائيات، حاول مرة أخرى.");
+      });
     return () => {
       live = false;
     };

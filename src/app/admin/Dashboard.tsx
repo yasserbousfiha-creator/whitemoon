@@ -483,7 +483,7 @@ export default function Dashboard({
           branch={branch}
           doctors={data.doctors.filter((d) => d.active)}
           blocks={blocks}
-          bookings={branchBookings}
+          bookings={data.scheduleBookings.filter((b) => b.branch === branch)}
           reload={reload}
           readOnly={viewOnly("schedule")}
         />

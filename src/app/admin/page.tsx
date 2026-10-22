@@ -46,6 +46,6 @@ export default async function AdminPage() {
   // The dashboard then keeps itself up to date through the refreshDashboard action.
   return (
     <Dashboard
-      staff={{ name: staff.name, branch: staff.branch as BranchId | null, permissions: permissionsOf(staff), isAdmin: !!staff.is_admin }} initial={await loadDashboard(supabase)} />
+      staff={{ name: staff.name, branch: staff.branch as BranchId | null, permissions: permissionsOf(staff), isAdmin: !!staff.is_admin }} initial={await loadDashboard(supabase, staff)} />
   );
 }

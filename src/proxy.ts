@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE } from "@/lib/staff-access";
 
 // Refreshes the staff session cookie before /admin pages render (Server Components can't write cookies).
 export async function proxy(request: NextRequest) {
@@ -14,7 +15,7 @@ export async function proxy(request: NextRequest) {
       setAll: (cookiesToSet, headers) => {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, { ...options, ...SESSION_COOKIE }));
         Object.entries(headers ?? {}).forEach(([name, value]) => response.headers.set(name, value));
       },
     },

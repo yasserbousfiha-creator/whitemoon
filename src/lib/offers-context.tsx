@@ -1,8 +1,10 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 import { useBranch } from "./branch-context";
 import { type Offer, isLive, offerIn } from "./offers";
+
+const noop = () => () => {};
 
 // The live offers, read from the database on the server (HomePage) and handed to the page's client components.
 const OffersContext = createContext<Offer[]>([]);
@@ -10,11 +12,17 @@ const OffersContext = createContext<Offer[]>([]);
 export const OffersProvider = OffersContext.Provider;
 
 // The offers for the current page (a branch page: that branch's), checked again for expiry here since a
-// prerendered page can outlive an offer's last day.
+// prerendered page can outlive an offer's last day. That check waits until after hydration, so the first render
+// matches the prerendered HTML even when an offer has ended since.
 export function useOffers() {
   const offers = useContext(OffersContext);
   const branch = useBranch();
-  return offers.filter((o) => isLive(o) && offerIn(o, branch));
+  const mounted = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
+  return offers.filter((o) => (!mounted || isLive(o)) && offerIn(o, branch));
 }
 
 export function useOffer(id: number | null | undefined) {

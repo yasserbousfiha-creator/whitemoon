@@ -1,9 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ATTENDANCE, STATUSES, type Attendance, type BookingStatus } from "@/lib/booking-labels";
 import { type BlockTarget, DOCTOR_ID_PATTERN } from "@/lib/doctors";
+import { getAllDoctors } from "@/lib/doctors-server";
+import { STAFF_EMAIL_DOMAIN, canEdit } from "@/lib/staff-access";
+import { clientIp, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { type DashboardData, loadDashboard } from "./data";
 import { currentStaff, requireTab } from "./manager";
@@ -11,13 +15,17 @@ import { currentStaff, requireTab } from "./manager";
 /** Staff sign in with a plain username (e.g. "admin"); Supabase Auth still needs
  * an email, so a username maps to a synthetic, non-routable one. A real email
  * still works as-is. */
-import { STAFF_EMAIL_DOMAIN } from "@/lib/staff-access";
-
 export async function signIn(_prev: string | null, formData: FormData): Promise<string | null> {
   const login = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   if (!login || !password) return "أدخل اسم المستخدم وكلمة المرور.";
   const email = login.includes("@") ? login : `${login}@${STAFF_EMAIL_DOMAIN}`;
+
+  // Against guessing passwords: a few tries per account, and per connection across accounts.
+  const ip = clientIp(await headers());
+  if (!(await withinLimit(`login:user:${email}`, 5, 900)) || !(await withinLimit(`login:ip:${ip}`, 20, 900))) {
+    return "محاولات كثيرة. انتظر ربع ساعة ثم حاول مرة أخرى.";
+  }
 
   const supabase = await createStaffClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -89,8 +97,8 @@ export async function deleteBooking(id: number): Promise<UpdateResult> {
   return { ok: true };
 }
 
-// Marks a wheel prize as used. Any staff account may redeem (a patient can visit any branch); the staff session must be
-// able to read the spin, and a code can only be redeemed once.
+// Marks a wheel prize as used. Any account with the prizes section may redeem any branch's code (a patient can visit
+// any branch); a code can only be redeemed once.
 export async function redeemSpin(id: number): Promise<UpdateResult> {
   if (!Number.isInteger(id)) return { ok: false, error: "طلب غير صالح." };
 
@@ -131,9 +139,19 @@ export async function setScheduleBlock(
     return { ok: false, error: "طلب غير صالح." };
   }
 
-  const gate = await requireTab("schedule");
-  if ("error" in gate) return { ok: false, error: gate.error };
-  const userId = gate.userId;
+  const who = await currentStaff();
+  if ("error" in who) return { ok: false, error: who.error };
+  if (!canEdit(who.staff, "schedule")) return { ok: false, error: "صلاحيتك على هذا القسم للعرض فقط." };
+  const userId = who.userId;
+
+  // A branch account only opens and closes its own branch: never "all", another branch, or another branch's doctor.
+  const own = who.staff.branch;
+  if (own) {
+    const doctorBranch = doctor.startsWith("all")
+      ? doctor.slice(4)
+      : (await getAllDoctors()).doctors.find((d) => d.id === doctor)?.branch;
+    if (doctorBranch !== own) return { ok: false, error: "لا تملك صلاحية على جدول فرع آخر." };
+  }
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
@@ -160,11 +178,7 @@ export async function setScheduleBlock(
 
 // Fresh dashboard data for the client's periodic refresh (see Dashboard.tsx); null when not signed in as staff.
 export async function refreshDashboard(): Promise<DashboardData | null> {
-  const supabase = await createStaffClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims.sub;
-  if (!userId) return null;
-  const { data: staff } = await supabase.from("staff").select("user_id").eq("user_id", userId).maybeSingle();
-  if (!staff) return null;
-  return loadDashboard(supabase);
+  const who = await currentStaff();
+  if ("error" in who) return null;
+  return loadDashboard(await createStaffClient(), who.staff);
 }

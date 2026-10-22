@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { BRANCHES, type BranchId } from "@/lib/booking-labels";
-import { ADMIN_TABS, type Access, EDIT_MEANS, type Permissions, TAB_LABELS, defaultPermissions } from "@/lib/staff-access";
+import {
+  ADMIN_TABS,
+  type Access,
+  EDIT_MEANS,
+  MIN_PASSWORD,
+  type Permissions,
+  TAB_LABELS,
+  defaultPermissions,
+  randomPassword,
+} from "@/lib/staff-access";
 import { type StaffUser, createStaffUser, listStaffUsers, resetStaffPassword, updateStaffUser } from "./user-actions";
 
 const field = "mt-1 w-full rounded-lg border border-line/40 bg-bg px-3 py-2 text-sm outline-none focus:border-gold-bright";
@@ -16,7 +25,6 @@ const CALL_CENTER: { username: string; name: string; branch: BranchId | null }[]
 ];
 // …and sees the doctors and the live offers to answer patients, without changing them.
 const CALL_CENTER_PERMISSIONS: Permissions = { ...defaultPermissions("khamseen"), spins: "none", bookings: "edit", schedule: "edit", doctors: "view", offers: "view" };
-const CALL_CENTER_PASSWORD = "123456";
 
 const signInFormat = new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh" });
 
@@ -126,11 +134,11 @@ function UserCard({ user, reload }: { user: StaffUser; reload: () => void }) {
       <div className="flex flex-wrap items-end gap-2 border-t border-line/15 pt-3">
         <label className="block min-w-0 flex-1 text-xs font-bold text-ink-soft">
           كلمة مرور جديدة لهذا الحساب
-          <input id={`pw-${user.userId}`} type="text" dir="ltr" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} className={field} placeholder="6 أحرف على الأقل" />
+          <input id={`pw-${user.userId}`} type="text" dir="ltr" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} className={field} placeholder={`${MIN_PASSWORD} أحرف على الأقل`} />
         </label>
         <button
           type="button"
-          disabled={pending || password.length < 6}
+          disabled={pending || password.length < MIN_PASSWORD}
           onClick={() => run(async () => {
             const r = await resetStaffPassword(user.userId, password);
             if (r.ok) setPassword("");
@@ -180,7 +188,7 @@ function NewUserForm({ onDone }: { onDone: () => void }) {
         </label>
         <label className="block text-xs font-bold text-ink-soft">
           كلمة المرور
-          <input id="new-password" type="text" dir="ltr" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
+          <input id="new-password" type="text" dir="ltr" required minLength={MIN_PASSWORD} value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
         </label>
       </div>
       <label className="block max-w-xs text-xs font-bold text-ink-soft">
@@ -206,6 +214,7 @@ export default function UsersPanel() {
   const [adding, setAdding] = useState(false);
   const [pending, start] = useTransition();
   const [ccMsg, setCcMsg] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ username: string; password: string }[]>([]);
 
   const reload = useCallback(() => {
     listStaffUsers().then((r) => (r.ok ? (setUsers(r.users), setError(null)) : setError(r.error)));
@@ -233,8 +242,7 @@ export default function UsersPanel() {
                 <b dir="ltr">{c.username}</b> ({c.branch ? BRANCHES[c.branch] : "كل الفروع"})
               </span>
             ))}{" "}
-            — الحجوزات وجدول الأطباء، وكلمة المرور{" "}
-            <b dir="ltr">{CALL_CENTER_PASSWORD}</b>.
+            — الحجوزات وجدول الأطباء، ولكل حساب كلمة مرور عشوائية تظهر هنا مرة واحدة بعد الإنشاء.
           </p>
           <button
             type="button"
@@ -242,10 +250,17 @@ export default function UsersPanel() {
             onClick={() =>
               start(async () => {
                 setCcMsg(null);
+                const made: { username: string; password: string }[] = [];
                 for (const c of missingCc) {
-                  const r = await createStaffUser({ ...c, password: CALL_CENTER_PASSWORD, permissions: CALL_CENTER_PERMISSIONS });
-                  if (!r.ok) return setCcMsg(r.error);
+                  const password = randomPassword();
+                  const r = await createStaffUser({ ...c, password, permissions: CALL_CENTER_PERMISSIONS });
+                  if (!r.ok) {
+                    setCcMsg(r.error);
+                    break;
+                  }
+                  made.push({ username: c.username, password });
                 }
+                setCreated((prev) => [...prev, ...made]);
                 reload();
               })
             }
@@ -254,6 +269,22 @@ export default function UsersPanel() {
             {pending ? "جارٍ الإنشاء…" : missingCc.length === 1 ? "إنشاء الحساب" : `إنشاء الحسابات (${missingCc.length})`}
           </button>
           {ccMsg && <p className="w-full rounded-xl bg-red-50 p-2.5 text-red-700">{ccMsg}</p>}
+        </div>
+      )}
+
+      {created.length > 0 && (
+        <div className="space-y-2 rounded-2xl border border-gold-bright/50 bg-surface2 p-4 text-sm">
+          <p className="font-bold">انسخ كلمات المرور الآن وسلّم كل موظف كلمته — لن تظهر مرة أخرى:</p>
+          <ul dir="ltr" className="space-y-1 text-left font-mono">
+            {created.map((c) => (
+              <li key={c.username}>
+                {c.username}: <b className="select-all">{c.password}</b>
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={() => setCreated([])} className="rounded-full border border-line/40 px-4 py-1.5">
+            تم النسخ، إخفاء
+          </button>
         </div>
       )}
 

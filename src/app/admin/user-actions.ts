@@ -3,7 +3,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { type BranchId, BRANCHES } from "@/lib/booking-labels";
-import { type Permissions, STAFF_EMAIL_DOMAIN, USERNAME_PATTERN, permissionsOf, toTabs } from "@/lib/staff-access";
+import { MIN_PASSWORD, type Permissions, STAFF_EMAIL_DOMAIN, USERNAME_PATTERN, permissionsOf, toTabs } from "@/lib/staff-access";
 import { createServiceClient, createStaffClient } from "@/lib/supabase";
 import { currentStaff, requireSiteAdmin } from "./manager";
 import type { UpdateResult } from "./actions";
@@ -23,7 +23,6 @@ export interface StaffUser {
   lastSignIn: string | null;
 }
 
-const MIN_PASSWORD = 6;
 const cleanTabs = (p: unknown) => toTabs(p && typeof p === "object" ? (p as Record<string, unknown>) : {});
 const cleanBranch = (b: unknown): BranchId | null => (typeof b === "string" && b in BRANCHES ? (b as BranchId) : null);
 

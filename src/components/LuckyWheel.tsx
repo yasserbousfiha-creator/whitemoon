@@ -7,7 +7,7 @@ import { useLocale } from "@/lib/locale-context";
 import { type Prize, slicesFor } from "@/lib/wheel";
 import Eyebrow from "./Eyebrow";
 
-type Phase = "idle" | "spinning" | "done" | "invalid" | "error";
+type Phase = "idle" | "spinning" | "done" | "invalid" | "spun" | "error";
 interface Result {
   prize: string;
   prizeAr: string;
@@ -133,7 +133,7 @@ export default function LuckyWheel({ prizes }: { prizes: Prize[] }) {
         body: JSON.stringify({ name: data.name, phone: data.phone }),
       });
       if (!res.ok) {
-        setPhase(res.status === 400 ? "invalid" : "error");
+        setPhase(res.status === 400 ? "invalid" : res.status === 409 ? "spun" : "error");
         return;
       }
       const r: Result = await res.json();
@@ -237,6 +237,7 @@ export default function LuckyWheel({ prizes }: { prizes: Prize[] }) {
                 {spinning ? w.spinning : w.spin}
               </button>
               {phase === "invalid" && <p className="text-[13.5px] text-red-600">{w.invalid}</p>}
+              {phase === "spun" && <p className="text-[13.5px] text-red-600">{w.spunOther}</p>}
               {phase === "error" && <p className="text-[13.5px] text-red-600">{w.error}</p>}
             </form>
           )}

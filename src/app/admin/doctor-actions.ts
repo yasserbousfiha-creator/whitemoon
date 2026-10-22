@@ -75,7 +75,8 @@ export async function saveDoctor(input: DoctorInput): Promise<UpdateResult> {
   const hours = cleanHours(input.hours);
   if (!hours) return { ok: false, error: "أوقات الدوام غير صحيحة: تأكد أن بداية كل فترة قبل نهايتها." };
   if (Object.keys(hours).length === 0) return { ok: false, error: "حدّد يوم دوام واحداً على الأقل." };
-  const photo = input.photo && /^(\/images\/|https:\/\/)/.test(input.photo) ? input.photo : null;
+  if (input.photo && !isOwnPhoto(input.photo)) return { ok: false, error: "صورة الطبيب غير صالحة: ارفعها من هنا." };
+  const photo = input.photo || null;
   if (!Array.isArray(input.cases) || !input.cases.every(isOwnPhoto)) return { ok: false, error: "صور الحالات غير صالحة." };
   const cases = [...new Set(input.cases)];
   if (cases.length > MAX_CASES) return { ok: false, error: `الحد الأقصى ${MAX_CASES} صورة حالة لكل طبيب.` };

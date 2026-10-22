@@ -66,11 +66,13 @@ export default function SlotPicker({
   const unavailable = (d: string, s: string) =>
     !!doctor && !!avail && (isBlocked(avail.blocks, doctor, d, s) || avail.taken.includes(`${d} ${s}`));
   const days = bookableDays(new Date(), doctor);
+  // A day picked before midnight (the form left open) is no longer offered: pick again.
+  const day = date && days.includes(date) ? date : null;
   const dayFull = (d: string) => !!doctorId && timeSlots(d, new Date(), doctor).every((s) => unavailable(d, s));
-  const slots = date ? timeSlots(date, new Date(), doctor) : [];
+  const slots = day ? timeSlots(day, new Date(), doctor) : [];
   // Two-shift doctors get their slots split into morning and evening; everyone else one plain group.
   const splitDoctor = !!doctor && hasSplitShifts(doctor);
-  const groups = doctor && date ? groupByShift(doctor, slots, date) : slots.length ? [slots] : [];
+  const groups = doctor && day ? groupByShift(doctor, slots, day) : slots.length ? [slots] : [];
 
   // Same colours as the /admin schedule tab: red = closed or booked, green = open, gold = the one picked.
   const chip = (active: boolean, off: boolean) =>
@@ -110,7 +112,7 @@ export default function SlotPicker({
       </div>
       <div className="md:col-span-2">
         <p className="text-[13px] font-bold text-ink-soft">{b.time}</p>
-        {date ? (
+        {day ? (
           <>
             {groups.map((group) => (
               <div key={group[0]}>
@@ -123,7 +125,7 @@ export default function SlotPicker({
                 ) : null}
                 <div className="mt-1.5 grid grid-cols-4 gap-2 sm:grid-cols-6">
                   {group.map((s) => {
-                    const off = unavailable(date, s);
+                    const off = unavailable(day, s);
                     return (
                       <button
                         key={s}
@@ -139,7 +141,7 @@ export default function SlotPicker({
                 </div>
               </div>
             ))}
-            {doctorId && slots.some((s) => unavailable(date, s)) && (
+            {doctorId && slots.some((s) => unavailable(day, s)) && (
               <p className="mt-1.5 text-[12px] text-red-500">{b.closedHint}</p>
             )}
           </>

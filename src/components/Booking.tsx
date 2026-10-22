@@ -111,7 +111,7 @@ export default function Booking() {
         setDate(null);
         setTime(null);
         setService("");
-        setBranch("");
+        setBranch(pageBranch ?? "");
         setDoctor(null);
         setDoctorId(null);
         setOfferId(null);

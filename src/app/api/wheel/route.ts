@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
 import { type Prize, monthEnd, normalizePhone, prizeName, riyadhMonth, toAsciiDigits } from "@/lib/wheel";
 import { getWheelSettings } from "@/lib/wheel-server";
@@ -24,16 +25,33 @@ function drawPrize(prizes: Prize[]): Prize {
   return prizes[0];
 }
 
+// Names as people retype them: case, spacing and Arabic letter variants (أ/إ/آ/ا, ة/ه, ى/ي) don't matter.
+const nameKey = (s: string) =>
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي");
+const sameName = (stored: unknown, given: string) => typeof stored === "string" && nameKey(stored) === nameKey(given);
+
+// This number already spun this month under another name: say so, without its prize or code.
+const spunElsewhere = () => Response.json({ ok: false, error: "spun" }, { status: 409 });
+
 // Whether the wheel is shown, and its prizes (for the mobile app, which draws the same wheel).
 export async function GET() {
   return Response.json({ ok: true, ...(await getWheelSettings()) });
 }
 
-// One spin per phone number per Riyadh month. Spinning again returns the prize already won, never a new draw.
+// One spin per phone number per Riyadh month. Spinning again with the same name returns the prize already won, never a
+// new draw.
 // While the wheel is hidden from /admin, no spins are taken.
 export async function POST(request: Request) {
   const settings = await getWheelSettings();
   if (!settings.enabled) return Response.json({ ok: false, error: "closed" }, { status: 403 });
+  // Stops a script spinning with made-up numbers until it lands the best prize.
+  if (!(await withinLimit(`wheel:ip:${clientIp(request.headers)}`, 10, 3600))) return tooMany();
 
   let body: Record<string, unknown>;
   try {
@@ -45,7 +63,7 @@ export async function POST(request: Request) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const rawPhone = typeof body.phone === "string" ? toAsciiDigits(body.phone).trim() : "";
   const phone = normalizePhone(rawPhone);
-  if (name.length < 2 || name.length > 100 || !/^[+\d][\d\s-]{6,19}$/.test(rawPhone) || phone.length < 8) {
+  if (name.length < 2 || name.length > 100 || !/^[+\d][\d -]{6,19}$/.test(rawPhone) || phone.length < 8) {
     return Response.json({ ok: false, error: "invalid" }, { status: 400 });
   }
 
@@ -72,7 +90,8 @@ export async function POST(request: Request) {
     console.error("Wheel lookup failed:", lookupError);
     return Response.json({ ok: false, error: "server" }, { status: 500 });
   }
-  if (already) return reply(already, true);
+  // The code goes back only to the same name, so knowing someone's number is not enough to take their prize.
+  if (already) return sameName(already.name, name) ? reply(already, true) : spunElsewhere();
 
   const prize = drawPrize(settings.prizes);
   // The prize's name is kept with the spin, since prizes can be renamed or removed from /admin later.
@@ -93,7 +112,7 @@ export async function POST(request: Request) {
     }
     // Unique violation: either a simultaneous spin for this phone (return it) or a code collision (retry).
     const { data: raced } = await existing();
-    if (raced) return reply(raced, true);
+    if (raced) return sameName(raced.name, name) ? reply(raced, true) : spunElsewhere();
   }
   return Response.json({ ok: false, error: "server" }, { status: 500 });
 }

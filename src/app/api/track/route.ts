@@ -1,4 +1,5 @@
 import { isBranchId } from "@/lib/branches";
+import { clientIp, withinLimit } from "@/lib/rate-limit";
 import { saveEvent } from "@/lib/site-stats-store";
 import { createServiceClient } from "@/lib/supabase";
 import { TRACK_TYPES, type TrackType } from "@/lib/track";
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
   }
   const db = createServiceClient();
   if (!db) return new Response(null, { status: 204 });
+  // A real visitor sends a handful of events; past this, someone is inflating the numbers.
+  if (!(await withinLimit(`track:ip:${clientIp(request.headers)}`, 100, 3600))) return new Response(null, { status: 204 });
   await saveEvent(db, type as TrackType, typeof branch === "string" && isBranchId(branch) ? branch : null, visitor);
   return new Response(null, { status: 204 });
 }

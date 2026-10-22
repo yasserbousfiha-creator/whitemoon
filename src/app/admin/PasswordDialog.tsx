@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { MIN_PASSWORD } from "@/lib/staff-access";
 import { changeMyPassword } from "./user-actions";
 
 const field = "mt-1 w-full rounded-lg border border-line/40 bg-bg px-3 py-2 text-sm outline-none focus:border-gold-bright";
@@ -43,12 +44,12 @@ export default function PasswordDialog({ onClose }: { onClose: () => void }) {
               <input id="pw-current" type="password" dir="ltr" required autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className={field} />
             </label>
             <label className="block text-sm">
-              كلمة المرور الجديدة (6 أحرف على الأقل)
-              <input id="pw-next" type="password" dir="ltr" required minLength={6} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className={field} />
+              كلمة المرور الجديدة ({MIN_PASSWORD} أحرف على الأقل)
+              <input id="pw-next" type="password" dir="ltr" required minLength={MIN_PASSWORD} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className={field} />
             </label>
             <label className="block text-sm">
               تأكيد كلمة المرور الجديدة
-              <input id="pw-again" type="password" dir="ltr" required minLength={6} autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} className={field} />
+              <input id="pw-again" type="password" dir="ltr" required minLength={MIN_PASSWORD} autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} className={field} />
             </label>
             {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             <div className="flex gap-2">

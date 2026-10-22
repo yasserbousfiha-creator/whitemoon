@@ -60,6 +60,20 @@ export function toTabs(p: Partial<Record<string, unknown>>): string[] {
 export const canOpen = (s: StaffAccess, tab: AdminTab) => permissionsOf(s)[tab] !== "none";
 export const canEdit = (s: StaffAccess, tab: AdminTab) => permissionsOf(s)[tab] === "edit";
 
+/** The staff session cookie. It is only ever read on the server (there is no browser Supabase client), so page
+ * scripts never need it: kept out of their reach in case of a script injection. */
+export const SESSION_COOKIE = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" } as const;
+
+/** Every /admin password, set by the site admin or by the account itself. */
+export const MIN_PASSWORD = 10;
+
+/** A strong random password for a new account (no look-alike characters, so it can be read out or copied by hand). */
+export function randomPassword(length = 14) {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
 /** A staff login name: lower-case latin letters, digits, dot, dash, underscore. */
 export const USERNAME_PATTERN = /^[a-z0-9][a-z0-9._-]{2,29}$/;
 
