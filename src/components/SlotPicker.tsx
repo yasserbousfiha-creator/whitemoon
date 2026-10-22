@@ -5,6 +5,7 @@ import type { Availability } from "@/app/api/availability/route";
 import { type Doctor, groupByShift, hasSplitShifts, isBlocked } from "@/lib/doctors";
 import { useLocale } from "@/lib/locale-context";
 import { bookableDays, formatDay, formatTime, timeSlots } from "@/lib/slots";
+import RequiredMark from "./RequiredMark";
 
 const noop = () => () => {};
 
@@ -17,6 +18,7 @@ export default function SlotPicker({
   onTime,
   doctor = null,
   refreshKey = 0,
+  showMissing = false,
 }: {
   date: string | null;
   time: string | null;
@@ -24,6 +26,7 @@ export default function SlotPicker({
   onTime: (time: string) => void;
   doctor?: Doctor | null;
   refreshKey?: number; // bump to re-fetch availability (e.g. after a slot was taken meanwhile)
+  showMissing?: boolean; // a send was tried: the day or time not picked yet shows in red
 }) {
   const { t, locale } = useLocale();
   const b = t.booking;
@@ -95,7 +98,10 @@ export default function SlotPicker({
   return (
     <>
       <div className="min-w-0 md:col-span-2">
-        <p className="text-[13px] font-bold text-ink-soft">{b.date}</p>
+        <p className={`text-[13px] font-bold ${showMissing && !day ? "text-red-600" : "text-ink-soft"}`}>
+          {b.date}
+          <RequiredMark />
+        </p>
         <div className="mt-1.5 flex gap-2 overflow-x-auto pb-1">
           {days.map((d) => {
             const off = dayFull(d);
@@ -111,7 +117,10 @@ export default function SlotPicker({
         </div>
       </div>
       <div className="md:col-span-2">
-        <p className="text-[13px] font-bold text-ink-soft">{b.time}</p>
+        <p className={`text-[13px] font-bold ${showMissing && !time ? "text-red-600" : "text-ink-soft"}`}>
+          {b.time}
+          <RequiredMark />
+        </p>
         {day ? (
           <>
             {groups.map((group) => (

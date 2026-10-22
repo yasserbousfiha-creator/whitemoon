@@ -134,12 +134,14 @@ export default function AccountPanel({ open, onClose }: { open: boolean; onClose
                   {account.phone}
                 </span>
               </p>
-              <p>
-                <span className="text-ink-soft">{a.email}: </span>
-                <span dir="ltr" className="font-bold text-ink">
-                  {account.email}
-                </span>
-              </p>
+              {account.email && (
+                <p>
+                  <span className="text-ink-soft">{a.email}: </span>
+                  <span dir="ltr" className="font-bold text-ink">
+                    {account.email}
+                  </span>
+                </p>
+              )}
             </div>
 
             <div className="space-y-3 rounded-2xl border border-line/25 bg-surface p-4">

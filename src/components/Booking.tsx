@@ -13,17 +13,20 @@ import { useLocale } from "@/lib/locale-context";
 import { offerIn, offerTitle } from "@/lib/offers";
 import { useOffer } from "@/lib/offers-context";
 import Eyebrow from "./Eyebrow";
+import RequiredMark from "./RequiredMark";
 import SlotPicker from "./SlotPicker";
 
 type Status = "idle" | "sending" | "success" | "error" | "invalid" | "unavailable";
 
+// Once a send was tried, the required fields still empty get a red border (the form has class "tried").
 const fieldClass =
-  "mt-1.5 w-full rounded-[10px] border border-line/40 bg-bg px-3.5 py-2.5 text-[15px] text-ink outline-none focus:border-gold-bright";
+  "mt-1.5 w-full rounded-[10px] border border-line/40 bg-bg px-3.5 py-2.5 text-[15px] text-ink outline-none focus:border-gold-bright [.tried_&:invalid]:border-red-500";
 
 export default function Booking() {
   const { t, isArabic } = useLocale();
   const b = t.booking;
   const [status, setStatus] = useState<Status>("idle");
+  const [tried, setTried] = useState(false);
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   // Controlled so a doctor or service card elsewhere on the page can pre-select them (see lib/booking-prefill.ts).
@@ -78,6 +81,7 @@ export default function Booking() {
     e.preventDefault();
     const form = e.currentTarget;
     if (!date || !time) {
+      setTried(true);
       setStatus("invalid");
       return;
     }
@@ -117,6 +121,7 @@ export default function Booking() {
         setDoctor(null);
         setDoctorId(null);
         setOfferId(null);
+        setTried(false);
         setStatus("success");
       } else {
         if (res.status === 409) {
@@ -141,7 +146,9 @@ export default function Booking() {
         <form
           key={account ? "account" : "guest"}
           onSubmit={onSubmit}
-          className="mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2"
+          // The browser stops a send with an empty required field before onSubmit runs; mark them all then.
+          onInvalidCapture={() => setTried(true)}
+          className={`${tried ? "tried " : ""}mt-8 grid grid-cols-1 gap-4 rounded-2xl border border-line/25 bg-surface p-6 md:grid-cols-2`}
         >
           <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
@@ -162,6 +169,7 @@ export default function Booking() {
 
           <label className="text-[13px] font-bold text-ink-soft md:col-span-2">
             {b.name}
+            <RequiredMark />
             <input
               name="name"
               required
@@ -174,6 +182,7 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.phone}
+            <RequiredMark />
             <input
               name="phone"
               type="tel"
@@ -189,7 +198,6 @@ export default function Booking() {
             <input
               name="email"
               type="email"
-              required
               dir="ltr"
               autoComplete="email"
               defaultValue={account?.email}
@@ -198,6 +206,7 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.service}
+            <RequiredMark />
             <select
               name="service"
               required
@@ -220,6 +229,7 @@ export default function Booking() {
           </label>
           <label className="text-[13px] font-bold text-ink-soft">
             {b.branch}
+            <RequiredMark />
             <select
               name="branch"
               required
@@ -279,6 +289,7 @@ export default function Booking() {
             onTime={setTime}
             doctor={pickedDoctor}
             refreshKey={availabilityKey}
+            showMissing={tried}
           />
 
           <button

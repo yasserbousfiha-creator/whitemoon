@@ -66,14 +66,14 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
     await transporter.sendMail({
       from: SMTP_FROM || SMTP_USER,
       to,
-      replyTo: email,
+      replyTo: email || undefined,
       subject: `حجز جديد${offer ? " (عرض)" : ""}: ${serviceLabel} - ${branchLabel} - ${name}`,
-      text: `الاسم: ${name}\nالجوال: ${phone}\nالبريد: ${email}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${doctor ? `\nالطبيب: ${doctor}` : ""}${offer ? `\nالعرض: ${offer}` : ""}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
+      text: `الاسم: ${name}\nالجوال: ${phone}${email ? `\nالبريد: ${email}` : ""}\nالتخصص: ${serviceLabel}\nالفرع: ${branchLabel}\nالموعد المطلوب: ${when}${doctor ? `\nالطبيب: ${doctor}` : ""}${offer ? `\nالعرض: ${offer}` : ""}${dashboard ?`\n\nلوحة الحجوزات: ${dashboard}` : ""}`,
       html: `<div dir="rtl" style="font-family:Arial,sans-serif;line-height:1.8">
 <h2>طلب حجز جديد</h2>
 <p><b>الاسم:</b> ${escapeHtml(name)}</p>
 <p><b>الجوال:</b> <span dir="ltr">${escapeHtml(phone)}</span></p>
-<p><b>البريد:</b> ${escapeHtml(email)}</p>
+${email ? `<p><b>البريد:</b> ${escapeHtml(email)}</p>` : ""}
 <p><b>التخصص:</b> ${serviceLabel}</p>
 <p><b>الفرع:</b> ${branchLabel}</p>
 <p><b>الموعد المطلوب:</b> ${when}</p>
@@ -130,7 +130,8 @@ export async function POST(request: Request) {
     name.length >= 2 &&
     name.length <= 100 &&
     /^[+\d][\d -]{6,19}$/.test(phone) &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    // Optional: stored as "" without one (the column is not null).
+    (email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) &&
     email.length <= 200 &&
     service !== null &&
     branch !== null &&
