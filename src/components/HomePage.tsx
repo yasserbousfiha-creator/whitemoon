@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import WhatsappFab from "@/components/WhatsappFab";
+import ChatAssistant from "@/components/ChatAssistant";
 import BranchPicker from "@/components/BranchPicker";
 import type { Branch } from "@/lib/content";
 import { BranchProvider } from "@/lib/branch-context";
@@ -81,6 +82,7 @@ export default async function HomePage({ branch, picker = false }: { branch: Bra
 
         <ScrollToTopButton />
         <div className="fixed bottom-6 end-6 z-40 flex flex-col items-end gap-3">
+          <ChatAssistant />
           <WhatsappFab />
         </div>
 

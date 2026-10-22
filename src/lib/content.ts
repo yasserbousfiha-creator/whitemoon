@@ -114,6 +114,46 @@ export interface OfferStrings {
   removeOffer: string;
 }
 
+// The chat assistant (components/ChatAssistant.tsx). "{…}" parts are filled in by the component.
+export interface ChatStrings {
+  open: string;
+  close: string;
+  title: string;
+  subtitle: string;
+  placeholder: string;
+  send: string;
+  welcome: string;
+  quick: { offers: string; doctors: string; branches: string; book: string; whatsapp: string };
+  pickBranch: string;
+  pickDoctor: string; // "{branch}"
+  manyDoctors: string; // several doctors share the name that was typed
+  departmentDoctors: string; // "{service}"
+  noDoctors: string;
+  daily: string;
+  dayOff: string;
+  today: string;
+  onDay: string; // "{day}"
+  hoursNote: string;
+  bookWith: string; // "{name}"
+  offersIntro: string;
+  offersFor: string; // "{service}"
+  noOffers: string;
+  noOffersFor: string; // "{service}"
+  prices: string;
+  branchesIntro: string;
+  map: string;
+  call: string;
+  whatsapp: string;
+  hours: string; // "{value}"
+  book: string;
+  bookButton: string;
+  contact: string;
+  greeting: string;
+  thanks: string;
+  unknown: string;
+  askTeam: string;
+}
+
 export interface WheelStrings {
   eyebrow: string;
   heading: string;
@@ -225,6 +265,7 @@ export interface Content {
   booking: BookingStrings;
   wheel: WheelStrings;
   offers: OfferStrings;
+  chat: ChatStrings;
 
   testimonialsEyebrow: string;
   testimonialsHeading: string;
@@ -562,6 +603,45 @@ export const arContent: Content = {
     bookingOffer: "العرض",
     removeOffer: "إلغاء العرض",
   },
+  chat: {
+    open: "المساعد",
+    close: "إغلاق المحادثة",
+    title: "مساعد وايت مون",
+    subtitle: "يرد فوراً على أسئلتك",
+    placeholder: "اكتب سؤالك… مثلاً: دوام د. سعاد",
+    send: "إرسال",
+    welcome:
+      "أهلاً بك في وايت مون 🌙 أنا المساعد الآلي. اسألني عن دوام أي طبيب، أو العروض الحالية، أو الفروع، أو اختر من الأزرار بالأسفل.",
+    quick: { offers: "العروض", doctors: "دوام طبيب", branches: "الفروع", book: "احجز موعد", whatsapp: "واتساب" },
+    pickBranch: "في أي فرع؟",
+    pickDoctor: "اختر الطبيب في {branch}:",
+    manyDoctors: "وجدت أكثر من طبيب بهذا الاسم، أيهم تقصد؟",
+    departmentDoctors: "أطباء {service}:",
+    noDoctors: "لا يوجد أطباء مسجلون هنا حالياً.",
+    daily: "يومياً",
+    dayOff: "إجازة",
+    today: "اليوم",
+    onDay: "يوم {day}",
+    hoursNote: "هذا الدوام المعتاد، وقد يتغير في الإجازات. نموذج الحجز يعرض الأوقات المتاحة فعلاً.",
+    bookWith: "احجز مع {name}",
+    offersIntro: "العروض الحالية:",
+    offersFor: "عروض {service} الحالية:",
+    noOffers: "لا توجد عروض حالياً، تابعنا فهي تتجدد باستمرار.",
+    noOffersFor: "لا يوجد عرض حالياً على {service}.",
+    prices: "الأسعار تختلف حسب الحالة، وفريقنا يوضحها لك على واتساب.",
+    branchesIntro: "فروعنا في الطائف:",
+    map: "الخريطة",
+    call: "اتصال",
+    whatsapp: "واتساب",
+    hours: "نستقبلكم {value}. ولكل طبيب دوامه، اكتب اسمه لأعرض لك دوامه.",
+    book: "تقدر تحجز من النموذج في الصفحة: اختر القسم والفرع والطبيب والوقت المناسب، وسيتواصل معك فريقنا للتأكيد.",
+    bookButton: "افتح نموذج الحجز",
+    contact: "تواصل معنا مباشرة:",
+    greeting: "وعليكم السلام وأهلاً بك 🌙 كيف أقدر أساعدك؟",
+    thanks: "العفو، سعدنا بخدمتك 🌙",
+    unknown: "لم أفهم سؤالك تماماً. جرّب كتابة اسم الطبيب، أو «العروض»، أو «الفروع»، أو تواصل مع فريقنا.",
+    askTeam: "اسأل فريقنا على واتساب",
+  },
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
   branches: [
@@ -860,6 +940,45 @@ export const enContent: Content = {
     close: "Close",
     bookingOffer: "Offer",
     removeOffer: "Remove offer",
+  },
+  chat: {
+    open: "Assistant",
+    close: "Close chat",
+    title: "White Moon Assistant",
+    subtitle: "Instant answers to your questions",
+    placeholder: "Ask something… e.g. Dr. Souad's hours",
+    send: "Send",
+    welcome:
+      "Welcome to White Moon 🌙 I'm the automated assistant. Ask me about any doctor's hours, current offers or our branches, or pick from the buttons below.",
+    quick: { offers: "Offers", doctors: "Doctor hours", branches: "Branches", book: "Book", whatsapp: "WhatsApp" },
+    pickBranch: "Which branch?",
+    pickDoctor: "Pick a doctor at {branch}:",
+    manyDoctors: "More than one doctor has that name. Which one do you mean?",
+    departmentDoctors: "{service} doctors:",
+    noDoctors: "No doctors are listed here yet.",
+    daily: "Daily",
+    dayOff: "Day off",
+    today: "Today",
+    onDay: "On {day}",
+    hoursNote: "These are the usual hours and may change on holidays. The booking form shows the times actually free.",
+    bookWith: "Book with {name}",
+    offersIntro: "Current offers:",
+    offersFor: "Current {service} offers:",
+    noOffers: "No offers right now. Follow us, new ones come up often.",
+    noOffersFor: "No {service} offer right now.",
+    prices: "Prices depend on each case; our team can tell you on WhatsApp.",
+    branchesIntro: "Our branches in Taif:",
+    map: "Map",
+    call: "Call",
+    whatsapp: "WhatsApp",
+    hours: "We're open {value}. Each doctor has their own hours: type a name and I'll show them.",
+    book: "Book from the form on this page: pick the department, branch, doctor and a time, and our team will call you to confirm.",
+    bookButton: "Open the booking form",
+    contact: "Reach us directly:",
+    greeting: "Hello and welcome 🌙 How can I help?",
+    thanks: "You're welcome 🌙",
+    unknown: "I didn't quite get that. Try a doctor's name, \"offers\" or \"branches\", or ask our team.",
+    askTeam: "Ask our team on WhatsApp",
   },
   gallery: [],
   // Branch addresses are placeholders beyond the original Khamseen St. address — replace with exact addresses.
