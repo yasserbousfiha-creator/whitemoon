@@ -1,6 +1,8 @@
 "use client";
 
+import { CircleCheck } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
 import { PREFILL_EVENT, type BookingPrefill } from "@/lib/booking-prefill";
 import { isBranchId } from "@/lib/branches";
@@ -288,13 +290,51 @@ export default function Booking() {
           </button>
 
           <div aria-live="polite" className="text-[14px] md:col-span-2">
-            {status === "success" && <p className="text-gold">{b.success}</p>}
             {status === "error" && <p className="text-red-600">{b.error}</p>}
             {status === "invalid" && <p className="text-red-600">{b.invalid}</p>}
             {status === "unavailable" && <p className="text-red-600">{b.unavailable}</p>}
           </div>
         </form>
       </div>
+      {status === "success" && <BookingReceived onClose={() => setStatus("idle")} />}
     </section>
+  );
+}
+
+// Shown over the page once a booking was sent, so the patient can't miss that it went through.
+function BookingReceived({ onClose }: { onClose: () => void }) {
+  const b = useLocale().t.booking;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-received"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      className="branch-picker fixed inset-0 z-[100] flex overflow-y-auto bg-night2/55 p-4 backdrop-blur-sm"
+    >
+      <div className="branch-picker-card m-auto w-full max-w-[380px] rounded-2xl bg-bg p-7 text-center shadow-[0_30px_80px_-20px_rgba(14,11,7,0.55)]">
+        <CircleCheck size={52} strokeWidth={1.6} className="mx-auto text-gold-bright" aria-hidden />
+        <h3 id="booking-received" className="mt-4 font-display text-[22px] text-ink">
+          {b.successTitle}
+        </h3>
+        <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{b.success}</p>
+        <p className="mt-3 text-[14px] text-gold">{b.successWish}</p>
+        <button
+          type="button"
+          autoFocus
+          onClick={onClose}
+          className="mt-6 w-full rounded-full bg-gold-bright px-6 py-3 text-[14px] font-semibold text-night2 transition-transform hover:scale-[1.02]"
+        >
+          {b.successClose}
+        </button>
+      </div>
+    </div>,
+    document.body,
   );
 }

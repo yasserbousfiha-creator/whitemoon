@@ -91,7 +91,10 @@ export interface BookingStrings {
   select: string;
   submit: string;
   sending: string;
+  successTitle: string;
   success: string;
+  successWish: string;
+  successClose: string;
   error: string;
   invalid: string;
 }
@@ -444,7 +447,10 @@ export const arContent: Content = {
     select: "اختر...",
     submit: "إرسال طلب الحجز",
     sending: "جارٍ الإرسال...",
-    success: "تم استلام طلبك، سنتواصل معك قريبًا لتأكيد الموعد.",
+    successTitle: "تم استلام طلبك",
+    success: "سنتواصل معك قريبًا لتأكيد الموعد.",
+    successWish: "مع تمنياتنا لكم بدوام الصحة.",
+    successClose: "حسناً",
     error: "تعذّر إرسال الطلب، حاول مرة أخرى أو تواصل معنا عبر واتساب.",
     invalid: "يرجى تعبئة جميع الحقول واختيار اليوم والوقت.",
   },
@@ -740,7 +746,10 @@ export const enContent: Content = {
     select: "Select...",
     submit: "Send booking request",
     sending: "Sending...",
-    success: "Your request was received. We will contact you soon to confirm.",
+    successTitle: "Your request was received",
+    success: "We will contact you soon to confirm your appointment.",
+    successWish: "Wishing you lasting good health.",
+    successClose: "OK",
     error: "We could not send your request. Please try again or contact us on WhatsApp.",
     invalid: "Please fill in every field and pick a day and time.",
   },
