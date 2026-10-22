@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MapPin, MessageCircle } from "lucide-react";
 import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
+import { openBranchPicker } from "./BranchPicker";
 import CbahiBadge from "./CbahiBadge";
 import Eyebrow from "./Eyebrow";
 
@@ -21,7 +22,7 @@ export default function Hero() {
     <section id="home" className="scroll-anchor relative overflow-hidden bg-bg">
       <div className="relative mx-auto flex max-w-[1160px] flex-col items-center gap-10 px-6 py-14 md:flex-row md:py-[76px]">
         <div className="order-2 flex-[6] md:order-1">
-          {branch && (
+          {branch ? (
             <div className="rise-in mb-4 flex flex-wrap items-center gap-2" style={{ animationDelay: "0.4s" }}>
               <span className="flex items-center gap-1.5 rounded-full border border-gold-bright/60 bg-surface px-3.5 py-1.5 text-[13px] font-bold text-ink">
                 <MapPin size={14} className="text-gold" />
@@ -30,6 +31,18 @@ export default function Hero() {
               <Link href="/" className="text-[12.5px] font-bold text-gold underline-offset-4 hover:underline">
                 {t.branchPicker.change}
               </Link>
+            </div>
+          ) : (
+            // The home page: brings the branch picker back after it was closed.
+            <div className="rise-in mb-4" style={{ animationDelay: "0.4s" }}>
+              <button
+                type="button"
+                onClick={openBranchPicker}
+                className="flex items-center gap-1.5 rounded-full border border-gold-bright/60 bg-surface px-3.5 py-1.5 text-[13px] font-bold text-ink transition-colors hover:bg-gold-bright/15"
+              >
+                <MapPin size={14} className="text-gold" />
+                {t.branchPicker.title}
+              </button>
             </div>
           )}
           <div className="rise-in" style={{ animationDelay: "0.55s" }}>

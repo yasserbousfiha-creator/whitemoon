@@ -4,6 +4,7 @@ import { MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
+import { openBranchPicker } from "./BranchPicker";
 import SocialIcons from "./SocialIcons";
 
 export default function TopUtilityBar() {
@@ -33,13 +34,14 @@ export default function TopUtilityBar() {
               {branch.name} · {t.branchPicker.change}
             </Link>
           ) : (
-            <a
-              href="#branches"
+            <button
+              type="button"
+              onClick={openBranchPicker}
               className="flex items-center gap-1.5 text-[12.5px] text-ink-soft underline-offset-4 hover:text-ink hover:underline"
             >
               <MapPin size={13} />
-              {t.mapPinTitle}
-            </a>
+              {t.mapPinTitle} · {t.branchPicker.title}
+            </button>
           )}
         </div>
 

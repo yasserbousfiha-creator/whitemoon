@@ -7,8 +7,14 @@ import { createPortal } from "react-dom";
 import { useLocale } from "@/lib/locale-context";
 
 // Shown on the home page once the logo and opening lines have played: the three branches side by side, and
-// picking one opens that branch's page. Appears on every visit; the X keeps browsing the general page.
+// picking one opens that branch's page. Appears on every visit; the X keeps browsing the general page, and the
+// "choose a branch" buttons (hero, top bar) bring it back.
 const APPEAR_AFTER_MS = 2200;
+const OPEN_EVENT = "wm:open-branch-picker";
+
+export function openBranchPicker() {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
 
 export default function BranchPicker() {
   const { t } = useLocale();
@@ -16,9 +22,14 @@ export default function BranchPicker() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const id = setTimeout(() => setOpen(true), APPEAR_AFTER_MS);
+    const show = () => setOpen(true);
+    const id = setTimeout(show, APPEAR_AFTER_MS);
+    window.addEventListener(OPEN_EVENT, show);
     t.branches.forEach((b) => router.prefetch(`/${b.id}`));
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener(OPEN_EVENT, show);
+    };
   }, [router, t.branches]);
 
   useEffect(() => {
