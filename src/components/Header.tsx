@@ -25,9 +25,8 @@ export default function Header() {
       <header className="sticky top-0 z-50 border-b border-transparent bg-bg/92 backdrop-blur">
         <div className="mx-auto flex max-w-[1160px] items-center px-6 py-3">
           <button type="button" onClick={() => scrollToSection("home")} className="flex items-center gap-3">
-            {/* Just the gold W of the logo (cut from logo.png): the whole logo is unreadable this small. */}
-            <span className="relative h-9 w-[57px] shrink-0">
-              <Image src="/images/logo-mark.png" alt={t.brandName} fill className="object-contain" sizes="57px" priority />
+            <span className="relative h-11 w-11 shrink-0">
+              <Image src="/images/logo.png" alt={t.brandName} fill className="object-contain" sizes="44px" />
             </span>
             <span className="text-start">
               <span className="block font-display text-[19px] text-ink">{t.brandName}</span>
