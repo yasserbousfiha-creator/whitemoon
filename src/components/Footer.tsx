@@ -4,6 +4,7 @@ import Image from "next/image";
 import { offeredIn, useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import CbahiBadge from "./CbahiBadge";
+import SocialIcons from "./SocialIcons";
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -91,8 +92,7 @@ export default function Footer() {
             <FooterLink href={`tel:${t.phone}`} ltr>
               {t.phoneDisplay}
             </FooterLink>
-            <FooterLink href={t.whatsappUrl}>{t.navContact === "Contact" ? "WhatsApp" : "واتساب"}</FooterLink>
-            <FooterLink href={t.instagramUrl}>Instagram</FooterLink>
+            <SocialIcons size={36} className="mt-1 gap-2.5" />
           </FooterCol>
         </div>
 

@@ -1,18 +1,10 @@
 "use client";
 
 import { MapPin, Phone } from "lucide-react";
-import { siInstagram, siTiktok, siSnapchat, siWhatsapp } from "simple-icons";
 import Link from "next/link";
 import { useBranch } from "@/lib/branch-context";
-import { Content } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
-
-const brands = [
-  { icon: siInstagram, href: (t: Content) => t.instagramUrl },
-  { icon: siTiktok, href: (t: Content) => t.tiktokUrl },
-  { icon: siSnapchat, href: (t: Content) => t.snapchatUrl },
-  { icon: siWhatsapp, href: (t: Content) => t.whatsappUrl },
-];
+import SocialIcons from "./SocialIcons";
 
 export default function TopUtilityBar() {
   const { t, locale, toggleLocale } = useLocale();
@@ -52,20 +44,7 @@ export default function TopUtilityBar() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {brands.map(({ icon, href }) => (
-            <a
-              key={icon.title}
-              href={href(t)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={icon.title}
-              className="grid h-6 w-6 place-items-center text-ink-soft transition-colors hover:text-ink"
-            >
-              <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor" aria-hidden>
-                <path d={icon.path} />
-              </svg>
-            </a>
-          ))}
+          <SocialIcons size={24} />
 
           <div className="ms-2 flex items-center gap-0.5 rounded-full border border-line/30 px-1 py-0.5">
             <button
