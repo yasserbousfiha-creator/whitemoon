@@ -54,7 +54,7 @@ function FooterLink({
 }
 
 export default function Footer() {
-  const { t } = useLocale();
+  const { t, isArabic } = useLocale();
   const branch = useBranch();
 
   return (
@@ -100,7 +100,19 @@ export default function Footer() {
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <p className="text-[12.5px] text-ink-soft">{t.footerCopyright}</p>
-          <p className="text-[12.5px] text-ink-soft">{t.footerPreview}</p>
+          {/* Instalment partners, with their own badges (Tamara's has an Arabic version). */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-[12.5px] text-ink-soft">{t.footerInstallments}</span>
+            <Image src="/images/payments/tabby.svg" alt="tabby" width={85} height={28} className="h-7 w-auto" />
+            <Image
+              src={isArabic ? "/images/payments/tamara-ar.png" : "/images/payments/tamara-en.png"}
+              alt={isArabic ? "تمارا" : "tamara"}
+              width={85}
+              height={28}
+              className="h-7 w-auto"
+            />
+          </div>
+          {t.footerPreview && <p className="text-[12.5px] text-ink-soft">{t.footerPreview}</p>}
         </div>
       </div>
     </footer>

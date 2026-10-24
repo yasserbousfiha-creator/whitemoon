@@ -295,6 +295,7 @@ export interface Content {
   footerSpecialties: string;
   footerContact: string;
   footerCopyright: string;
+  footerInstallments: string;
   footerPreview: string;
   brandName: string;
   brandTagline: string;
@@ -664,7 +665,8 @@ export const arContent: Content = {
   footerSite: "الموقع",
   footerSpecialties: "التخصصات",
   footerContact: "تواصل",
-  footerCopyright: "© 2026 مجمع وايت مون الطبي. جميع الحقوق محفوظة.",
+  footerCopyright: "© 2013–2026 مجمع وايت مون الطبي. جميع الحقوق محفوظة.",
+  footerInstallments: "إمكانية التقسيط عبر",
   footerPreview: "",
   brandName: "وايت مون",
   brandTagline: "مجمع طبي متخصص",
@@ -1002,7 +1004,8 @@ export const enContent: Content = {
   footerSite: "Site",
   footerSpecialties: "Specialties",
   footerContact: "Contact",
-  footerCopyright: "© 2026 White Moon Medical Complex. All rights reserved.",
+  footerCopyright: "© 2013–2026 White Moon Medical Complex. All rights reserved.",
+  footerInstallments: "Pay in instalments with",
   footerPreview: "Preliminary design preview",
   brandName: "White Moon",
   brandTagline: "Specialized Medical Complex",
