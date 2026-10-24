@@ -328,16 +328,29 @@ export default function Dashboard({
     };
   }, [reload]);
 
-  // The sections this account may open ("wheel" lives inside the prizes tab), plus "المستخدمون" for the site admin.
-  type Tab = Exclude<AdminTab, "wheel"> | "users";
+  // The sections this account may open, in the order the clinic asked for ("wheel" lives inside the prizes tab).
+  // "الإعدادات" gathers the doctors and, for the site admin, the accounts.
+  type Tab = "bookings" | "schedule" | "offers" | "spins" | "stats" | "settings";
+  type SettingsTab = "doctors" | "users";
   const can = staff.permissions;
+  const settingsTabs: SettingsTab[] = [...(can.doctors !== "none" ? (["doctors"] as const) : []), ...(staff.isAdmin ? (["users"] as const) : [])];
   const tabs: Tab[] = [
-    ...(Object.keys(can) as AdminTab[]).filter((t): t is Exclude<AdminTab, "wheel"> => t !== "wheel" && can[t] !== "none"),
-    ...(staff.isAdmin ? (["users"] as const) : []),
+    ...(["bookings", "schedule", "offers", "spins", "stats"] as const).filter((t) => can[t] !== "none"),
+    ...(settingsTabs.length ? (["settings"] as const) : []),
   ];
+  const TAB_NAMES: Record<Tab, string> = {
+    bookings: TAB_LABELS.bookings,
+    schedule: TAB_LABELS.schedule,
+    offers: TAB_LABELS.offers,
+    spins: "جوائز العجلة",
+    stats: "الإحصائيات",
+    settings: "الإعدادات",
+  };
+  const SETTINGS_NAMES: Record<SettingsTab, string> = { doctors: TAB_LABELS.doctors, users: "المستخدمون" };
   /** View only in this section: lists and details without any button that changes something. */
   const viewOnly = (t: AdminTab) => can[t] === "view";
   const [tab, setTab] = useState<Tab>(tabs[0] ?? "bookings");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>(settingsTabs[0] ?? "doctors");
   const [passwordOpen, setPasswordOpen] = useState(false);
   // Opens on today's confirmed appointments, the list reception works from; "all" brings back every booking.
   const [view, setView] = useState<"today" | "all">("today");
@@ -419,7 +432,7 @@ export default function Dashboard({
       <div className="mx-auto flex max-w-7xl flex-col md:flex-row md:items-start md:gap-2 md:px-4">
         <aside className="md:sticky md:top-[76px] md:w-52 md:shrink-0 md:pt-5">
           <nav className="flex gap-2 overflow-x-auto border-b border-line/20 px-4 py-3 md:flex-col md:overflow-visible md:rounded-2xl md:border md:border-line/25 md:bg-surface md:p-2">
-            {tabs.map((id) => [id, id === "users" ? "المستخدمون" : id === "stats" ? "الإحصائيات" : id === "spins" ? "جوائز العجلة" : TAB_LABELS[id]] as const).map(([id, label]) => (
+            {tabs.map((id) => [id, TAB_NAMES[id]] as const).map(([id, label]) => (
               <button
                 key={id}
                 type="button"
@@ -470,14 +483,25 @@ export default function Dashboard({
       {passwordOpen && <PasswordDialog onClose={() => setPasswordOpen(false)} />}
       {tabs.length === 0 ? (
         <p className="mx-auto max-w-5xl px-4 pt-8 text-center text-sm text-ink-soft">لا توجد أقسام مفعّلة لحسابك — تواصل مع مدير الموقع.</p>
-      ) : tab === "users" ? (
-        <UsersPanel />
+      ) : tab === "settings" ? (
+        <>
+          <div className="mx-auto flex max-w-5xl flex-wrap gap-2 px-4 pt-5">
+            {settingsTabs.map((id) => (
+              <Chip key={id} active={settingsTab === id} onClick={() => setSettingsTab(id)}>
+                {SETTINGS_NAMES[id]}
+              </Chip>
+            ))}
+          </div>
+          {settingsTab === "users" ? (
+            <UsersPanel />
+          ) : (
+            <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} readOnly={viewOnly("doctors")} />
+          )}
+        </>
       ) : tab === "stats" ? (
         <StatsPanel branch={staff.branch} />
       ) : tab === "offers" ? (
         <OffersPanel offers={data.offers} error={data.offersError} branch={branch} reload={reload} readOnly={viewOnly("offers")} />
-      ) : tab === "doctors" ? (
-        <DoctorsPanel doctors={data.doctors} error={data.doctorsError} branch={branch} reload={reload} readOnly={viewOnly("doctors")} />
       ) : tab === "schedule" ? (
         <SchedulePanel
           branch={branch}
