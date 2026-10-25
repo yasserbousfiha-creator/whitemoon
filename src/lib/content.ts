@@ -282,7 +282,6 @@ export interface Content {
   workingHoursValue: string;
   phoneLabel: string;
   followLabel: string;
-  followValue: string;
   mapPinTitle: string;
 
   aboutEyebrow: string;
@@ -653,7 +652,6 @@ export const arContent: Content = {
   workingHoursValue: "يوميًا من 9 صباحًا حتى 10 مساءً",
   phoneLabel: "الهاتف وواتساب",
   followLabel: "تابعونا",
-  followValue: "Instagram · TikTok · Snapchat — @whitemoonclinic",
   mapPinTitle: "3 فروع في الطائف",
   aboutEyebrow: "من نحن",
   aboutHeading: "قصة وايت مون",
@@ -992,7 +990,6 @@ export const enContent: Content = {
   workingHoursValue: "Daily, 9 AM – 10 PM",
   phoneLabel: "Phone & WhatsApp",
   followLabel: "Follow Us",
-  followValue: "Instagram · TikTok · Snapchat — @whitemoonclinic",
   mapPinTitle: "3 Branches in Taif",
   aboutEyebrow: "About Us",
   aboutHeading: "The White Moon Story",

@@ -5,6 +5,7 @@ import { useLocale } from "@/lib/locale-context";
 import BranchesCard from "./BranchesCard";
 import GalleryCard from "./GalleryCard";
 import Eyebrow from "./Eyebrow";
+import SocialIcons from "./SocialIcons";
 
 function IconPlate({ icon: Icon }: { icon: typeof MapPin }) {
   return (
@@ -70,7 +71,15 @@ export default function Contact() {
 
           <div>
             <ContactRow icon={Phone} label={t.phoneLabel} value={t.phoneDisplay} href={`tel:${t.phone}`} ltr />
-            <ContactRow icon={LayoutGrid} label={t.followLabel} value={t.followValue} />
+            <div className="mb-[18px] flex items-start gap-3.5">
+              <IconPlate icon={LayoutGrid} />
+              <div>
+                <span className="block text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
+                  {t.followLabel}
+                </span>
+                <SocialIcons size={32} className="mt-1.5" />
+              </div>
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-3">
