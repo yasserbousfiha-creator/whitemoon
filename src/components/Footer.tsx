@@ -99,7 +99,8 @@ export default function Footer() {
         <div className="mt-8 h-px bg-line/25" />
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-          <p className="text-[12.5px] text-ink-soft">{t.footerCopyright}</p>
+          {/* Last on phones (under the instalment badges), first on desktop. */}
+          <p className="order-last text-[12.5px] text-ink-soft md:order-none">{t.footerCopyright}</p>
           {/* Instalment partners, with their own badges (Tamara's has an Arabic version). */}
           <div className="flex items-center gap-2.5">
             <span className="text-[12.5px] text-ink-soft">{t.footerInstallments}</span>
