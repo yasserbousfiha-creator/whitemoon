@@ -44,12 +44,12 @@ export async function loadDashboard(staffClient: SupabaseClient, staff: StaffAcc
   const showSpins = canOpen(staff, "spins");
 
   const columns =
-    "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id";
+    "id, created_at, name, phone, email, service, branch, source, status, notes, appointment_date, appointment_time, doctor, doctor_id, updated_at, updated_by";
   const readBookings = (cols: string) =>
     staffClient.from("bookings").select(cols).order("created_at", { ascending: false }).limit(500).returns<Booking[]>();
 
   const [withExtras, upcoming, spins, blocks, doctors, offers, wheel] = await Promise.all([
-    showBookings ? readBookings(columns + ", attendance, offer") : null,
+    showBookings ? readBookings(columns + ", attendance, attendance_at, offer, status_by, status_at, attendance_by") : null,
     // Apart from the latest 500 above, so a slot booked long ago still shows as taken.
     canOpen(staff, "schedule")
       ? staffClient
@@ -75,10 +75,25 @@ export async function loadDashboard(staffClient: SupabaseClient, staff: StaffAcc
     getWheelSettingsForAdmin(),
   ]);
 
-  // 42703: a later column isn't there yet (007_attendance.sql / 011_offers.sql not run); show bookings without it.
+  // 42703: a later column isn't there yet (007_attendance / 011_offers / 020_booking_actors.sql not run); show bookings without it.
   let bookings = withExtras;
+  if (bookings?.error?.code === "42703") bookings = await readBookings(columns + ", attendance, attendance_at, offer");
   if (bookings?.error?.code === "42703") bookings = await readBookings(columns + ", attendance");
   if (bookings?.error?.code === "42703") bookings = await readBookings(columns);
+
+  // Who did what: the staff names behind status_by / attendance_by / updated_by.
+  if (bookings?.data?.length && db) {
+    const ids = [...new Set(bookings.data.flatMap((b) => [b.status_by, b.attendance_by, b.updated_by]).filter((x): x is string => !!x))];
+    if (ids.length) {
+      const { data: people } = await db.from("staff").select("user_id, name").in("user_id", ids);
+      const name = new Map((people ?? []).map((p) => [p.user_id as string, p.name as string]));
+      for (const b of bookings.data) {
+        b.status_by_name = (b.status_by && name.get(b.status_by)) || null;
+        b.attendance_by_name = (b.attendance_by && name.get(b.attendance_by)) || null;
+        b.updated_by_name = (b.updated_by && name.get(b.updated_by)) || null;
+      }
+    }
+  }
 
   if (bookings?.error) console.error("Bookings lookup failed:", bookings.error);
   if (upcoming?.error) console.error("Upcoming bookings lookup failed:", upcoming.error);

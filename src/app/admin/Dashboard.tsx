@@ -80,6 +80,30 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 type Patch = { status?: BookingStatus; notes?: string; attendance?: Attendance | null };
 
+const when = (iso: string | null | undefined) => (iso ? createdFormat.format(new Date(iso)) : "");
+
+// Who did it: "تم التواصل: سارة · 27 أكتوبر 10:32" and "حضر: …". Bookings changed before
+// 020_booking_actors.sql only know who touched them last, so they show that instead.
+// Hidden while a change is still saving (the names are for the saved state).
+function Actors({ booking: b, status, attendance }: { booking: Booking; status: BookingStatus; attendance: Attendance | null }) {
+  const lines: string[] = [];
+  if (status === b.status) {
+    if (b.status_by_name) lines.push(`${STATUSES[b.status]}: ${b.status_by_name}${b.status_at ? ` · ${when(b.status_at)}` : ""}`);
+    else if (b.status !== "new" && b.updated_by_name && !b.status_by) lines.push(`آخر تعديل: ${b.updated_by_name}${b.updated_at ? ` · ${when(b.updated_at)}` : ""}`);
+  }
+  if (attendance && attendance === b.attendance && b.attendance_by_name) {
+    lines.push(`${ATTENDANCE[attendance]}: ${b.attendance_by_name}${b.attendance_at ? ` · ${when(b.attendance_at)}` : ""}`);
+  }
+  if (!lines.length) return null;
+  return (
+    <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-ink-soft">
+      {lines.map((l) => (
+        <span key={l}>{l}</span>
+      ))}
+    </p>
+  );
+}
+
 // One appointment inside a patient's card: its details, status, attendance and note.
 // readOnly (view-only permission): the details, status and note as text — no buttons.
 function BookingItem({ booking, today, reload, readOnly, canDelete }: { booking: Booking; today: string; reload: () => Promise<void>; readOnly: boolean; canDelete: boolean }) {
@@ -147,6 +171,8 @@ function BookingItem({ booking, today, reload, readOnly, canDelete }: { booking:
           )}
         </div>
       </div>
+
+      <Actors booking={b} status={current.status} attendance={current.attendance} />
 
       {canAttend && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">

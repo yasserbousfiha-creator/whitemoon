@@ -58,17 +58,29 @@ export async function updateBooking(
   const { data: visible } = await supabase.from("bookings").select("id").eq("id", id).maybeSingle();
   if (!visible) return { ok: false, error: "لا تملك صلاحية على هذا الحجز." };
 
-  const update: Record<string, string | null> = { updated_at: new Date().toISOString(), updated_by: userId };
-  if (changes.status && changes.status in STATUSES) update.status = changes.status;
+  const now = new Date().toISOString();
+  const update: Record<string, string | null> = { updated_at: now, updated_by: userId };
+  // Who did it, shown on the booking's card (020_booking_actors.sql).
+  const actors: Record<string, string | null> = {};
+  if (changes.status && changes.status in STATUSES) {
+    update.status = changes.status;
+    actors.status_by = userId;
+    actors.status_at = now;
+  }
   if (typeof changes.notes === "string") update.notes = changes.notes.trim().slice(0, 1000) || null;
   if (changes.attendance === null || (changes.attendance && changes.attendance in ATTENDANCE)) {
     update.attendance = changes.attendance;
-    update.attendance_at = changes.attendance ? new Date().toISOString() : null;
+    update.attendance_at = changes.attendance ? now : null;
+    actors.attendance_by = changes.attendance ? userId : null;
   }
 
   const db = createServiceClient();
   if (!db) return { ok: false, error: "الخادم غير مهيأ." };
-  const { error } = await db.from("bookings").update(update).eq("id", id);
+  let { error } = await db.from("bookings").update({ ...update, ...actors }).eq("id", id);
+  // 020_booking_actors.sql not run yet: save the change without who-did-it (updated_by still records it).
+  if (error && Object.keys(actors).length && (error.code === "PGRST204" || error.code === "42703")) {
+    ({ error } = await db.from("bookings").update(update).eq("id", id));
+  }
   if (error) {
     console.error("Booking update failed:", error);
     if (error.code === "PGRST204" || error.code === "42703") {

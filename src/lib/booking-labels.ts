@@ -33,6 +33,17 @@ export interface Booking {
   doctor_id: string | null;
   attendance?: Attendance | null; // missing until supabase/007_attendance.sql is run
   offer?: string | null; // the offer's title when booked from one (supabase/011_offers.sql)
+  // Who did what (supabase/020_booking_actors.sql; updated_by = the last change of any kind).
+  updated_at?: string | null;
+  updated_by?: string | null;
+  status_by?: string | null;
+  status_at?: string | null;
+  attendance_by?: string | null;
+  attendance_at?: string | null;
+  // Staff names for the ids above, filled in by the dashboard loader.
+  status_by_name?: string | null;
+  attendance_by_name?: string | null;
+  updated_by_name?: string | null;
 }
 
 export interface WheelSpin {
