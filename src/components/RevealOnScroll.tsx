@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
+import { useInView } from "@/lib/use-in-view";
 
 /**
  * Fades and slides its child up into place the first time it scrolls into
@@ -14,25 +15,7 @@ export default function RevealOnScroll({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -10% 0px" },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const revealed = useInView(ref);
 
   return (
     <div
@@ -41,6 +24,21 @@ export default function RevealOnScroll({
         revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
     >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * A row or grid whose items slide in from the left one after another the first time it scrolls into view
+ * (the `.stagger-in` rules in globals.css).
+ */
+export function StaggerIn({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const revealed = useInView(ref);
+
+  return (
+    <div ref={ref} className={`stagger-in ${className ?? ""}`} data-revealed={revealed || undefined}>
       {children}
     </div>
   );

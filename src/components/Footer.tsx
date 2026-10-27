@@ -92,7 +92,7 @@ export default function Footer() {
             <FooterLink href={`tel:${t.phone}`} ltr>
               {t.phoneDisplay}
             </FooterLink>
-            <SocialIcons size={36} className="mt-1 gap-2.5" />
+            <SocialIcons size={36} className="mt-1 gap-2.5" pop />
           </FooterCol>
         </div>
 

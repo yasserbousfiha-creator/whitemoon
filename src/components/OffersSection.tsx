@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale } from "@/lib/locale-context";
 import { useOffers } from "@/lib/offers-context";
+import { useInView } from "@/lib/use-in-view";
 import Eyebrow from "./Eyebrow";
 import OfferCard from "./OfferCard";
 
@@ -18,6 +19,8 @@ export default function OffersSection() {
   const [edges, setEdges] = useState({ back: false, forward: false });
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
   const [dragging, setDragging] = useState(false);
+  // The offers slide in from the left one after another (.stagger-in in globals.css).
+  const revealed = useInView(row);
 
   // scrollLeft is 0 at the first offer and grows negative in right-to-left pages.
   const measure = useCallback(() => {
@@ -111,7 +114,8 @@ export default function OffersSection() {
               }
             }}
             onDragStart={(e) => e.preventDefault()}
-            className={`-mx-6 flex items-stretch gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:mx-0 md:gap-5 md:px-0 ${
+            data-revealed={revealed || undefined}
+            className={`stagger-in -mx-6 flex items-stretch gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] md:mx-0 md:gap-5 md:px-0 ${
               dragging ? "cursor-grabbing select-none" : "snap-x snap-mandatory md:cursor-grab"
             }`}
           >

@@ -1,9 +1,10 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useRef } from "react";
 import { type SimpleIcon, siInstagram, siSnapchat, siTiktok, siWhatsapp } from "simple-icons";
 import type { Content } from "@/lib/content";
 import { useLocale } from "@/lib/locale-context";
+import { useInView } from "@/lib/use-in-view";
 
 // Each brand in its own colours, as people know it: a round badge with the glyph inside.
 const brands: { icon: SimpleIcon; href: (t: Content) => string; bg: string; glyph: string; outline?: string }[] = [
@@ -13,13 +14,22 @@ const brands: { icon: SimpleIcon; href: (t: Content) => string; bg: string; glyp
   { icon: siWhatsapp, href: (t) => t.whatsappUrl, bg: "#25D366", glyph: "#ffffff" },
 ];
 
-/** The clinic's social accounts as coloured round icons; `size` is the badge's width in pixels. */
-export default function SocialIcons({ size, className = "" }: { size: number; className?: string }) {
+/**
+ * The clinic's social accounts as coloured round icons; `size` is the badge's width in pixels. With `pop`, the icons
+ * swell past their size and settle, one after another, the first time they scroll into view (.social-pop).
+ */
+export default function SocialIcons({ size, className = "", pop = false }: { size: number; className?: string; pop?: boolean }) {
   const { t } = useLocale();
   const gradient = useId(); // Instagram's gradient, unique per copy on the page
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref);
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div
+      ref={ref}
+      data-revealed={(pop && inView) || undefined}
+      className={`flex items-center gap-2 ${pop ? "social-pop" : ""} ${className}`}
+    >
       {brands.map(({ icon, href, bg, glyph, outline }) => (
         <a
           key={icon.title}

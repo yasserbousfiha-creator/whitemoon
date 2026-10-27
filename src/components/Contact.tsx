@@ -77,7 +77,7 @@ export default function Contact() {
                 <span className="block text-[10.5px] font-bold text-ink-soft" style={{ letterSpacing: "1px" }}>
                   {t.followLabel}
                 </span>
-                <SocialIcons size={32} className="mt-1.5" />
+                <SocialIcons size={32} className="mt-1.5" pop />
               </div>
             </div>
           </div>

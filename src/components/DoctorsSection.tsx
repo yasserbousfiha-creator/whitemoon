@@ -10,6 +10,7 @@ import { teamMember, useDoctors } from "@/lib/doctors-context";
 import { useLocale } from "@/lib/locale-context";
 import CasesViewer from "./CasesViewer";
 import Eyebrow from "./Eyebrow";
+import { StaggerIn } from "./RevealOnScroll";
 import { serviceIconMap } from "./icon-map";
 
 // Named doctors grouped by department (dentistry, dermatology…), each with their branch and a one-tap
@@ -113,7 +114,8 @@ export default function DoctorsSection() {
   if (departments.length === 0 && !branch) return null;
 
   return (
-    <section id="doctors" className="scroll-anchor bg-surface2">
+    // overflow-x-clip: the cards sliding in from beyond the edge must not widen the page.
+    <section id="doctors" className="scroll-anchor overflow-x-clip bg-surface2">
       <div className="mx-auto max-w-[1160px] px-6 py-12 md:py-16">
         <div className="max-w-[620px]">
           <Eyebrow text={t.doctorsEyebrow} />
@@ -130,11 +132,11 @@ export default function DoctorsSection() {
         {main.map(({ service, doctors }) => (
           <div key={service.icon} className="mt-10">
             <DepartmentHeading icon={service.icon} title={service.title} />
-            <div className={grid}>
+            <StaggerIn className={grid}>
               {doctors.map((d) => (
                 <DoctorCard key={d.id ?? d.name} d={d} service={service.icon} onCases={() => setCases(d)} />
               ))}
-            </div>
+            </StaggerIn>
           </div>
         ))}
 
@@ -145,7 +147,7 @@ export default function DoctorsSection() {
               icon={others.length === 1 ? others[0].service.icon : null}
               title={others.length === 1 ? others[0].service.title : t.otherSpecialties}
             />
-            <div className={grid}>
+            <StaggerIn className={grid}>
               {others.flatMap(({ service, doctors }) =>
                 doctors.map((d) => {
                   const Icon = serviceIconMap[service.icon];
@@ -162,7 +164,7 @@ export default function DoctorsSection() {
                   );
                 }),
               )}
-            </div>
+            </StaggerIn>
           </div>
         )}
       </div>
