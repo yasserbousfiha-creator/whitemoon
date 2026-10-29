@@ -12,6 +12,7 @@ import { useDoctor, useTeam } from "@/lib/doctors-context";
 import { useLocale } from "@/lib/locale-context";
 import { offerIn, offerTitle } from "@/lib/offers";
 import { useOffer } from "@/lib/offers-context";
+import { bookingServices, isCallOnly } from "@/lib/booking-services";
 import { downloadIcs, googleCalendarUrl, type CalendarEvent } from "@/lib/calendar";
 import Eyebrow from "./Eyebrow";
 import RequiredMark from "./RequiredMark";
@@ -73,7 +74,9 @@ export default function Booking() {
   }, []);
 
   // Departments some branches lack (gynecology…) are listed only once a branch that has them is picked, or none yet.
-  const serviceChoices = t.services.filter((s) => offeredIn(isBranchId(branch) ? branch : null, s));
+  const serviceChoices = bookingServices(t).filter((s) => offeredIn(isBranchId(branch) ? branch : null, s));
+  // Laser is booked like an offer: no doctor, day or time — the clinic calls.
+  const callOnly = !offer && isCallOnly(service);
 
   const doctorChoices = useTeam(service as ServiceContent["icon"]).filter(
     (m): m is typeof m & { id: string; name: string } => !!m.id && !!m.name && m.branch === branch,
@@ -85,14 +88,14 @@ export default function Booking() {
     // An offer booking is kept apart from the doctors' bookings (user's choice 2026-10-29): no doctor, day or time —
     // the clinic calls the patient.
     // With a doctor: a day and a time. Without one: the preferred day only (the clinic calls to set the time).
-    if (!offer && (!date || (doctorId && !time))) {
+    if (!offer && !callOnly && (!date || (doctorId && !time))) {
       setTried(true);
       setStatus("invalid");
       return;
     }
     const fields = Object.fromEntries(new FormData(form));
-    const data = offer
-      ? { ...fields, date: null, time: null, doctor: null, doctorId: null, offerId: offer.id }
+    const data = offer || callOnly
+      ? { ...fields, date: null, time: null, doctor: null, doctorId: null, offerId: offer ? offer.id : null }
       : { ...fields, date, time: doctorId ? time : null, doctor, doctorId, offerId: null };
     setStatus("sending");
     try {
@@ -114,17 +117,17 @@ export default function Booking() {
               token,
               service: service as AccountBooking["service"],
               branch: branch as AccountBooking["branch"],
-              slotDate: offer ? null : date,
-              slotTime: offer || !doctorId ? null : time,
-              doctor: offer ? null : doctor,
+              slotDate: offer || callOnly ? null : date,
+              slotTime: offer || callOnly || !doctorId ? null : time,
+              doctor: offer || callOnly ? null : doctor,
             },
           );
         }
         // A day and time were booked: offer to put it in the phone's calendar (an offer booking has none yet).
-        const picked = t.services.find((x) => x.icon === service);
+        const picked = bookingServices(t).find((x) => x.id === service);
         const br = t.branches.find((x) => x.id === branch);
         setCalendar(
-          !offer && doctorId && date && time && picked && br
+          !offer && !callOnly && doctorId && date && time && picked && br
             ? {
                 title: b.calendarTitle.replace("{service}", picked.title),
                 date,
@@ -242,7 +245,7 @@ export default function Booking() {
                 {b.select}
               </option>
               {serviceChoices.map((s) => (
-                <option key={s.icon} value={s.icon}>
+                <option key={s.id} value={s.id}>
                   {s.title}
                 </option>
               ))}
@@ -259,7 +262,7 @@ export default function Booking() {
                 setBranch(e.target.value);
                 dropDoctorUnless("branch", e.target.value);
                 if (offer && isBranchId(e.target.value) && !offerIn(offer, e.target.value)) setOfferId(null);
-                const picked = t.services.find((s) => s.icon === service);
+                const picked = bookingServices(t).find((s) => s.id === service);
                 if (picked && isBranchId(e.target.value) && !offeredIn(e.target.value, picked)) setService("");
               }}
               className={fieldClass}
@@ -275,8 +278,8 @@ export default function Booking() {
             </select>
           </label>
 
-          {offer ? (
-            <p className="rounded-xl bg-surface2 px-4 py-3 text-[14px] text-ink-soft md:col-span-2">{t.offers.offerContact}</p>
+          {offer || callOnly ? (
+            <p className="rounded-xl bg-surface2 px-4 py-3 text-[14px] text-ink-soft md:col-span-2">{offer ? t.offers.offerContact : b.laserContact}</p>
           ) : (
           <>
           {/* Optional: the doctors of the chosen department at the chosen branch; "any" books without one. */}

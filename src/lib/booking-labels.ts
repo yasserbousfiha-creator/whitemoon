@@ -3,6 +3,7 @@ export const SERVICES = {
   dentistry: "طب الأسنان",
   derma: "الجلدية والتجميل",
   laser: "الليزر",
+  skincare: "تنظيف البشرة", // split from laser in bookings (user's choice 2026-10-29; supabase/021_skincare_service.sql)
   gynecology: "النساء والولادة",
   pediatrics: "طب الأطفال",
   general: "الطب العام",

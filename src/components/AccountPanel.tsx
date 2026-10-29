@@ -13,6 +13,7 @@ import {
 } from "@/lib/account";
 import { prizeName } from "@/lib/wheel";
 import { useLocale } from "@/lib/locale-context";
+import { bookingServices } from "@/lib/booking-services";
 import { formatDay, formatTime, riyadhToday } from "@/lib/slots";
 
 const STATUS_STYLE: Record<NonNullable<AccountBooking["status"]>, string> = {
@@ -65,7 +66,7 @@ function BookingRow({ b, muted }: { b: AccountBooking; muted?: boolean }) {
       <CalendarCheck size={18} className="mt-0.5 shrink-0 text-gold" />
       <div className="min-w-0 flex-1 space-y-0.5">
         <div className="flex items-center gap-2">
-          <p className="flex-1 text-[14.5px] font-bold text-ink">{t.services.find((s) => s.icon === b.service)?.title}</p>
+          <p className="flex-1 text-[14.5px] font-bold text-ink">{bookingServices(t).find((s) => s.id === b.service)?.title}</p>
           {b.status && (
             <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLE[b.status]}`}>
               {a.statuses[b.status]}

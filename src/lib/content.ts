@@ -81,6 +81,10 @@ export interface BookingStrings {
   // No doctor picked: only a preferred day, the clinic calls to set the time (user's choice 2026-10-29).
   datePreferred: string;
   timeByCall: string;
+  // The booking form lists laser and skin cleansing apart (lib/booking-services.ts); laser is booked by phone.
+  serviceLaser: string;
+  serviceSkincare: string;
+  laserContact: string;
   doctor: string;
   doctorOptional: string;
   anyDoctor: string;
@@ -491,6 +495,9 @@ export const arContent: Content = {
     time: "الوقت المفضّل",
     pickDateFirst: "اختر اليوم أولاً لعرض الأوقات المتاحة.",
     datePreferred: "اليوم المفضّل",
+    serviceLaser: "الليزر",
+    serviceSkincare: "تنظيف البشرة",
+    laserContact: "أرسل بياناتك وسيتواصل معك فريقنا لتحديد موعد جلسة الليزر المناسب.",
     timeByCall: "سيتواصل معك فريقنا لتحديد الوقت المناسب في هذا اليوم. لاختيار الوقت بنفسك، اختر الطبيب أولاً.",
     doctor: "الطبيب",
     doctorOptional: "الطبيب (اختياري)",
@@ -839,6 +846,9 @@ export const enContent: Content = {
     time: "Preferred time",
     pickDateFirst: "Pick a day to see the available times.",
     datePreferred: "Preferred day",
+    serviceLaser: "Laser",
+    serviceSkincare: "Skin cleansing",
+    laserContact: "Send your details and our team will call you to set your laser session.",
     timeByCall: "Our team will call you to set a suitable time that day. To pick the time yourself, choose the doctor first.",
     doctor: "Doctor",
     doctorOptional: "Doctor (optional)",

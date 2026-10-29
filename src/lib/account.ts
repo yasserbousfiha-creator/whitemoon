@@ -1,7 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Branch, ServiceContent } from "./content";
+import type { ServiceId } from "./booking-labels";
+import type { Branch } from "./content";
 
 // The visitor's "account" on this browser, mirroring the mobile app: saved after their first booking, it pre-fills
 // later bookings and lists their appointments. Each booking keeps the token returned by /api/booking, which
@@ -12,7 +13,7 @@ export type BookingStatus = "new" | "contacted" | "confirmed" | "cancelled";
 
 export interface AccountBooking {
   token: string;
-  service: ServiceContent["icon"];
+  service: ServiceId;
   branch: Branch["id"];
   // null: an offer booking — the clinic calls to set the day and time.
   slotDate: string | null; // YYYY-MM-DD

@@ -150,7 +150,9 @@ function BookingItem({ booking, today, reload, readOnly, canDelete }: { booking:
                 ? `${formatDay(b.appointment_date, "ar")} · الوقت: يُتواصل معه`
                 : b.offer
                   ? "حجز عرض — يُتواصل معه لتحديد الموعد"
-                  : "لم يُحدد موعد"}
+                  : b.service === "laser"
+                    ? "ليزر — يُتواصل معه لتحديد الموعد"
+                    : "لم يُحدد موعد"}
           </span>
           <br />
           {SERVICES[b.service]} · {BRANCHES[b.branch]}

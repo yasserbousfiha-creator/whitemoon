@@ -9,6 +9,7 @@ import { normalizePhone, toAsciiDigits } from "@/lib/wheel";
 import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
 import { kizenTaken } from "@/lib/kizen";
+import { isCallOnly } from "@/lib/booking-services";
 
 export const runtime = "nodejs";
 
@@ -64,7 +65,9 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
         ? `${formatDay(appointment_date, "ar", { year: "numeric" })} — الوقت: يُتواصل مع المراجع لتحديده`
         : offer
           ? "يُتواصل مع المراجع لتحديده (حجز عرض)"
-          : "لم يُحدد";
+          : service === "laser"
+            ? "يُتواصل مع المراجع لتحديده (ليزر)"
+            : "لم يُحدد";
   const dashboard = process.env.SITE_URL ? `${process.env.SITE_URL}/admin` : null;
 
   try {
@@ -121,16 +124,18 @@ export async function POST(request: Request) {
       : null;
   // Offer bookings are kept apart from the doctors' (user's choice 2026-10-29): no doctor, day or time, so they never
   // take a slot — the clinic calls the patient. Also for an older form or app that still sends them.
-  const date = !offer && typeof body.date === "string" ? body.date : null;
-  const time = !offer && typeof body.time === "string" ? body.time : null;
-  let doctor = !offer && typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
+  // Laser too is booked by phone like an offer (lib/booking-services.ts, user's choice 2026-10-29).
+  const noSlot = !!offer || isCallOnly(service);
+  const date = !noSlot && typeof body.date === "string" ? body.date : null;
+  const time = !noSlot && typeof body.time === "string" ? body.time : null;
+  let doctor = !noSlot && typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
   // Newer clients send the id; older app versions only the display name. Hidden doctors are not bookable. If the
   // doctors can't be read, the booking still goes through, without a doctor.
   const doctors = await getDoctors().catch((err) => {
     console.error(err);
     return [];
   });
-  let picked = offer ? null : (doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor));
+  let picked = noSlot ? null : (doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor));
   // A doctor who does not work in the chosen branch/department is dropped rather than booked there.
   if (picked && (picked.branch !== body.branch || picked.service !== body.service)) picked = null;
   // A name that matches no bookable doctor (hidden since the form loaded…) is not kept: it would be booked without

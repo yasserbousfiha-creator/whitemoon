@@ -11,6 +11,10 @@ import { SLOT_MINUTES } from "./slots";
 
 export const KIZEN_BUCKET = "kizen-sync";
 
+// Off for now (user's choice 2026-10-29: until a call-center person is in place). The agent may keep posting —
+// its snapshots are stored but not shown. true = the booking form shows Kizen's busy times again.
+export const KIZEN_ENABLED = false;
+
 // sha256 of each branch agent's token (the token itself lives only in the agent's config.json on that server).
 const TOKEN_HASHES: Partial<Record<BranchId, string>> = {
   khamseen: "35b2d5d3b3ce2d461b148dfd7632fc782c114ed8303988c92fcd49e32e9ba3b5",
@@ -107,6 +111,7 @@ const toMin = (hhmm: string) => {
 /** The site's slots ("YYYY-MM-DD HH:MM") that overlap one of this doctor's busy times in Kizen. */
 export async function kizenTaken(db: SupabaseClient, doctor: Doctor): Promise<Set<string>> {
   const taken = new Set<string>();
+  if (!KIZEN_ENABLED) return taken;
   const snap = await readSnapshot(db, doctor.branch);
   const k = snap && kizenDoctorFor(snap, doctor);
   if (!k) return taken;
