@@ -79,7 +79,10 @@ export function normName(s: string) {
     .replace(/ى/g, "ي")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .split(" ")
+    .map((w) => w.replace(/^ال(?=\p{L}{2})/u, "")) // "الخليلي" ↔ "خليلي"
+    .join(" ");
 }
 
 /** The Kizen doctor for a site doctor: a name or alias equal to Kizen's, or else Kizen's name being the start of
