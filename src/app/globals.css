@@ -248,3 +248,38 @@ img {
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* Google reviews gliding past (components/Testimonials.tsx): the track holds the list twice, so moving it by half
+   loops without a seam. Arabic flows to the right, English to the left. Paused under the mouse or a finger; still
+   (and scrollable) for visitors who turn motion off. */
+.marquee-track {
+  animation: 70s linear infinite;
+}
+.marquee-rtl {
+  animation-name: marquee-rtl;
+}
+.marquee-ltr {
+  animation-name: marquee-ltr;
+}
+.marquee:hover .marquee-track,
+.marquee:active .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee-rtl {
+  to {
+    transform: translateX(50%);
+  }
+}
+@keyframes marquee-ltr {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+  .marquee {
+    overflow-x: auto;
+  }
+}

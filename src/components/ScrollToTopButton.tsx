@@ -34,7 +34,7 @@ export default function ScrollToTopButton() {
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`fixed bottom-5 left-1/2 z-40 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full border border-gold/30 bg-surface/50 text-gold shadow-md backdrop-blur-sm transition-all duration-300 ease-out hover:bg-surface/90 ${
+      className={`fixed bottom-[calc(80px+env(safe-area-inset-bottom))] left-1/2 md:bottom-5 z-40 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full border border-gold/30 bg-surface/50 text-gold shadow-md backdrop-blur-sm transition-all duration-300 ease-out hover:bg-surface/90 ${
         visible ? "pointer-events-auto translate-y-0 opacity-70 hover:opacity-100" : "pointer-events-none translate-y-3 opacity-0"
       }`}
     >

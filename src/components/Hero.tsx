@@ -7,6 +7,7 @@ import { useBranch } from "@/lib/branch-context";
 import { useLocale } from "@/lib/locale-context";
 import { openBranchPicker } from "./BranchPicker";
 import CbahiBadge from "./CbahiBadge";
+import GoogleRatingBadge from "./GoogleRatingBadge";
 import Eyebrow from "./Eyebrow";
 
 function scrollToSection(id: string) {
@@ -78,6 +79,9 @@ export default function Hero() {
             >
               {t.ctaExploreServices}
             </button>
+          </div>
+          <div className="rise-in" style={{ animationDelay: "1.3s" }}>
+            <GoogleRatingBadge className="mt-5" />
           </div>
           <CbahiBadge variant="hero" />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck } from "lucide-react";
+import { CalendarPlus, CircleCheck } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { type AccountBooking, recordBooking, useAccount } from "@/lib/account";
@@ -12,6 +12,7 @@ import { useDoctor, useTeam } from "@/lib/doctors-context";
 import { useLocale } from "@/lib/locale-context";
 import { offerIn, offerTitle } from "@/lib/offers";
 import { useOffer } from "@/lib/offers-context";
+import { downloadIcs, googleCalendarUrl, type CalendarEvent } from "@/lib/calendar";
 import Eyebrow from "./Eyebrow";
 import RequiredMark from "./RequiredMark";
 import SlotPicker from "./SlotPicker";
@@ -42,6 +43,7 @@ export default function Booking() {
   // Set by "book this offer"; kept until the visitor removes it or picks a branch the offer is not at.
   const [offerId, setOfferId] = useState<number | null>(null);
   const offer = useOffer(offerId);
+  const [calendar, setCalendar] = useState<CalendarEvent | null>(null);
 
   // Switching to a branch or department the chosen doctor does not work in drops the doctor, and the day/time
   // picked from their schedule.
@@ -117,6 +119,20 @@ export default function Booking() {
             },
           );
         }
+        // A day and time were booked: offer to put it in the phone's calendar (an offer booking has none yet).
+        const picked = t.services.find((x) => x.icon === service);
+        const br = t.branches.find((x) => x.id === branch);
+        setCalendar(
+          !offer && date && time && picked && br
+            ? {
+                title: b.calendarTitle.replace("{service}", picked.title),
+                date,
+                time,
+                location: `${br.name} — ${br.address}`,
+                details: [br.name, doctor, br.mapUrl, t.phoneDisplay].filter(Boolean).join("\n"),
+              }
+            : null,
+        );
         form.reset();
         setDate(null);
         setTime(null);
@@ -317,13 +333,13 @@ export default function Booking() {
           </div>
         </form>
       </div>
-      {status === "success" && <BookingReceived onClose={() => setStatus("idle")} />}
+      {status === "success" && <BookingReceived calendar={calendar} onClose={() => setStatus("idle")} />}
     </section>
   );
 }
 
 // Shown over the page once a booking was sent, so the patient can't miss that it went through.
-function BookingReceived({ onClose }: { onClose: () => void }) {
+function BookingReceived({ calendar, onClose }: { calendar: CalendarEvent | null; onClose: () => void }) {
   const b = useLocale().t.booking;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -346,6 +362,31 @@ function BookingReceived({ onClose }: { onClose: () => void }) {
         </h3>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{b.success}</p>
         <p className="mt-3 text-[14px] text-gold">{b.successWish}</p>
+        {calendar && (
+          <div className="mt-5 rounded-xl border border-line/25 bg-surface p-3.5">
+            <p className="flex items-center justify-center gap-1.5 text-[13px] font-bold text-ink">
+              <CalendarPlus size={16} className="text-gold" aria-hidden />
+              {b.addToCalendar}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <a
+                href={googleCalendarUrl(calendar)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-line/40 px-3 py-2 text-[12.5px] font-semibold text-ink transition-colors hover:border-gold-bright"
+              >
+                {b.calendarGoogle}
+              </a>
+              <button
+                type="button"
+                onClick={() => downloadIcs(calendar)}
+                className="rounded-full border border-line/40 px-3 py-2 text-[12.5px] font-semibold text-ink transition-colors hover:border-gold-bright"
+              >
+                {b.calendarOther}
+              </button>
+            </div>
+          </div>
+        )}
         <button
           type="button"
           autoFocus

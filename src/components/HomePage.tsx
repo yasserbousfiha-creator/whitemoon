@@ -14,6 +14,7 @@ import Footer from "@/components/Footer";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import WhatsappFab from "@/components/WhatsappFab";
+import MobileActionBar from "@/components/MobileActionBar";
 import ChatAssistant from "@/components/ChatAssistant";
 import BranchPicker from "@/components/BranchPicker";
 import type { Branch } from "@/lib/content";
@@ -26,6 +27,7 @@ import { getWheelSettings } from "@/lib/wheel-server";
 import OffersSection from "@/components/OffersSection";
 import OfferPopup from "@/components/OfferPopup";
 import SiteTracker from "@/components/SiteTracker";
+import { structuredData } from "@/lib/structured-data";
 
 // The whole site. A branch page (/khamseen…) shows only that branch's doctors, devices and location; the home
 // page shows everything behind the branch picker. The doctors and offers come from the database (edited in /admin).
@@ -36,6 +38,8 @@ export default async function HomePage({ branch, picker = false }: { branch: Bra
       <DoctorsProvider value={doctors}>
       <OffersProvider value={offers}>
         <SiteTracker />
+        {/* For Google (search and Maps): the clinic and its branches — lib/structured-data.ts */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData(branch) }} />
         <Header />
 
         <main>
@@ -79,12 +83,18 @@ export default async function HomePage({ branch, picker = false }: { branch: Bra
         </main>
 
         <Footer />
+        {/* Phones: room under the footer for the bar below. */}
+        <div aria-hidden className="h-[calc(68px+env(safe-area-inset-bottom))] bg-surface2 md:hidden" />
 
         <ScrollToTopButton />
-        <div className="fixed bottom-6 end-6 z-40 flex flex-col items-end gap-3">
+        {/* On phones the bar carries WhatsApp, so only the assistant floats here, above the bar. */}
+        <div className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] end-4 z-40 flex flex-col items-end gap-3 md:bottom-6 md:end-6">
           <ChatAssistant />
-          <WhatsappFab />
+          <div className="max-md:hidden">
+            <WhatsappFab />
+          </div>
         </div>
+        <MobileActionBar />
 
         {picker ? <BranchPicker /> : <OfferPopup />}
       </OffersProvider>

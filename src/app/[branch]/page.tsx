@@ -15,9 +15,25 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ branch: string }> }): Promise<Metadata> {
   const { branch } = await params;
-  const ar = arContent.branches.find((b) => b.id === branch)?.name;
-  const en = enContent.branches.find((b) => b.id === branch)?.name;
-  return { title: `${ar} | ${en} — White Moon Medical Complex` };
+  const b = arContent.branches.find((x) => x.id === branch);
+  const en = enContent.branches.find((x) => x.id === branch)?.name;
+  const services = arContent.services.filter((s) => !s.branches || s.branches.includes(branch as never)).map((s) => s.title);
+  const description = `${b?.address} — ${services.join("، ")}. احجز موعدك أونلاين.`;
+  return {
+    title: `${b?.name} | ${en} — White Moon Medical Complex`,
+    description,
+    alternates: { canonical: `/${branch}` },
+    // A page's openGraph replaces the root layout's, so the shared fields are repeated.
+    openGraph: {
+      type: "website",
+      locale: "ar_SA",
+      siteName: "مجمع وايت مون الطبي | White Moon",
+      title: `مجمع وايت مون الطبي — ${b?.name}`,
+      description,
+      url: `/${branch}`,
+      images: [{ url: `/og/${branch}.jpg`, width: 1200, height: 630, alt: `مجمع وايت مون الطبي — ${b?.name}` }],
+    },
+  };
 }
 
 export default async function BranchPage({ params }: { params: Promise<{ branch: string }> }) {

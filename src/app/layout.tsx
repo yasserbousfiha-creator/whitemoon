@@ -23,10 +23,24 @@ const marcellus = Marcellus({
   weight: ["400"],
 });
 
+const description =
+  "White Moon Medical Complex in Taif — dentistry, dermatology and laser care under one roof. مجمع طبي متخصص في طب الأسنان والجلدية والليزر بالطائف.";
+
+// The link preview (WhatsApp, X, iMessage…): the card in public/og/ — each branch page sets its own.
 export const metadata: Metadata = {
+  metadataBase: new URL("https://whitemoonclinic.com"),
   title: "White Moon Medical Complex | مجمع وايت مون الطبي",
-  description:
-    "White Moon Medical Complex in Taif — dentistry, dermatology and laser care under one roof. مجمع طبي متخصص في طب الأسنان والجلدية والليزر بالطائف.",
+  description,
+  openGraph: {
+    type: "website",
+    locale: "ar_SA",
+    siteName: "مجمع وايت مون الطبي | White Moon",
+    title: "مجمع وايت مون الطبي — الطائف",
+    description: "طب الأسنان، الجلدية والتجميل، الليزر، النساء والولادة، الأطفال — ثلاثة فروع في الطائف: الخمسين، شهار، الوسام.",
+    url: "/",
+    images: [{ url: "/og/home.jpg", width: 1200, height: 630, alt: "مجمع وايت مون الطبي" }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -95,6 +95,11 @@ export interface BookingStrings {
   success: string;
   successWish: string;
   successClose: string;
+  // After booking a day and time: add it to the phone's calendar (components/Booking.tsx).
+  addToCalendar: string;
+  calendarGoogle: string;
+  calendarOther: string;
+  calendarTitle: string; // "{service}"
   error: string;
   invalid: string;
 }
@@ -300,6 +305,8 @@ export interface Content {
   footerPreview: string;
   brandName: string;
   brandTagline: string;
+  /** The bar fixed at the bottom on phones (components/MobileActionBar.tsx). */
+  mobileBar: { book: string; whatsapp: string; call: string; map: string; branches: string };
 
   navItems: NavItem[];
 }
@@ -495,6 +502,10 @@ export const arContent: Content = {
     success: "سنتواصل معك قريبًا لتأكيد الموعد.",
     successWish: "مع تمنياتنا لكم بدوام الصحة.",
     successClose: "حسناً",
+    addToCalendar: "أضف الموعد إلى تقويمك ليذكّرك به",
+    calendarGoogle: "تقويم Google",
+    calendarOther: "آيفون / تقويم آخر",
+    calendarTitle: "موعد في مجمع وايت مون الطبي — {service}",
     error: "تعذّر إرسال الطلب، حاول مرة أخرى أو تواصل معنا عبر واتساب.",
     invalid: "يرجى تعبئة الحقول المعلّمة بنجمة حمراء واختيار اليوم والوقت.",
   },
@@ -672,6 +683,7 @@ export const arContent: Content = {
   footerPreview: "",
   brandName: "وايت مون",
   brandTagline: "مجمع طبي متخصص",
+  mobileBar: { book: "احجز", whatsapp: "واتساب", call: "اتصال", map: "الموقع", branches: "الفروع" },
   navItems: [
     { label: "الرئيسية", sectionId: "home" },
     { label: "الخدمات", sectionId: "services" },
@@ -835,6 +847,10 @@ export const enContent: Content = {
     success: "We will contact you soon to confirm your appointment.",
     successWish: "Wishing you lasting good health.",
     successClose: "OK",
+    addToCalendar: "Add it to your calendar for a reminder",
+    calendarGoogle: "Google Calendar",
+    calendarOther: "iPhone / other calendar",
+    calendarTitle: "Appointment at White Moon Medical Complex — {service}",
     error: "We could not send your request. Please try again or contact us on WhatsApp.",
     invalid: "Please fill in the fields marked with a red star and pick a day and time.",
   },
@@ -1012,6 +1028,7 @@ export const enContent: Content = {
   footerPreview: "Preliminary design preview",
   brandName: "White Moon",
   brandTagline: "Specialized Medical Complex",
+  mobileBar: { book: "Book", whatsapp: "WhatsApp", call: "Call", map: "Location", branches: "Branches" },
   navItems: [
     { label: "Home", sectionId: "home" },
     { label: "Services", sectionId: "services" },
