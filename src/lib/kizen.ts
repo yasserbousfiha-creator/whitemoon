@@ -11,9 +11,8 @@ import { SLOT_MINUTES } from "./slots";
 
 export const KIZEN_BUCKET = "kizen-sync";
 
-// Off for now (user's choice 2026-10-29: until a call-center person is in place). The agent may keep posting —
-// its snapshots are stored but not shown. true = the booking form shows Kizen's busy times again.
-export const KIZEN_ENABLED = false;
+// On: the booking form shows Kizen's busy times (user's choice 2026-10-29). false = stored but not shown.
+export const KIZEN_ENABLED = true;
 
 // sha256 of each branch agent's token (the token itself lives only in the agent's config.json on that server).
 const TOKEN_HASHES: Partial<Record<BranchId, string>> = {
