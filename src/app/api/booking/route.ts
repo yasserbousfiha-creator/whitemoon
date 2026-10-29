@@ -59,7 +59,9 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
   const when =
     appointment_date && appointment_time
       ? `${formatDay(appointment_date, "ar", { year: "numeric" })} - ${formatTime(appointment_time, "ar")}`
-      : "لم يُحدد";
+      : offer
+        ? "يُتواصل مع المراجع لتحديده (حجز عرض)"
+        : "لم يُحدد";
   const dashboard = process.env.SITE_URL ? `${process.env.SITE_URL}/admin` : null;
 
   try {
@@ -109,16 +111,23 @@ export async function POST(request: Request) {
   // Own keys only: `"toString" in SERVICES` is true too.
   const service = typeof body.service === "string" && Object.hasOwn(SERVICES, body.service) ? (body.service as ServiceId) : null;
   const branch = typeof body.branch === "string" && Object.hasOwn(BRANCHES, body.branch) ? (body.branch as BranchId) : null;
-  const date = typeof body.date === "string" ? body.date : null;
-  const time = typeof body.time === "string" ? body.time : null;
-  let doctor = typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
+  // An offer that has ended, been hidden, or is not at the chosen branch is dropped; the booking still goes through.
+  const offer =
+    typeof body.offerId === "number" && branch
+      ? ((await getOffers()).find((o) => o.id === body.offerId && isLive(o) && offerIn(o, branch)) ?? null)
+      : null;
+  // Offer bookings are kept apart from the doctors' (user's choice 2026-10-29): no doctor, day or time, so they never
+  // take a slot — the clinic calls the patient. Also for an older form or app that still sends them.
+  const date = !offer && typeof body.date === "string" ? body.date : null;
+  const time = !offer && typeof body.time === "string" ? body.time : null;
+  let doctor = !offer && typeof body.doctor === "string" && body.doctor.trim() ? body.doctor.trim().slice(0, 100) : null;
   // Newer clients send the id; older app versions only the display name. Hidden doctors are not bookable. If the
   // doctors can't be read, the booking still goes through, without a doctor.
   const doctors = await getDoctors().catch((err) => {
     console.error(err);
     return [];
   });
-  let picked = doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor);
+  let picked = offer ? null : (doctors.find((d) => d.id === body.doctorId) ?? doctorByName(doctors, doctor));
   // A doctor who does not work in the chosen branch/department is dropped rather than booked there.
   if (picked && (picked.branch !== body.branch || picked.service !== body.service)) picked = null;
   // A name that matches no bookable doctor (hidden since the form loaded…) is not kept: it would be booked without
@@ -157,13 +166,9 @@ export async function POST(request: Request) {
     doctor,
     doctor_id: doctorId,
   };
-  // An offer that has ended, been hidden, or is not at the chosen branch is dropped; the booking still goes through.
-  if (typeof body.offerId === "number") {
-    const offer = (await getOffers()).find((o) => o.id === body.offerId);
-    if (offer && isLive(offer) && offerIn(offer, branch)) {
-      booking.offer_id = offer.id;
-      booking.offer = offer.titleAr;
-    }
+  if (offer) {
+    booking.offer_id = offer.id;
+    booking.offer = offer.titleAr;
   }
 
   // The mobile app's HTTP stack identifies itself differently from browsers.

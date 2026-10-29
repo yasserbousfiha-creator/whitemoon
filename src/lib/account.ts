@@ -14,8 +14,9 @@ export interface AccountBooking {
   token: string;
   service: ServiceContent["icon"];
   branch: Branch["id"];
-  slotDate: string; // YYYY-MM-DD
-  slotTime: string; // HH:MM, Riyadh time
+  // null: an offer booking — the clinic calls to set the day and time.
+  slotDate: string | null; // YYYY-MM-DD
+  slotTime: string | null; // HH:MM, Riyadh time
   doctor?: string | null;
   sentAt: string; // ISO timestamp
   status?: BookingStatus;
@@ -126,7 +127,9 @@ export async function refreshStatuses() {
 }
 
 // Appointment start as an instant (slots are Riyadh wall-clock, UTC+3).
+// No day/time yet (an offer booking): counts as upcoming, after the dated ones.
 export function appointmentTime(b: AccountBooking) {
+  if (!b.slotDate || !b.slotTime) return Number.MAX_SAFE_INTEGER;
   const [y, m, d] = b.slotDate.split("-").map(Number);
   const [h, min] = b.slotTime.split(":").map(Number);
   return Date.UTC(y, m - 1, d, h - 3, min);

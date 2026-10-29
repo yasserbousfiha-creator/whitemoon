@@ -112,6 +112,7 @@ export interface OfferStrings {
   close: string;
   bookingOffer: string; // the offer chip in the booking form
   removeOffer: string;
+  offerContact: string; // an offer booking picks no day or time: the clinic calls the patient
 }
 
 // The chat assistant (components/ChatAssistant.tsx). "{…}" parts are filled in by the component.
@@ -178,6 +179,7 @@ export interface AccountStrings {
   title: string;
   guestTitle: string;
   guestBody: string;
+  toBeArranged: string; // an offer booking without a day/time yet
   name: string;
   phone: string;
   email: string;
@@ -432,6 +434,7 @@ export const arContent: Content = {
   account: {
     title: "حسابي",
     guestTitle: "لم تسجّل بعد",
+    toBeArranged: "سنتواصل معك لتحديد الموعد",
     guestBody: "احجز موعدك الأول وسنحفظ بياناتك على هذا الجهاز، فتظهر هنا مع مواعيدك وتُعبّأ تلقائياً في حجوزاتك القادمة.",
     name: "الاسم",
     phone: "الجوال",
@@ -602,6 +605,7 @@ export const arContent: Content = {
     close: "إغلاق",
     bookingOffer: "العرض",
     removeOffer: "إلغاء العرض",
+    offerContact: "أرسل بياناتك وسيتواصل معك فريقنا لتحديد الموعد المناسب.",
   },
   chat: {
     open: "المساعد",
@@ -770,6 +774,7 @@ export const enContent: Content = {
   account: {
     title: "My Account",
     guestTitle: "Not signed in yet",
+    toBeArranged: "We'll call you to set the time",
     guestBody: "Book your first appointment and we'll save your details on this device, so they show here with your appointments and fill in your next bookings.",
     name: "Name",
     phone: "Mobile",
@@ -940,6 +945,7 @@ export const enContent: Content = {
     close: "Close",
     bookingOffer: "Offer",
     removeOffer: "Remove offer",
+    offerContact: "Send your details and our team will call you to set a suitable time.",
   },
   chat: {
     open: "Assistant",

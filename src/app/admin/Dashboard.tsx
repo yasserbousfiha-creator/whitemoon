@@ -146,7 +146,9 @@ function BookingItem({ booking, today, reload, readOnly, canDelete }: { booking:
           <span className="font-bold">
             {b.appointment_date && b.appointment_time
               ? `${formatDay(b.appointment_date, "ar")} · ${formatTime(b.appointment_time.slice(0, 5), "ar")}`
-              : "لم يُحدد موعد"}
+              : b.offer
+                ? "حجز عرض — يُتواصل معه لتحديد الموعد"
+                : "لم يُحدد موعد"}
           </span>
           <br />
           {SERVICES[b.service]} · {BRANCHES[b.branch]}
@@ -386,14 +388,18 @@ export default function Dashboard({
   const branch: BranchId = staff.branch ?? pickedBranch;
   const branchBookings = bookings.filter((b) => b.branch === branch);
   const [service, setService] = useState<ServiceId | null>(null);
+  // Offer bookings are kept apart from the doctors' (user's choice 2026-10-29): no day/time, the clinic calls them.
+  const [kind, setKind] = useState<"all" | "doctors" | "offers">("all");
 
   const today = todayRiyadh();
   const shown = bookings.filter(
     (b) =>
       (view === "today" ? b.status === "confirmed" && b.appointment_date === today : !status || b.status === status) &&
       b.branch === branch &&
-      (!service || b.service === service),
+      (!service || b.service === service) &&
+      (kind === "all" || (kind === "offers") === !!b.offer),
   );
+  const offerCount = branchBookings.filter((b) => b.offer && b.status === "new").length;
 
   // Group by patient. Today: by appointment time. All: most recently booked first (the server's order).
   const groups = new Map<string, Booking[]>();
@@ -561,6 +567,19 @@ export default function Dashboard({
                 كل الحجوزات
               </Chip>
             </div>
+            {view === "all" && (
+              <div className="flex flex-wrap gap-2">
+                <Chip active={kind === "all"} onClick={() => setKind("all")}>
+                  الكل
+                </Chip>
+                <Chip active={kind === "doctors"} onClick={() => setKind("doctors")}>
+                  حجوزات الأطباء
+                </Chip>
+                <Chip active={kind === "offers"} onClick={() => setKind("offers")}>
+                  حجوزات العروض{offerCount ? ` (${offerCount} جديد)` : ""}
+                </Chip>
+              </div>
+            )}
             {view === "all" && (
               <div className="flex flex-wrap gap-2">
                 <Chip active={!status} onClick={() => setStatus(null)}>

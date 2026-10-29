@@ -80,13 +80,17 @@ export default function Booking() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    if (!date || !time) {
+    // An offer booking is kept apart from the doctors' bookings (user's choice 2026-10-29): no doctor, day or time —
+    // the clinic calls the patient.
+    if (!offer && (!date || !time)) {
       setTried(true);
       setStatus("invalid");
       return;
     }
     const fields = Object.fromEntries(new FormData(form));
-    const data = { ...fields, date, time, doctor, doctorId, offerId: offer ? offer.id : null };
+    const data = offer
+      ? { ...fields, date: null, time: null, doctor: null, doctorId: null, offerId: offer.id }
+      : { ...fields, date, time, doctor, doctorId, offerId: null };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -107,9 +111,9 @@ export default function Booking() {
               token,
               service: service as AccountBooking["service"],
               branch: branch as AccountBooking["branch"],
-              slotDate: date,
-              slotTime: time,
-              doctor,
+              slotDate: offer ? null : date,
+              slotTime: offer ? null : time,
+              doctor: offer ? null : doctor,
             },
           );
         }
@@ -254,6 +258,10 @@ export default function Booking() {
             </select>
           </label>
 
+          {offer ? (
+            <p className="rounded-xl bg-surface2 px-4 py-3 text-[14px] text-ink-soft md:col-span-2">{t.offers.offerContact}</p>
+          ) : (
+          <>
           {/* Optional: the doctors of the chosen department at the chosen branch; "any" books without one. */}
           <label className="text-[13px] font-bold text-ink-soft md:col-span-2">
             {b.doctorOptional}
@@ -291,6 +299,8 @@ export default function Booking() {
             refreshKey={availabilityKey}
             showMissing={tried}
           />
+          </>
+          )}
 
           <button
             type="submit"
