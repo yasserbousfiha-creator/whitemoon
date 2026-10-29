@@ -17,6 +17,8 @@ export const KIZEN_ENABLED = true;
 // sha256 of each branch agent's token (the token itself lives only in the agent's config.json on that server).
 const TOKEN_HASHES: Partial<Record<BranchId, string>> = {
   khamseen: "35b2d5d3b3ce2d461b148dfd7632fc782c114ed8303988c92fcd49e32e9ba3b5",
+  shahar: "cd1734b4e8a84ea7749e3a389a4010ad8b011df7eb3eb37711db3fa1bf963901",
+  wisam: "abaee7f464117224cfb752a8dc411a604a41810c63c64fa7419123e24a04603c",
 };
 
 // An agent that stopped posting (server off, error) is ignored after this long: the form falls back to normal hours.
