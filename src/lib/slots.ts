@@ -1,10 +1,13 @@
 // Appointment slots, in Riyadh time (UTC+3, no DST). Keep in sync with whitemoon-app/src/lib/slots.ts.
-// Without a doctor, hours match "daily 9 AM – 10 PM"; with one, their own shifts (lib/doctors.ts). The last slot
-// starts 30 minutes before closing.
+// Without a doctor, hours are 9 AM – 10 PM except CLOSED_WEEKDAYS (Friday); with one, their own shifts
+// (lib/doctors.ts). The last slot starts 30 minutes before closing.
 import { type Doctor, doctorSlots } from "./doctors";
 
 export const OPEN_HOUR = 9;
 export const CLOSE_HOUR = 22;
+// Days with no slots when no doctor is picked (0 = Sunday … 5 = Friday): Friday (user's choice 2026-10-29). A picked
+// doctor's own shifts (lib/doctors.ts) decide their days.
+export const CLOSED_WEEKDAYS = [5];
 export const SLOT_MINUTES = 30;
 export const DAYS_AHEAD = 30;
 // Same-day slots must start at least this long from now, so the branch has time to confirm.
@@ -43,6 +46,7 @@ export function timeSlots(isoDate: string, now = new Date(), doctor: Doctor | nu
   const { date: today, minutes: nowMinutes } = riyadhNow(now);
   let all: string[];
   if (doctor) all = doctorSlots(doctor, isoDate);
+  else if (CLOSED_WEEKDAYS.includes(new Date(`${isoDate}T00:00:00Z`).getUTCDay())) all = [];
   else {
     all = [];
     for (let m = OPEN_HOUR * 60; m < CLOSE_HOUR * 60; m += SLOT_MINUTES) all.push(`${pad(Math.floor(m / 60))}:${pad(m % 60)}`);
