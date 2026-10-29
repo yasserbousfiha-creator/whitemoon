@@ -11,6 +11,8 @@ const noop = () => () => {};
 
 // Day and time chips. Slots depend on the current time, so they render only in the browser (the page is prerendered).
 // With a doctor chosen, only their shifts show, and slots the admin closed or that are already booked are red.
+// Without one, only the preferred day is picked — the real free times are per doctor, so the clinic calls to set
+// the time (user's choice 2026-10-29).
 export default function SlotPicker({
   date,
   time,
@@ -99,7 +101,7 @@ export default function SlotPicker({
     <>
       <div className="min-w-0 md:col-span-2">
         <p className={`text-[13px] font-bold ${showMissing && !day ? "text-red-600" : "text-ink-soft"}`}>
-          {b.date}
+          {doctor ? b.date : b.datePreferred}
           <RequiredMark />
         </p>
         <div className="mt-1.5 flex gap-2 overflow-x-auto pb-1">
@@ -116,6 +118,9 @@ export default function SlotPicker({
           })}
         </div>
       </div>
+      {!doctor ? (
+        <p className="rounded-xl bg-surface2 px-4 py-3 text-[13.5px] text-ink-soft md:col-span-2">{b.timeByCall}</p>
+      ) : (
       <div className="md:col-span-2">
         <p className={`text-[13px] font-bold ${showMissing && !time ? "text-red-600" : "text-ink-soft"}`}>
           {b.time}
@@ -158,6 +163,7 @@ export default function SlotPicker({
           <p className="mt-1.5 text-[13px] text-ink-soft">{b.pickDateFirst}</p>
         )}
       </div>
+      )}
     </>
   );
 }

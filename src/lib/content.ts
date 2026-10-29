@@ -78,6 +78,9 @@ export interface BookingStrings {
   date: string;
   time: string;
   pickDateFirst: string;
+  // No doctor picked: only a preferred day, the clinic calls to set the time (user's choice 2026-10-29).
+  datePreferred: string;
+  timeByCall: string;
   doctor: string;
   doctorOptional: string;
   anyDoctor: string;
@@ -185,6 +188,7 @@ export interface AccountStrings {
   guestTitle: string;
   guestBody: string;
   toBeArranged: string; // an offer booking without a day/time yet
+  timeToBeArranged: string; // a day picked, the time set by phone
   name: string;
   phone: string;
   email: string;
@@ -442,6 +446,7 @@ export const arContent: Content = {
     title: "حسابي",
     guestTitle: "لم تسجّل بعد",
     toBeArranged: "سنتواصل معك لتحديد الموعد",
+    timeToBeArranged: "الوقت بالتواصل",
     guestBody: "احجز موعدك الأول وسنحفظ بياناتك على هذا الجهاز، فتظهر هنا مع مواعيدك وتُعبّأ تلقائياً في حجوزاتك القادمة.",
     name: "الاسم",
     phone: "الجوال",
@@ -485,6 +490,8 @@ export const arContent: Content = {
     date: "اليوم المفضّل",
     time: "الوقت المفضّل",
     pickDateFirst: "اختر اليوم أولاً لعرض الأوقات المتاحة.",
+    datePreferred: "اليوم المفضّل",
+    timeByCall: "سيتواصل معك فريقنا لتحديد الوقت المناسب في هذا اليوم. لاختيار الوقت بنفسك، اختر الطبيب أولاً.",
     doctor: "الطبيب",
     doctorOptional: "الطبيب (اختياري)",
     anyDoctor: "أي طبيب متاح",
@@ -787,6 +794,7 @@ export const enContent: Content = {
     title: "My Account",
     guestTitle: "Not signed in yet",
     toBeArranged: "We'll call you to set the time",
+    timeToBeArranged: "time by phone",
     guestBody: "Book your first appointment and we'll save your details on this device, so they show here with your appointments and fill in your next bookings.",
     name: "Name",
     phone: "Mobile",
@@ -830,6 +838,8 @@ export const enContent: Content = {
     date: "Preferred day",
     time: "Preferred time",
     pickDateFirst: "Pick a day to see the available times.",
+    datePreferred: "Preferred day",
+    timeByCall: "Our team will call you to set a suitable time that day. To pick the time yourself, choose the doctor first.",
     doctor: "Doctor",
     doctorOptional: "Doctor (optional)",
     anyDoctor: "Any available doctor",

@@ -4,7 +4,7 @@ import { doctorByName, isBlocked } from "@/lib/doctors";
 import { getDoctors } from "@/lib/doctors-server";
 import { isLive, offerIn } from "@/lib/offers";
 import { getOffers } from "@/lib/offers-server";
-import { formatDay, formatTime, isBookable } from "@/lib/slots";
+import { bookableDays, formatDay, formatTime, isBookable } from "@/lib/slots";
 import { normalizePhone, toAsciiDigits } from "@/lib/wheel";
 import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
@@ -60,9 +60,11 @@ async function sendEmail({ name, phone, email, service, branch, appointment_date
   const when =
     appointment_date && appointment_time
       ? `${formatDay(appointment_date, "ar", { year: "numeric" })} - ${formatTime(appointment_time, "ar")}`
-      : offer
-        ? "يُتواصل مع المراجع لتحديده (حجز عرض)"
-        : "لم يُحدد";
+      : appointment_date
+        ? `${formatDay(appointment_date, "ar", { year: "numeric" })} — الوقت: يُتواصل مع المراجع لتحديده`
+        : offer
+          ? "يُتواصل مع المراجع لتحديده (حجز عرض)"
+          : "لم يُحدد";
   const dashboard = process.env.SITE_URL ? `${process.env.SITE_URL}/admin` : null;
 
   try {
@@ -145,14 +147,19 @@ export async function POST(request: Request) {
     email.length <= 200 &&
     service !== null &&
     branch !== null &&
-    // A slot is optional (older app versions), but when sent it must come as a date and a time.
-    (date === null) === (time === null) &&
-    (date === null || (/^\d{4}-\d{2}-\d{2}$/.test(date) && /^\d{2}:\d{2}$/.test(time!)));
+    // A slot is optional (older app versions). A time needs a date; a date alone is the preferred day of a booking
+    // without a doctor (the clinic calls to set the time — user's choice 2026-10-29).
+    (time === null || date !== null) &&
+    (date === null || /^\d{4}-\d{2}-\d{2}$/.test(date)) &&
+    (time === null || /^\d{2}:\d{2}$/.test(time));
   if (!valid) return Response.json({ ok: false, error: "invalid" }, { status: 400 });
   if (!(await withinLimit(`booking:phone:${normalizePhone(phone)}`, 5, 86_400))) return tooMany();
   // A real open slot (within the doctor's shifts, when there is one). One that passed while the form was open is
-  // "taken", so the form asks for another time.
+  // "taken", so the form asks for another time. A preferred day alone must still be an open day (not a Friday).
   if (date && time && !isBookable(date, time, new Date(), picked)) {
+    return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+  }
+  if (date && !time && !bookableDays(new Date(), picked).includes(date)) {
     return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
   }
 

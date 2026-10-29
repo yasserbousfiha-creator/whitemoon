@@ -129,7 +129,12 @@ export async function refreshStatuses() {
 // Appointment start as an instant (slots are Riyadh wall-clock, UTC+3).
 // No day/time yet (an offer booking): counts as upcoming, after the dated ones.
 export function appointmentTime(b: AccountBooking) {
-  if (!b.slotDate || !b.slotTime) return Number.MAX_SAFE_INTEGER;
+  if (!b.slotDate) return Number.MAX_SAFE_INTEGER;
+  if (!b.slotTime) {
+    // A preferred day (the clinic sets the time by phone): upcoming until that day ends in Riyadh.
+    const [y, m, d] = b.slotDate.split("-").map(Number);
+    return Date.UTC(y, m - 1, d, 21);
+  }
   const [y, m, d] = b.slotDate.split("-").map(Number);
   const [h, min] = b.slotTime.split(":").map(Number);
   return Date.UTC(y, m - 1, d, h - 3, min);

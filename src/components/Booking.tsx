@@ -84,7 +84,8 @@ export default function Booking() {
     const form = e.currentTarget;
     // An offer booking is kept apart from the doctors' bookings (user's choice 2026-10-29): no doctor, day or time —
     // the clinic calls the patient.
-    if (!offer && (!date || !time)) {
+    // With a doctor: a day and a time. Without one: the preferred day only (the clinic calls to set the time).
+    if (!offer && (!date || (doctorId && !time))) {
       setTried(true);
       setStatus("invalid");
       return;
@@ -92,7 +93,7 @@ export default function Booking() {
     const fields = Object.fromEntries(new FormData(form));
     const data = offer
       ? { ...fields, date: null, time: null, doctor: null, doctorId: null, offerId: offer.id }
-      : { ...fields, date, time, doctor, doctorId, offerId: null };
+      : { ...fields, date, time: doctorId ? time : null, doctor, doctorId, offerId: null };
     setStatus("sending");
     try {
       const res = await fetch("/api/booking", {
@@ -114,7 +115,7 @@ export default function Booking() {
               service: service as AccountBooking["service"],
               branch: branch as AccountBooking["branch"],
               slotDate: offer ? null : date,
-              slotTime: offer ? null : time,
+              slotTime: offer || !doctorId ? null : time,
               doctor: offer ? null : doctor,
             },
           );
@@ -123,7 +124,7 @@ export default function Booking() {
         const picked = t.services.find((x) => x.icon === service);
         const br = t.branches.find((x) => x.id === branch);
         setCalendar(
-          !offer && date && time && picked && br
+          !offer && doctorId && date && time && picked && br
             ? {
                 title: b.calendarTitle.replace("{service}", picked.title),
                 date,

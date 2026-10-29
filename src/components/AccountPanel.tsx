@@ -75,7 +75,7 @@ function BookingRow({ b, muted }: { b: AccountBooking; muted?: boolean }) {
         <p className="text-[13px] text-ink-soft">{t.branches.find((br) => br.id === b.branch)?.name}</p>
         {b.doctor && <p className="text-[13px] text-gold">{b.doctor}</p>}
         <p className="text-[13px] font-medium text-ink">
-          {b.slotDate && b.slotTime ? `${formatDay(b.slotDate, locale)} · ${formatTime(b.slotTime, locale)}` : a.toBeArranged}
+          {b.slotDate ? `${formatDay(b.slotDate, locale)} · ${b.slotTime ? formatTime(b.slotTime, locale) : a.timeToBeArranged}` : a.toBeArranged}
         </p>
         {b.notes && (
           <div className="mt-1.5 rounded-lg bg-surface2 px-3 py-2">
