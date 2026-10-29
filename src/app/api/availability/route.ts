@@ -2,6 +2,7 @@ import type { ScheduleBlock } from "@/lib/doctors";
 import { getDoctors } from "@/lib/doctors-server";
 import { DAYS_AHEAD, addDays, riyadhToday } from "@/lib/slots";
 import { createServiceClient } from "@/lib/supabase";
+import { kizenTaken } from "@/lib/kizen";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,9 +44,11 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: "server" }, { status: 500 });
   }
 
+  // Plus the doctor's busy times in Kizen at the branch (lib/kizen.ts), when that branch's agent is reporting.
+  const kizen = await kizenTaken(db, doctor).catch(() => new Set<string>());
   const body: Availability = {
     blocks: blocks.data.map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null })),
-    taken: bookings.data.map((b) => `${b.appointment_date} ${String(b.appointment_time).slice(0, 5)}`),
+    taken: [...new Set([...bookings.data.map((b) => `${b.appointment_date} ${String(b.appointment_time).slice(0, 5)}`), ...kizen])],
   };
   return Response.json({ ok: true, ...body }, { headers: { "Cache-Control": "no-store" } });
 }

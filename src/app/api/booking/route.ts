@@ -8,6 +8,7 @@ import { formatDay, formatTime, isBookable } from "@/lib/slots";
 import { normalizePhone, toAsciiDigits } from "@/lib/wheel";
 import { clientIp, tooMany, withinLimit } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase";
+import { kizenTaken } from "@/lib/kizen";
 
 export const runtime = "nodejs";
 
@@ -196,6 +197,10 @@ export async function POST(request: Request) {
         ? isBlocked(closed, picked, date, time)
         : closed.some((b) => b.start === null || b.start === time);
       if (blocked) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+      // Already taken in Kizen (booked by phone or at the desk) since the form loaded.
+      if (picked && (await kizenTaken(db, picked).catch(() => new Set<string>())).has(`${date} ${time}`)) {
+        return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+      }
     }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
     // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.
