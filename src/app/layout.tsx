@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Tajawal, Cairo, Marcellus } from "next/font/google";
 import ImageGuard from "@/components/ImageGuard";
 import { LocaleProvider } from "@/lib/locale-context";
@@ -41,6 +41,13 @@ export const metadata: Metadata = {
     images: [{ url: "/og/home.jpg", width: 1200, height: 630, alt: "مجمع وايت مون الطبي" }],
   },
   twitter: { card: "summary_large_image" },
+};
+
+// The site keeps its light cream/gold identity everywhere: tell the browser the page is light-only (no auto-dark on
+// phones) and match the phone's UI bar to the page background.
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#fbf7ee",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

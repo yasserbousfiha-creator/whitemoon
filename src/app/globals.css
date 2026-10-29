@@ -19,7 +19,11 @@
   --font-display-en: var(--font-marcellus), serif;
 }
 
+/* The site has one carefully-made light identity (cream/gold). `only light` opts the whole page out of the browser's
+   automatic dark mode on phones — otherwise Chrome/Samsung Internet invert the colours and it looks broken. It also
+   keeps native form fields, menus and scrollbars light to match. (User's choice 2026-10-29: keep the light identity.) */
 html {
+  color-scheme: only light;
   scroll-behavior: smooth;
 }
 
@@ -27,6 +31,15 @@ body {
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-body);
+}
+
+/* Some mobile browsers still tint native fields; pin them to the site's own surface/ink so they never go dark. */
+input,
+textarea,
+select {
+  color-scheme: only light;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
 }
 
 .font-display {
