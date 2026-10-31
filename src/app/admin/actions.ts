@@ -83,6 +83,10 @@ export async function updateBooking(
   }
   if (error) {
     console.error("Booking update failed:", error);
+    // The slot's confirmed-booking index (022): another patient is already confirmed for this doctor and time.
+    if (error.code === "23505") {
+      return { ok: false, error: "هذا الموعد مؤكَّد لمريض آخر. اختر وقتاً آخر أو ألغِ الموعد الآخر أولاً." };
+    }
     if (error.code === "PGRST204" || error.code === "42703") {
       return { ok: false, error: "تسجيل الحضور يحتاج تشغيل ملف 007_attendance.sql في Supabase." };
     }

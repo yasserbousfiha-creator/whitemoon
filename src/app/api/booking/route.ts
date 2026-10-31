@@ -213,6 +213,19 @@ export async function POST(request: Request) {
       if (picked && (await kizenTaken(db, picked).catch(() => new Set<string>())).has(`${date} ${time}`)) {
         return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
       }
+      // Already confirmed for another patient. A 'new'/'contacted' request on this slot is fine (requests don't
+      // block each other until one is confirmed — 022_confirm_before_blocking), but a confirmed one owns it.
+      if (doctorId) {
+        const { data: confirmed } = await db
+          .from("bookings")
+          .select("id")
+          .eq("doctor_id", doctorId)
+          .eq("appointment_date", date)
+          .eq("appointment_time", time)
+          .eq("status", "confirmed")
+          .limit(1);
+        if (confirmed && confirmed.length > 0) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+      }
     }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
     // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.

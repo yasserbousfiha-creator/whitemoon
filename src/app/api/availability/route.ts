@@ -31,11 +31,13 @@ export async function GET(request: Request) {
       .in("doctor", [doctor.id, "all", `all-${doctor.branch}`])
       .gte("date", from)
       .lte("date", to),
+    // Only a confirmed booking blocks the slot. A fresh request ('new') or one reception is still calling
+    // ('contacted') leaves the time open to others until the appointment is confirmed (022_confirm_before_blocking).
     db
       .from("bookings")
       .select("appointment_date, appointment_time")
       .eq("doctor_id", doctor.id)
-      .neq("status", "cancelled")
+      .eq("status", "confirmed")
       .gte("appointment_date", from)
       .lte("appointment_date", to),
   ]);
