@@ -24,33 +24,25 @@ export async function GET(request: Request) {
 
   const from = riyadhToday();
   const to = addDays(from, DAYS_AHEAD);
-  const [blocks, bookings] = await Promise.all([
-    db
-      .from("doctor_blocks")
-      .select("doctor, date, start_time")
-      .in("doctor", [doctor.id, "all", `all-${doctor.branch}`])
-      .gte("date", from)
-      .lte("date", to),
-    // Only a confirmed booking blocks the slot. A fresh request ('new') or one reception is still calling
-    // ('contacted') leaves the time open to others until the appointment is confirmed (022_confirm_before_blocking).
-    db
-      .from("bookings")
-      .select("appointment_date, appointment_time")
-      .eq("doctor_id", doctor.id)
-      .eq("status", "confirmed")
-      .gte("appointment_date", from)
-      .lte("appointment_date", to),
-  ]);
-  if (blocks.error || bookings.error) {
-    console.error("Availability lookup failed:", blocks.error ?? bookings.error);
+  // Taken times come from Kizen alone: a website booking is only a request and never reserves a slot — it shows as
+  // taken only once reception books it in Kizen (022_bookings_read_from_kizen_only). doctor_blocks are reception's
+  // own manual closures, not bookings, so they still apply.
+  const blocks = await db
+    .from("doctor_blocks")
+    .select("doctor, date, start_time")
+    .in("doctor", [doctor.id, "all", `all-${doctor.branch}`])
+    .gte("date", from)
+    .lte("date", to);
+  if (blocks.error) {
+    console.error("Availability lookup failed:", blocks.error);
     return Response.json({ ok: false, error: "server" }, { status: 500 });
   }
 
-  // Plus the doctor's busy times in Kizen at the branch (lib/kizen.ts), when that branch's agent is reporting.
+  // The doctor's busy times in Kizen at the branch (lib/kizen.ts), when that branch's agent is reporting.
   const kizen = await kizenTaken(db, doctor).catch(() => new Set<string>());
   const body: Availability = {
     blocks: blocks.data.map((b) => ({ doctor: b.doctor, date: b.date, start: b.start_time?.slice(0, 5) ?? null })),
-    taken: [...new Set([...bookings.data.map((b) => `${b.appointment_date} ${String(b.appointment_time).slice(0, 5)}`), ...kizen])],
+    taken: [...kizen],
   };
   return Response.json({ ok: true, ...body }, { headers: { "Cache-Control": "no-store" } });
 }

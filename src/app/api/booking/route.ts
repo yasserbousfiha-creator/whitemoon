@@ -209,27 +209,15 @@ export async function POST(request: Request) {
         ? isBlocked(closed, picked, date, time)
         : closed.some((b) => b.start === null || b.start === time);
       if (blocked) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
-      // Already taken in Kizen (booked by phone or at the desk) since the form loaded.
+      // Already taken in Kizen (booked by phone or at the desk) since the form loaded. A website booking is only a
+      // request and never reserves a slot, so nothing but Kizen (and the manual closures above) can make it taken.
       if (picked && (await kizenTaken(db, picked).catch(() => new Set<string>())).has(`${date} ${time}`)) {
         return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
       }
-      // Already confirmed for another patient. A 'new'/'contacted' request on this slot is fine (requests don't
-      // block each other until one is confirmed — 022_confirm_before_blocking), but a confirmed one owns it.
-      if (doctorId) {
-        const { data: confirmed } = await db
-          .from("bookings")
-          .select("id")
-          .eq("doctor_id", doctorId)
-          .eq("appointment_date", date)
-          .eq("appointment_time", time)
-          .eq("status", "confirmed")
-          .limit(1);
-        if (confirmed && confirmed.length > 0) return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
-      }
     }
     const { data, error } = await db.from("bookings").insert({ ...booking, source }).select("id, public_token").single();
-    // Unique index bookings_doctor_slot_idx: someone else just took this doctor's slot.
-    if (error?.code === "23505") return Response.json({ ok: false, error: "unavailable" }, { status: 409 });
+    // A website booking never reserves a slot (only Kizen does), so there is no slot-collision to reject here;
+    // several patients may request the same time and reception books the chosen one in Kizen.
     if (error) console.error("Booking insert failed:", error);
     else saved = data;
   }
